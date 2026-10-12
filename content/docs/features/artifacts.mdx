@@ -78,9 +78,9 @@ Revenue grew 12% over the previous quarter.
 | `application/vnd.mermaid` | A Mermaid diagram         | Mermaid source only, without surrounding Markdown.                                                                                                 |
 | `application/vnd.react`   | An interactive React page | A component as the default export that renders without props. See [React Artifacts](#react-artifacts).                                             |
 
-The short names `html`, `svg`, `markdown`, `md`, `mermaid`, and `react` are accepted too, in any letter case. Stick to these types: an unrecognized type is previewed as HTML.
+The short names `html`, `svg`, `markdown`, `md`, `mermaid`, and `react` are accepted too, in any letter case. These are the types intended for model-authored artifacts; a type the renderer does not recognize is previewed as HTML.
 
-LibreChat does not serve placeholder images. The `/api/placeholder/400/320` URL used in the built-in prompt resolves inside the preview sandbox and does not return an image, so ask for inline SVG or CSS shapes instead.
+LibreChat does not serve placeholder images. The `/api/placeholder/400/320` URL used in the built-in prompt resolves inside the preview sandbox and does not return an image, so ask for inline SVG or CSS placeholders instead. Images from reachable HTTPS URLs still load.
 
 ### React Artifacts
 
@@ -95,7 +95,7 @@ These imports are available:
 
 Import shadcn/ui components from `/components/ui/<name>`, not `@/components/ui/<name>` or `/components/<name>`. The available names are `accordion`, `alert`, `alert-dialog`, `avatar`, `badge`, `breadcrumb`, `button`, `calendar`, `card`, `carousel`, `checkbox`, `collapsible`, `dialog`, `drawer`, `dropdown-menu`, `input`, `label`, `menubar`, `navigation-menu`, `pagination`, `popover`, `progress`, `radio-group`, `select`, `separator`, `skeleton`, `slider`, `switch`, `table`, `tabs`, `textarea`, `toast`, `toaster`, `toggle`, `toggle-group`, `tooltip`, and `use-toast`.
 
-No other packages are installed, and an import outside this list fails to build.
+No other packages are installed, and an import outside this list fails to build. The minimal template below names only the libraries the built-in prompt allows; add any of the other installed packages if your agent needs them.
 
 Style React artifacts with Tailwind CSS 3.4, which the preview loads from the Tailwind Play CDN. The built-in prompt forbids arbitrary values such as `h-[600px]`. The Play CDN compiles them, so whether to keep that rule is up to you.
 
@@ -127,9 +127,9 @@ Allowed types:
 - "application/vnd.mermaid": Mermaid diagram source only.
 - "application/vnd.react": a React component as the default export, with no required props.
   - Style it with Tailwind utility classes.
-  - Import only from react, lucide-react, recharts, three, date-fns, react-day-picker, and shadcn/ui components at "/components/ui/<name>" (for example `import { Button } from "/components/ui/button"`). No other libraries are installed.
+  - Import only from react, lucide-react, recharts, three, date-fns, react-day-picker, and shadcn/ui components at "/components/ui/<name>" (for example `import { Button } from "/components/ui/button"`). Do not import any other library.
 
-Do not reference images by URL; draw placeholders with inline SVG or CSS. If a request can't meet these rules, use a regular code block instead of an artifact.
+Draw placeholder images with inline SVG or CSS instead of placeholder-service URLs. If a request can't meet these rules, use a regular code block instead of an artifact.
 `````
 
 ## Preview and Export
