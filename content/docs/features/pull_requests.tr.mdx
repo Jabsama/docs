@@ -2,102 +2,131 @@
 title: Sohbet Çekme İstekleri
 icon: GitPullRequest
 description: >-
-  Ekli bir çalışma alanında kod çalıştıran sohbetler için GitHub çekme isteğini,
-  boyutunu ve CI durumunu gösterin.
+  GitHub, GitLab veya Bitbucket Cloud üzerinde ekli bir çalışma alanında kod
+  çalıştıran sohbetler için pull request veya merge request, boyut ve CI
+  durumunu gösterin.
 ---
 
 {/*
-  PUBLISHING GATE. Do not merge this page until LibreChat-AI/LibreChat#16876 (default-on, token
-  fallback, allowAllRepositories) is merged to dev. Until then, only the blocks marked
-  "Pending" are unreleased. After it merges: re-check the schema in
-  packages/data-provider/src/config.ts, delete the "Older versions" blocks and every Pending marker.
+  Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988), per-user
+  accounts through `oauth` (#16989) and the "Pull request account" setting (#16990). Delete the
+  Pending markers once each merges to dev, and re-check the schema in
+  packages/data-provider/src/config.ts.
   TODO(maintainer): first release version for each part (do not guess).
   TODO(maintainer): requirement 4 (where an admin sets the workspace environment's repository).
-  Add it to "Requirements" once confirmed. Do not publish without it.
+  Add it to "Requirements" once confirmed.
 */}
 
-Bir sohbet, ekli bir çalışma alanında kod çalıştırdığında, worker bulunduğu git dalını (branch) ve commit'ini raporlar. LibreChat, sunucuda tutulan bir token ile eşleşen GitHub çekme isteğini (pull request) bulmak için bu dalı kullanır ve bunu iki yerde gösterir:
+Bir sohbet, ekli bir çalışma alanında kod çalıştırdığında, worker bulunduğu git dalını ve commit'ini raporlar. LibreChat, sunucuda tutulan veya kullanıcının kendi bağlı hesabındaki bir token ile eşleşen çekme isteğini (GitLab üzerinde birleştirme isteği) bulmak için bu dalı kullanır ve bunu iki yerde gösterir:
 
 - **Sohbet başlığı**: pull request simgesi ve bir CI noktası içeren bir çip. Üzerine gelindiğinde veya odaklanıldığında bir kart açılır.
 - **Kenar çubuğu konuşma listesi**: satırın sonunda aynı simge ve CI noktası bulunur. Satır, konuşmanın kendi başlığını korur; çekme isteği (pull request) başlığı yalnızca kartta görünür.
+
+Pull request'ler GitHub (varsayılan), GitLab veya Bitbucket Cloud (**Beklemede**) üzerinden gelebilir. Bir deployment yalnızca bir sağlayıcı kullanır.
 
 ## Gereksinimler [#requirements]
 
 Bir sohbetin bir pull request göstermesi için bunların hepsinin doğru olması gerekir:
 
-1. LibreChat bir GitHub token'ına ve repository kapsamına sahiptir. Bkz. [Setup](#setup).
+1. LibreChat'in bir token ve depo kapsamı (`allowedRepositories` veya `allowAllRepositories`) vardır ya da kullanıcılar kendi hesaplarını bağlarlar. Bkz. [Setup](#setup) ve [Per-user accounts](#per-user-accounts).
 2. Sohbet, düz bir sohbet değil, **ekli bir kod çalışma alanı** (bir kod çalıştırıcısı) kullanır.
 3. Worker kendi branch'ini raporlar. Bu, `LibreChat-AI/code-interpreter` PR #311 veya sonraki bir sürümünden oluşturulmuş bir worker'a ve Code API üzerinde ayarlanmış `CODEAPI_BRIDGE_LANE_GIT=true` değişkenine ihtiyaç duyar. Bkz. [Code Interpreter](/docs/features/code_interpreter#attached-environments-and-pairing).
 
-Bir gereksinim eksikse, sohbetlerde hiçbir çekme isteği (pull request) görünmez ve kullanıcıya herhangi bir hata gösterilmez. Bunun istisnası, ayarlanmış ancak ortam değişkeni boş veya eksik olan bir `token` durumudur: bu durumda aramalar `NOT_CONFIGURED` hatasıyla başarısız olur ve kenar çubuğu satırlarında yeniden dene düğmesiyle birlikte bir uyarı simgesi görüntülenir.
+Bu özellik varsayılan olarak açıktır. Bir token veya depo kapsamı (repository scope) olmadan pasif kalır ve her sohbet, herhangi bir hata vermeden hiçbir çekme isteği (pull request) göstermez. `enabled: false` ayarı, diğer tüm ayarlardan bağımsız olarak özelliği kapatır.
+
+Bunun istisnası, `token` ayarlanmış ancak ortam değişkeni boş veya eksik olduğunda gerçekleşir: bu durumda aramalar `NOT_CONFIGURED` hatasıyla başarısız olur ve kenar çubuğu satırlarında yeniden dene düğmesiyle birlikte bir uyarı simgesi görüntülenir.
 
 ## Kurulum [#setup]
 
-### 1. Bir token oluşturun [#1-create-a-token]
+### 1. Sağlayıcıyı ve ana bilgisayarı seçin [#1-choose-the-provider-and-host]
 
-Yalnızca göstermek istediğiniz depolarla sınırlı, **salt okunur** izinlere sahip, ayrıntılı bir GitHub token'ı kullanın:
+`provider` çekme isteklerinin nerede barınacağını seçer:
+
+| `provider`         | Hizmet                                                                                                    | Varsayılan `host` |
+| ------------------ | --------------------------------------------------------------------------------------------------------- | ----------------- |
+| `github` (varsayılan) | GitHub.com, GitHub Enterprise Server veya bir GitHub Enterprise Cloud veri yerleşimi kiracısı (`*.ghe.com`) | `github.com`      |
+| `gitlab`           | gitlab.com üzerindeki birleştirme istekleri (merge requests) veya kendi kendine barındırılan GitLab        | `gitlab.com`      |
+| `bitbucket`        | Yalnızca Bitbucket Cloud (**Beklemede**)                                                                  | `bitbucket.org`   |
+
+`host` değerini yalnızca GitHub Enterprise Server, bir `*.ghe.com` kiracısı veya kendi kendine barındırılan bir GitLab için ayarlayın:
+
+- Bu bir ana makine adıdır (host name), asla bir URL değildir: şema veya yol içermez, örneğin `github.example.com`.
+- Açık bir bağlantı noktasına (1 ile 65535 arasında), örneğin `git.example.com:8443` şeklinde izin verilir. `:443` ifadesi, https için varsayılan olduğundan kaldırılır.
+- GitHub üzerinde LibreChat, `github.com` için `api.github.com` adresini, `*.ghe.com` kiracısı için `api.<host>` adresini ve Enterprise Server için `https://<host>/api/v3` adresini çağırır. GitLab üzerinde ise `https://<host>/api/v4` ve `https://<host>/api/graphql` adreslerini çağırır.
+- Bitbucket başka hiçbir ana bilgisayarı kabul etmez. `bitbucket.org` dışındaki herhangi bir `host`, belirteci başka bir yere göndermek yerine özelliği devre dışı bırakır.
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      provider: 'gitlab'
+      host: 'gitlab.example.com'
+      allowedRepositories:
+        - 'platform/backend/api'
+        - 'platform/frontend/*'
+```
+
+<Callout type="info" title="Yalnızca librechat.yaml dosyasından oku">
+  `provider`, `host` ve `oauth` yalnızca `librechat.yaml` dosyasından okunur. Bu anahtarların rol, grup, kullanıcı ve kiracı (tenant) yapılandırma geçersiz kılmaları (overrides), belirtecin nereye gönderileceğine ve kullanıcıların hangi uygulamaya erişim izni vereceğine karar verdikleri için göz ardı edilir. Bir geçersiz kılma, bir belirteci başka bir hizmete yönlendiremez. `token` ve `allowedRepositories` gibi diğer anahtarlar, sorumluya (principal) göre hala farklılık gösterebilir.
+</Callout>
+
+### 2. Bir token oluşturun [#2-create-a-token]
+
+Sunucu token'ı, kendi hesabını bağlamamış olan her kullanıcı için kullanılır.
+
+**GitHub**: göstermek istediğiniz depolarla sınırlı, **salt okunur (read-only)** izinlere sahip ayrıntılı (fine-grained) bir token kullanın:
 
 - Çekme istekleri
 - Kontroller
 - İçindekiler
 
 <Callout type="warning" title="İzin başarısızlık modları">
-  **Checks** olmadan, eşleşen her çekme isteği (pull request) yüklenemez. **Contents** olmadan, son komutundan bu yana dalı (branch) ilerlemiş bir sohbet yüklenemez.
+  **Checks** olmadan, eşleşen her çekme isteği (pull request) yüklenemez. **Contents** olmadan, son komutundan bu yana dalı (branch) ilerlemiş bir sohbet yüklenemez, çünkü LibreChat eşleşmeyi doğrulamak için commit'leri karşılaştırır.
 </Callout>
 
-### 2. LibreChat'e token'ı verin [#2-give-librechat-the-token]
+**GitLab**: `read_api` kapsamına sahip bir kişisel, grup veya proje erişim belirteci (access token).
 
-<Callout type="important" title="Beklemede: henüz yayınlanmadı">
-  Ortam değişkeni yedeği, varsayılan olarak açık (default-on) değişikliğinin bir parçasıdır (LibreChat-AI/LibreChat#16876).
-</Callout>
+**Bitbucket Cloud** (**Beklemede**): bir depo, proje veya çalışma alanı erişim belirteci, bearer belirteci olarak gönderilir. LibreChat; çekme isteklerini (pull requests), bunların diffstat'lerini, commit durumlarını ve birleştirme temellerini (merge bases) okur, bu nedenle çekme istekleri ve depolar için okuma erişimi verin.
+
+### 3. LibreChat'e token'ı verin [#3-give-librechat-the-token]
 
 LibreChat bir token'ı şu sırayla arar:
 
-1. `token: "${MY_VAR}"` ifadesi `librechat.yaml` içindedir. Bu bir ortam değişkeni **referansıdır**; YAML dosyasının kendisi token'ı asla barındırmaz.
-2. `token` ayarlanmamışsa, bu ortam değişkenlerinden ayarlanan ilki kullanılır: `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`.
-3. Hiçbir yerde token yok: özellik devre dışı kalır.
+1. `token: "${MY_VAR}"` ifadesi `librechat.yaml` içindedir. Bu bir ortam değişkeni **referansıdır**; YAML dosyasının kendisi hiçbir zaman token'ın değerini tutmaz ve doğrudan yazılan bir token şema tarafından reddedilir.
+2. Eğer `token` ayarlanmamışsa, bu ortam değişkenlerinden ayarlanan ilki kullanılır:
 
-Ayarlanmış ancak çözümlenemeyen (değişken boş veya eksik) bir `token`, `NOT_CONFIGURED` hatası verir. Yukarıdaki üç değişkene geri dönüş **yapmaz**.
+| Sağlayıcı | Sırasıyla yedek değişkenler |
+| --------- | --------------------------------------------------------- |
+| GitHub    | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`   |
+| GitLab    | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN`               |
+| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` (**Beklemede**)              |
 
-<Callout type="info" title="GITHUB_TOKEN yaygın bir isimdir">
-  Eğer dağıtımınız `GITHUB_TOKEN` değerini başka bir amaçla kullanıyorsa, varsayılan olarak açık olan davranış, bir depo kapsamı (repository scope) ayarlandığı anda onu burada kullanmaya başlar. Paylaşımı önlemek için `token` değerini açıkça belirtin veya `GITHUB_PULL_REQUEST_TOKEN` kullanın.
+3. Hiçbir yerde token yok: kullanıcılar kendi hesaplarını bağlamadıkça özellik devre dışı kalır.
+
+Ayarlanmış ancak çözümlenmeyen (değişken boş veya eksik) bir `token`, `NOT_CONFIGURED` hatası verir. Yukarıdaki değişkenlere geri **dönmez**.
+
+<Callout type="info" title="GITHUB_TOKEN ve GITLAB_TOKEN yaygın kullanılan isimlerdir">
+  Dağıtımınız halihazırda bunlardan birini başka bir şey için kullanıyorsa, bir repository kapsamı ayarlandığı anda burada algılanır. Paylaşmaktan kaçınmak için `token` değerini açıkça ayarlayın veya `*_PULL_REQUEST_TOKEN` değişkenini kullanın.
 </Callout>
 
-**Older versions:** `token` is required when the feature is enabled, and must be a `${NAME}` reference such as `"${GITHUB_PULL_REQUEST_TOKEN}"`. There is no environment variable fallback.
+### 4. Hangi depoları inceleyebileceğini seçin [#4-choose-which-repositories-it-may-look-up]
 
-### 3. Hangi depoları inceleyebileceğini seçin [#3-choose-which-repositories-it-may-look-up]
+Worker kendi deposunu rapor eder, bu nedenle sunucu, token'ının hangi depolar için kullanılabileceğine karar vermelidir. Bir kapsam (scope) olmadan özellik devre dışı kalır. İki yol vardır:
 
-Worker kendi deposunu rapor eder, bu nedenle sunucu, token'ın hangi depolar için kullanılabileceğine karar vermelidir. Bir kapsam (scope) olmadan özellik devre dışı kalır. İki yol vardır:
-
-- `allowedRepositories`: `owner/name` veya `owner/*` girdilerinden oluşan bir liste (256'ya kadar). Eşleştirme büyük/küçük harfe duyarlı değildir. `*/*`, `*`, `owner` gibi veya `..` içeren girdiler şema tarafından reddedilir.
-- `allowAllRepositories: true` (**Beklemede**): token'ın okuyabildiği tüm depoları arayın. Varsayılan değer `false`'tur.
+- `allowedRepositories`: `owner/name` veya `owner/*` girdilerinden oluşan bir liste (256'ya kadar). Eşleştirme büyük/küçük harfe duyarlı değildir. GitLab üzerinde girdiler, `group/sub/name` veya `group/sub/*` gibi iç içe geçmiş grup yolları olabilir. `*` tam olarak bir segmenti temsil eder, bu nedenle `group/*` ifadesi `group/sub/name` ile eşleşmez. `*/*`, `*`, `owner` gibi veya `.` ya da `..` segmentleri içeren girdiler şema tarafından reddedilir.
+- `allowAllRepositories: true`: token'ın okuyabildiği herhangi bir depoyu arar. Varsayılan değer `false`'tur.
 
 <Callout type="warning" title="Güvenlik: allowAllRepositories">
-  Bu özellik açıkken, kod çalıştırabilen herhangi bir kullanıcı, sunucunun token'ını bu token'ın okuyabildiği herhangi bir depoya yönlendirebilir ve çekme isteği (pull request) başlığını, boyutunu ve kontrol durumunu görebilir. Yalnızca göstermek istediğiniz depolarla sınırlandırılmış, salt okunur bir token kullanın.
+  Varsayılan olarak kapalıdır çünkü depo, sunucudan değil worker'dan gelir. Bu özellik açıkken, kod çalıştırabilen herhangi bir kullanıcı, sunucunun token'ını o token'ın okuyabildiği herhangi bir depoya yönlendirebilir ve çekme isteği (pull request) başlığını, boyutunu ve kontrol durumunu görebilir. Yalnızca göstermek istediğiniz depolarla sınırlandırılmış, salt okunur bir token kullanın.
 </Callout>
 
-### 4. Etkinleştirin [#4-turn-it-on]
+### 5. Etkinleştirin [#5-turn-it-on]
 
-<Callout type="important" title="Beklemede: henüz yayınlanmadı">
-  Varsayılan olarak açık olma davranışı, LibreChat-AI/LibreChat#16876'nın bir parçasıdır.
-</Callout>
-
-Bir token ve bir depo kapsamı (repository scope) olduğu anda özellik etkinleşir. Ayarlanacak bir `enabled` anahtarı yoktur. `enabled: false` ifadesi, başka ne ayarlanmış olursa olsun özelliği kapatır.
-
-**Eski sürümler:** `enabled: true` gereklidir ve şema, hem `token` hem de boş olmayan bir `allowedRepositories` olmadan `enabled: true` değerini reddeder.
+Ayarlanacak bir anahtar yoktur. Özellik, bir token ve depo kapsamı veya çalışan bir `oauth` uygulaması olduğu anda devreye girer. `enabled: false` ayarı, başka ne ayarlanmış olursa olsun özelliği kapatır.
 
 ### Minimal örnekler [#minimal-examples]
 
-Sunucu ortamında `GITHUB_TOKEN` ayarlanmış şekilde, varsayılan olarak açık form (**Beklemede**):
-
-```yaml filename="librechat.yaml"
-endpoints:
-  agents:
-    pullRequests:
-      allowAllRepositories: true
-```
-
-Belirli depolarla sınırlandırılmıştır (**Beklemede**, aynı belirteç yedeği):
+GitHub, sunucu ortamında `GITHUB_PULL_REQUEST_TOKEN` ayarlanmış şekilde:
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -108,18 +137,195 @@ endpoints:
         - 'my-org/*'
 ```
 
-Eski sürümlerde çalışan form:
+GitHub Enterprise Server, açık bir token referansı ile:
 
 ```yaml filename="librechat.yaml"
 endpoints:
   agents:
     pullRequests:
-      enabled: true
-      token: '${GITHUB_PULL_REQUEST_TOKEN}'
-      allowedRepositories: ['LibreChat-AI/LibreChat']
+      host: 'github.example.com'
+      token: '${GHES_PULL_REQUEST_TOKEN}'
+      allowedRepositories: ['platform/*']
 ```
 
-Tüm anahtarlar ve ince ayar seçenekleri dahil olmak üzere [`pullRequests` referansına](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests) bakın.
+Bitbucket Cloud (**Beklemede**), `BITBUCKET_PULL_REQUEST_TOKEN` ayarlanmış şekilde:
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      provider: 'bitbucket'
+      allowedRepositories: ['my-workspace/*']
+```
+
+Her bir anahtar için [`pullRequests` referansına](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests) bakın.
+
+## Kullanıcı bazlı hesaplar [#per-user-accounts]
+
+<Callout type="important" title="Beklemede: henüz yayınlanmadı">
+  Kullanıcı bazlı hesaplar, LibreChat-AI/LibreChat#16989 ve #16990'ın bir parçasıdır.
+</Callout>
+
+`oauth` ayarlandığında, her kullanıcı kendi GitHub, GitLab veya Bitbucket hesabını **Ayarlar > Hesap** bölümünde, **Pull request hesabı** altında bağlayabilir. Bu durumda aramaları, sunucununki yerine kendi belirteçleri (token), hız sınırları ve depo erişim hakları ile gerçekleştirilir.
+
+- Bağlı bir kullanıcının belirteci (token), yalnızca o kullanıcının zaten görebildiği şeyleri görür, bu nedenle `allowedRepositories` kısıtlamasına tabi değildir.
+- Henüz bağlantı kurmamış kullanıcılar, depo kapsamı altındaki sunucu belirtecini (server token) kullanmaya devam ederler. Sunucu belirteci olmadığında, bağlantı kurana kadar hiçbir çekme isteği (pull request) göremezler.
+- Çalışan bir `oauth` uygulamasıyla, bir sunucu belirteci (server token) veya depo kapsamı (repository scope) olmasa bile özellik açıktır.
+- **Disconnect**, saklanan izni kaldırır. Kullanıcı istediği zaman tekrar bağlanabilir.
+- Bağlı bir kullanıcının belirteci (token), sağlayıcı veya anahtar deposu kapalı olduğu için yenilenemezse, arama işlemleri çekme isteğini (pull request) kullanılamaz olarak raporlar. Bu kullanıcılar, kendilerininkinden daha azını görebilecek olan sunucu belirtecine **geri dönmezler**.
+- Eğer sağlayıcı yenilemeyi kesin olarak reddederse (yetki iptal edilmişse), bağlantı kaldırılır. Kullanıcı daha sonra bağlantısı kesilmiş olarak gösterilir ve hiç bağlanmamış herhangi bir kullanıcı gibi işleme tabi tutulur.
+- Grants, kullanıcı ve sağlayıcı ana bilgisayarı başına bir tane olacak şekilde şifrelenmiş olarak saklanır. `clientId` değerini farklı bir uygulamayla değiştirmek, mevcut bağlantıların bağlantısı kesilmiş gibi görünmesine neden olur, bu nedenle kullanıcıların tekrar bağlanması gerekir.
+
+### Uygulamayı yapılandırın [#configure-the-app]
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      oauth:
+        clientId: '${GITHUB_PR_OAUTH_CLIENT_ID}'
+        clientSecret: '${GITHUB_PR_OAUTH_CLIENT_SECRET}'
+      # optional: the server token for users who have not connected
+      allowedRepositories: ['my-org/*']
+```
+
+| Anahtar                  | Varsayılan                                                    | Aralık  | Açıklama                                                                                                          |
+| ----------------------- | ------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------- |
+| `clientId`              | gerekli                                                       |         | Ortam değişkeni referansı, değerin kendisi değil.                                                                 |
+| `clientSecret`          | gerekli                                                       |         | Ortam değişkeni referansı, değerin kendisi değil.                                                                 |
+| `scope`                 | GitHub'da yok, GitLab'da `read_api`, Bitbucket'ta tüketicinin kendi kapsamı |         | Talep edilecek boşlukla ayrılmış kapsamlar. Sadece harfler, rakamlar, `_`, `:`, `.`, `-` ve boşluklar, 256 karaktere kadar. |
+| `flowTimeoutMinutes`    | 10                                                            | 1-60    | Bir kullanıcının sağlayıcı tarafında bağlantıyı onaylaması için tanınan dakika süresi.                             |
+| `requestTimeoutSeconds` | 10                                                            | 1-60    | Bir kod değişimi veya token yenileme işleminin sürebileceği saniye cinsinden süre.                                |
+| `retentionDays`         | 180                                                           | 1-3650  | Bir bağlantının kullanılmadan tutulacağı gün sayısı. Her kullanım süreyi uzatır.                                  |
+
+Eğer referanslardan herhangi biri çözümlenmezse, kullanıcılar bağlanamaz ve yalnızca sunucu belirteci (server token) kullanılır. Bağlantı akışı ayrıca her LibreChat dağıtımının ayarladığı `JWT_SECRET` değerine de ihtiyaç duyar.
+
+Bu geri çağırma (callback) URL'sini uygulama ile kaydedin; burada `DOMAIN_SERVER`, sunucunuzun herkese açık URL'sidir:
+
+```
+<DOMAIN_SERVER>/api/pull-requests/oauth/callback
+```
+
+### Uygulamayı kaydedin [#register-the-app]
+
+<Tabs items={["GitHub", "GitLab", "Bitbucket"]}>
+<Tabs.Tab>
+
+Bir GitHub App önerilir: kullanıcı belirteçleri (user tokens) herhangi bir kapsam gerektirmez ve yalnızca uygulamanın yüklü olduğu depolara erişebilir.
+
+<Steps>
+<Step>
+
+Hesabınız veya kuruluşunuz için **Settings > Developer settings > GitHub Apps > New GitHub App** yolunu izleyin. GitHub Enterprise Server veya `*.ghe.com` üzerinde, ilgili ana bilgisayardaki aynı sayfayı kullanın.
+
+</Step>
+<Step>
+
+**Callback URL** değerini `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` olarak ayarlayın. **Webhook** altında, **Active** seçeneğinin işaretini kaldırın.
+
+</Step>
+<Step>
+
+**Repository permissions** altında, **Pull requests**, **Checks** ve **Contents** seçeneklerini **Read-only** olarak ayarlayın.
+
+</Step>
+<Step>
+
+Uygulamayı oluşturun, ardından **Client ID** değerini kopyalayın ve bir **client secret** oluşturun. Bunları ortam değişkenlerinde saklayın ve `oauth.clientId` ile `oauth.clientSecret` üzerinden referans verin.
+
+</Step>
+<Step>
+
+Uygulamayı, kullanıcıların depolarını görmesi gereken hesaplara veya kuruluşlara yükleyin.
+
+</Step>
+</Steps>
+
+Klasik bir OAuth Uygulaması da çalışır, ancak `scope: 'repo'` gibi salt okunur erişimden daha fazlasını sağlayan bir kapsam gerektirir.
+
+</Tabs.Tab>
+<Tabs.Tab>
+
+<Steps>
+<Step>
+
+`host` içinde ayarlanan GitLab ana bilgisayarında **Edit profile > Applications** (veya bir grubun ya da örneğin **Applications** sayfası) kısmını açın.
+
+</Step>
+<Step>
+
+**Redirect URI** değerini `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` olarak ayarlayın, **Confidential** seçeneğinin işaretli kalmasını sağlayın ve `read_api` kapsamını seçin.
+
+</Step>
+<Step>
+
+Kaydedin, ardından **Application ID** ve **Secret** değerlerini `oauth.clientId` ve `oauth.clientSecret` tarafından referans verilen ortam değişkenlerine kopyalayın. `provider: 'gitlab'` olarak ayarlayın ve kendi kendine barındırılan (self-managed) bir GitLab için `host` değerini belirtin.
+
+</Step>
+</Steps>
+
+</Tabs.Tab>
+<Tabs.Tab>
+
+<Steps>
+<Step>
+
+Bitbucket Cloud üzerinde **Workspace settings > OAuth consumers > Add consumer** yolunu açın.
+
+</Step>
+<Step>
+
+**Callback URL** kısmını `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` olarak ayarlayın ve **Pull requests: Read** ile **Repositories: Read** izinlerini verin. LibreChat, Bitbucket üzerinde herhangi bir kapsam (scope) talep etmez, bu nedenle tüketicinin izinleri, kullanıcıların verdiği izinlerden ibarettir.
+
+</Step>
+<Step>
+
+Kaydedin, ardından tüketicinin **Key** ve **Secret** değerlerini `oauth.clientId` ve `oauth.clientSecret` tarafından referans verilen ortam değişkenlerine kopyalayın. `provider: 'bitbucket'` olarak ayarlayın.
+
+</Step>
+</Steps>
+
+</Tabs.Tab>
+</Tabs>
+
+## Replikalar ile ölçeklendirme [#scaling-with-replicas]
+
+<Callout type="important" title="Beklemede: henüz yayınlanmadı">
+  `sharedCache`, LibreChat-AI/LibreChat#16988'in bir parçasıdır.
+</Callout>
+
+Her kopya sonuçları bellekte önbelleğe alır. Birden fazla kopya olduğunda, `sharedCache: true` ayarını yapın; böylece Redis aracılığıyla aranan çekme isteklerini (pull requests) ve hız sınırı bekleme sürelerini paylaşırlar ve her biri aynı yanıt için token harcamaz.
+
+- Yalnızca dağıtım Redis (`USE_REDIS`) ile çalıştığında geçerli olur. Varsayılan: `false`.
+- Her kopya, paylaşılan önbelleğin önünde, her iki durumda da kendi bellek içi önbelleğini tutar.
+- `sharedCacheTimeoutMs` (10-5000, varsayılan 250), her paylaşılan önbellek okuma veya yazma işlemini sınırlandırır. Daha yavaş bir Redis atlanır ve arama işlemi onsuz devam eder.
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      allowedRepositories: ['my-org/*']
+      sharedCache: true
+      sharedCacheTimeoutMs: 250
+```
+
+## İnce Ayar [#tuning]
+
+Varsayılan ayarlar çoğu dağıtım için uygundur.
+
+| Anahtar | Aralık | Varsayılan | Açıklama |
+| -------------------------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
+| `cacheTtlSeconds` | 5-3600 | 30 | Sağlayıcıya tekrar sorulmadan önce bir sonucun yeniden kullanılacağı saniye sayısı. Hatalar en fazla 10 saniye boyunca hatırlanır. |
+| `cacheMaxEntries` | 10-100000 | 500 | En eskisi çıkarılmadan önce kimlik bilgisi başına önbelleğe alınan sonuç sayısı. |
+| `cacheMaxCredentials` | 1-10000 | 256 | Dağıtım genelinde aynı anda önbelleğe alınan kimlik bilgisi sayısı. En uzun süre boşta kalan düşürülür. |
+| `maxConcurrentLookups` | 1-16 | 4 | Bir kenar çubuğu isteğinin aynı anda çalıştırdığı arama sayısı, istekler genelinde kimlik bilgisi başına sayılır. |
+| `batchTimeoutSeconds` | 1-120 | 20 | Bir kenar çubuğu isteğinin açık kalabileceği en uzun süre. |
+| `requestTimeoutSeconds` | 1-60 | 10 | Bir sağlayıcı isteğinin sürebileceği en uzun süre. Yavaş bir proxy arkasında artırın. |
+| `lookupTimeoutSeconds` | 1-120 | 30 | Tüm istekler dahil olmak üzere bir aramanın sürebileceği en uzun süre. |
+| `maxCheckRunPages` | 1-50 | 10 | Kontroller çalışıyor olarak raporlanmadan önce okunan kontrol çalıştırmaları (GitHub) veya commit durumları (Bitbucket) sayfası. |
+| `maxCandidatePullRequests` | 1-100 | 10 | Yeniden kullanılan bir dal adı eşleştirilirken durum başına listelenen çekme istekleri (pull requests). |
+| `maxCandidatePages` | 1-10 | 1 | Durum başına okunan aday sayfaları. Her sayfa bir istektir. |
+| `maxHeadComparisons` | 0-20 | 3 | Arama vazgeçmeden önce sohbetin en son çalıştığı commit ile karşılaştırılan aday sayısı. Her biri bir istektir. |
 
 ## Kullanıcıların gördükleri [#what-users-see]
 
@@ -138,10 +344,10 @@ Tüm anahtarlar ve ince ayar seçenekleri dahil olmak üzere [`pullRequests` ref
 
 ### Kart [#the-card]
 
-Kart; `PR #number` ifadesini, yeşil renkte `+additions` değerini, kırmızı renkte `-deletions` değerini, GitHub üzerindeki pull request'i açan bir bağlantıyı, pull request başlığını ve iki rozeti gösterir:
+The card shows `PR #number` (`MR !number` on GitLab), `+additions` in green, `-deletions` in red, an **Open in GitHub**, **Open in GitLab** or **Open in Bitbucket** link, the title, and two badges:
 
 - **Durum**: Open, Draft, Merged veya Closed.
-- **Kontroller**: Başarılı (Passing), Başarısız (Failing), Çalışıyor (Running) veya hiçbiri (none).
+- **Checks**: Başarılı (Passing), Başarısız (Failing), Çalışıyor (Running) veya hiçbiri. GitLab üzerinde bu, yalnızca mevcut ana commit için çalıştığında sayılan ana pipeline'dır. Bitbucket üzerinde ise commit durumlarıdır.
 
 {/* TODO(docs): add the screenshots from LibreChat PRs #16794 and #16815. */}
 
@@ -160,19 +366,21 @@ CI nokta renkleri: başarılı olduğunda yeşil, başarısız olduğunda kırm�
 ## Bir pull request nasıl eşleştirilir [#how-a-pull-request-is-matched]
 
 1. Worker, sohbetin en son çalıştığı depoyu, dalı ve commit'i (head) raporlar.
-2. LibreChat, o dal için açık olan çekme isteklerini (pull requests) ilk sırada listeler, bu nedenle yeniden kullanılan bir dal adındaki kapalı geçmiş, açık olanı gizleyemez. Ardından, çatallardan (forks) gelen açık çekme isteklerini (commit aracılığıyla bulunan) ve sonrasında kapalı olanları kontrol eder.
-3. Kaydedilmiş bir commit ile, bir pull request yalnızca başı o commit ise veya onun üzerine inşa edilmişse sayılır. Bu, silinmiş ve yeniden kullanılmış bir dal adının eski bir pull request'i göstermesini engeller.
-4. Henüz hiçbir commit içermeyen bir dal (yeni, boş bir dal) hiçbir şeyle eşleşmez.
-5. Sonuç; kimlik bilgisi, depo, dal ve commit başına önbelleğe alınır.
-6. Check runs, pull request'in mevcut head'i için okunur. Bir fork'tan gelen pull request için, check'ler yalnızca o fork'un deposu kapsam dahilinde olduğunda (listelenmişse veya `allowAllRepositories` ise) fork'tan okunur. Aksi takdirde temel depo okunur ve token hiçbir zaman listelenmemiş bir fork'a gitmez.
+2. Eğer sohbetin kendi komut çıktısı, yapılandırılmış ana bilgisayardaki o deponun bir çekme isteğine (pull request) bağlantı veriyorsa (örneğin `gh pr create` komutunun yazdırdığı bağlantı), bu çekme isteği, baş kısmı sohbetin dalı (branch) olduğu sürece doğrudan okunur. Diğer depolara veya diğer ana bilgisayarlara verilen bağlantılar göz ardı edilir.
+3. Aksi takdirde LibreChat, o dal için açık olan çekme isteklerini (pull requests) önce listeler, böylece yeniden kullanılan bir dal adındaki kapalı geçmiş, açık olanı gizleyemez. Ardından çatallardan (forks) gelen açık çekme isteklerini, sonrasında ise kapalı olanları kontrol eder.
+4. Kaydedilmiş bir commit ile, bir pull request yalnızca başı o commit ise veya onun üzerine inşa edilmişse sayılır. Bu, silinmiş ve yeniden kullanılmış bir dal adının eski bir pull request'i göstermesini engeller. Bir fork'tan gelen pull request, herkes aynı isimle bir fork dalı açabileceğinden, yalnızca kaydedilmiş commit'i taşıdığında sayılır.
+5. Henüz hiçbir commit içermeyen bir dal (yeni, boş bir dal) hiçbir şeyle eşleşmez.
+6. Sonuç; kimlik bilgisi, depo, dal ve commit başına önbelleğe alınır.
+7. GitHub üzerinde, kontrol çalıştırmaları (check runs) çekme isteğinin (pull request) mevcut başı için okunur. Bir çataldan (fork) gelen çekme isteği için kontroller, yalnızca o çatalın deposu kapsam dahilinde olduğunda (listelenmişse veya `allowAllRepositories` olarak ayarlanmışsa) çataldan okunur. Aksi takdirde temel depo okunur ve belirteç (token) asla listelenmemiş bir çatala gitmez.
 
 ## Davranış [#behavior]
 
 ### Hız sınırları [#rate-limits]
 
-- Kimlik bilgisi için bir GitHub hız sınırı geçerlidir, bu nedenle bu belirteç (token) altındaki her dal için aramaları duraklatır.
-- Minimum bekleme süresi 10 saniyedir. Bekleme süresi belirtilmeyen ikincil bir sınır 60 saniye bekletir. GitHub tarafından adlandırılan bir bekleme süresi dikkate alınır ve 1 saat ile sınırlandırılır.
+- Bir sağlayıcı ana bilgisayarındaki kimlik bilgisi için bir hız sınırı geçerlidir, bu nedenle bu belirteç altındaki her dal için aramaları duraklatır. Kullanıcı başına hesaplarda, her kullanıcının sınırı kendisine aittir.
+- Minimum bekleme süresi 10 saniyedir ve sağlayıcı tarafından belirtilen bekleme süresi, 1 saat ile sınırlandırılmak kaydıyla dikkate alınır. GitHub üzerinde, bekleme süresi belirtilmeyen ikincil bir sınır 60 saniyelik duraklamalara neden olur.
 - Bir duraklama sırasında, aramalar `RATE_LIMITED` yanıtını verir ve satırlar yeniden deneme durumunu gösterir.
+- `sharedCache` ile, bir replikada başlatılan duraklatma her replikaya uygulanır.
 
 ### Kademeli yükseltmeler [#rolling-upgrades]
 
@@ -181,29 +389,36 @@ CI nokta renkleri: başarılı olduğunda yeşil, başarısız olduğunda kırm�
 
 ### Ayarlanmadığında varsayılanlar [#defaults-when-unset]
 
-- Herhangi bir token veya depo kapsamı (repository scope) olmadığında, özellik devre dışı kalır: başlangıç yapılandırmasında hiçbir şey duyurulmaz, hiçbir şey kaydedilmez ve hiçbir şey gösterilmez.
+- Herhangi bir token veya depo kapsamı (repository scope) ve `oauth` uygulaması olmadığında, özellik pasif durumdadır: başlangıç yapılandırmasında hiçbir şey duyurulmaz, hiçbir şey kaydedilmez ve hiçbir şey gösterilmez.
 - Yapılandırmada özellik kapalıyken, mevcut sohbetler değişmez ve istemci yeni rotaları asla çağırmaz.
 
 ## Güvenlik modeli [#security-model]
 
-- Token sunucuda yaşar. Tarayıcıya asla gönderilmez ve hata yanıtları hiçbir zaman GitHub'ın yanıt metnini, token'ı veya yığın izlerini (stack traces) içermez.
-- Belirteç (token) yalnızca kapsam dahilindeki depolar için kullanılır. Kapsam dahilinde olmayan bir çatal (fork) deposuna asla gönderilmez.
-- İki `/api/convos` arama rotası, kimliği doğrulanmış bir kullanıcı gerektirir ve sahip kapsamlıdır (owner-scoped). Eksik, süresi dolmuş veya başka bir kullanıcıya ait olan bir konuşma, herhangi bir çekme isteği (pull request) olmayan bir konuşmayla aynı şekilde görünür.
-- Yalnızca göstermek istediğiniz depolara erişimi olan, salt okunur ve kapsamı sınırlandırılmış bir token kullanın.
+- Token'lar sunucuda barındırılır. Tarayıcıya asla gönderilmezler ve hata yanıtları hiçbir zaman sağlayıcının yanıt metnini, token'ı veya yığın izlerini (stack traces) içermez.
+- Sunucu belirteci (server token) yalnızca kapsam dahilindeki depolar için ve yalnızca yapılandırılmış ana bilgisayarda kullanılır. Kapsam dışındaki bir çatal (fork) için asla gönderilmez.
+- `provider`, `host` ve `oauth` yalnızca `librechat.yaml` dosyasından gelir; bu nedenle bir rol, grup, kullanıcı veya kiracı geçersiz kılması (override), başka bir hizmete token gönderemez veya uygulama kullanıcılarının erişim izni verdiği hesabı değiştiremez.
+- `/api/convos` arama rotaları, kimliği doğrulanmış bir kullanıcı gerektirir ve sahip kapsamlıdır (owner-scoped). Eksik, süresi dolmuş veya başka bir kullanıcıya ait olan bir konuşma, herhangi bir çekme isteği (pull request) olmayan bir konuşmayla aynı şekilde görünür.
+- Yalnızca göstermek istediğiniz depolarla sınırlı, salt okunur bir token kullanın.
 
 ## Sorun Giderme [#troubleshooting]
 
 | Belirti | Muhtemel neden | Çözüm |
 | ------------------------------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Hiçbir yerde çip ve kenar çubuğu işareti yok | Token yok, depo kapsamı yok veya `enabled: false` | [Kurulum](#setup) bölümünü kontrol edin. Giriş yapmış durumdayken `/api/config` adresini açın ve `pullRequestsEnabled: true` değerini arayın. |
-| Başlık çipi çalışıyor, kenar çubuğu satırları hiçbir şey göstermiyor | `/api/config` içinde `pullRequestsBatchVersion` eksik (eski yapı veya güncel olmayan sekme) | Sunucuyu yeniden oluşturun veya yükseltin, yeniden başlatın ve sert bir şekilde yeniden yükleyin. `pullRequestsBatchVersion: 1` olduğunu doğrulayın. |
-| Çip sadece bazı sohbetlerde görünüyor | Sadece bir dal bildiren ekli bir kod çalışma alanındaki sohbetlerin bir şeridi vardır | Code API üzerinde `CODEAPI_BRIDGE_LANE_GIT=true` değerini ve code-interpreter PR #311 veya sonrası ile oluşturulmuş bir çalışanı doğrulayın. |
-| Yeniden deneme ile uyarı simgesi | Arama başarısız oldu (hız sınırı, GitHub hatası veya `NOT_CONFIGURED`) | Yeniden deneyin. Eğer sürekliyse, token'ı ve izinlerini kontrol edin. |
-| `NOT_CONFIGURED` | `token` ayarlanmış ancak değişkeni boş veya eksik | Değişkeni ayarlayın. **Beklemede:** veya yedek değişkenleri kullanmak için `token` değerini kaldırın. |
-| Çekme istekleri yükleniyor ancak kontroller yanlış görünüyor veya başarısız oluyor | Token, Kontroller (Checks) veya İçerik (Contents) iznine sahip değil | Salt okunur Kontroller ve İçerik izinlerini verin. |
-| Bir çataldan (fork) gelen çekme isteği hiçbir kontrol göstermiyor | Çatal kapsam dahilinde değil, bu nedenle kontroller temel depodan okunuyor | Çatal sahibini `allowedRepositories` içine ekleyin. **Beklemede:** veya `allowAllRepositories: true` olarak ayarlayın. |
+| Hiçbir yerde çip ve kenar çubuğu işareti yok | Token yok, depo kapsamı yok veya `enabled: false` | [Setup](#setup) bölümünü kontrol edin. Giriş yapmışken `/api/config` adresini açın ve `pullRequestsEnabled: true` değerini arayın. |
+| Ekli bir çalışma alanındaki sohbet için çip yok | Depo `allowedRepositories` içinde değil | Depoyu veya sahibini `owner/*` olarak ekleyin. Kapsam dışı bir depo, çekme isteği olmayan bir depo ile aynı görünür. |
+| Çip sadece bazı sohbetlerde görünüyor | Yalnızca bir dal bildiren ekli bir kod çalışma alanındaki sohbetlerin şeridi vardır | Code API üzerinde `CODEAPI_BRIDGE_LANE_GIT=true` olduğunu ve code-interpreter PR #311 veya sonraki bir sürümden oluşturulmuş bir worker olduğunu doğrulayın. |
+| Başlık çipi çalışıyor, kenar çubuğu satırları hiçbir şey göstermiyor | `/api/config` içinde `pullRequestsBatchVersion` eksik (eski yapı veya eski sekme) | Sunucuyu yeniden oluşturun veya yükseltin, yeniden başlatın ve zorunlu yenileme (hard reload) yapın. `pullRequestsBatchVersion: 1` olduğunu doğrulayın. |
+| Yeniden deneme ile uyarı simgesi | Arama başarısız oldu (hız sınırı, sağlayıcı hatası veya `NOT_CONFIGURED`) | Yeniden deneyin. Eğer sürekli oluyorsa, token'ı ve izinlerini kontrol edin. |
+| `NOT_CONFIGURED` | `token` ayarlanmış ancak değişkeni boş veya eksik | Değişkeni ayarlayın veya yedek değişkenleri kullanmak için `token` değerini kaldırın. |
+| Her GitHub çekme isteği yüklenemiyor | Token'ın Checks (Kontroller) izni eksik | Salt okunur Checks izni verin. |
+| Sadece dal ilerledikten sonra başarısız oluyor | Token'ın Contents (İçerik) izni eksik, bu yüzden commit'ler karşılaştırılamıyor | Salt okunur Contents izni verin. |
+| Sık `RATE_LIMITED` hatası | Birçok kullanıcı sunucu token'ını paylaşıyor veya her kopya sağlayıcıya ayrı ayrı istek gönderiyor | `cacheTtlSeconds` değerini yükseltin, `maxConcurrentLookups` değerini düşürün, Redis ile `sharedCache: true` ayarını yapın veya kullanıcıların kendi hesaplarını bağlamasına izin verin. |
+| Bir fork'tan gelen çekme isteği hiçbir kontrol göstermiyor | Fork kapsamda değil, bu yüzden kontroller temel depodan okunuyor | Fork sahibini `allowedRepositories` içine ekleyin veya `allowAllRepositories: true` olarak ayarlayın. |
+| GitLab veya Bitbucket hiçbir şey göstermiyor | `provider` ayarlanmamış veya `host`, projenin bulunduğu yerle eşleşmiyor | `provider` değerini ayarlayın. Kendi kendine barındırılan (self-managed) GitLab için `host` değerini ana bilgisayar adına ayarlayın. Bitbucket yalnızca varsayılan `bitbucket.org` ana bilgisayarı ile çalışır. |
+| `gh pr create` tarafından yazdırılan bağlantı algılanmıyor | Bağlantı, şeridin bulunduğu ana bilgisayardan veya depodan farklı bir yere işaret ediyor | `host` değerini kontrol edin. Yalnızca yapılandırılmış ana bilgisayardaki ve şeridin deposundaki bağlantılar sayılır. |
+| Bağlı kullanıcılar "unavailable" (kullanılamaz) görüyor | Sağlayıcı veya anahtar deposu token'larını yenileyemedi | Daha sonra tekrar deneyin. Bağlı kullanıcılar için aramalar sunucu token'ına geri dönmez. |
 | Çok kez yeniden kullanılan bir dal adı için çekme isteği yok | `maxCandidatePullRequests`, `maxCandidatePages` veya `maxHeadComparisons` değerleri, ismin ne sıklıkla yeniden kullanıldığına göre çok düşük, bu yüzden arama eşleşen çekme isteğine ulaşmadan duruyor | Bu değerleri yükseltin. |
-| Bir proxy arkasında yavaş veya zaman aşımına uğrayan aramalar | `requestTimeoutSeconds` çok düşük | Yükseltin. `HTTPS_PROXY` ve `NO_PROXY` ayarlarını kontrol edin. |
+| Bir proxy arkasında yavaş veya zaman aşımına uğrayan aramalar | `requestTimeoutSeconds` çok düşük | Değeri yükseltin. `HTTPS_PROXY` ve `NO_PROXY` ayarlarını kontrol edin. |
 
 ## API referansı [#api-reference]
 
@@ -226,6 +441,15 @@ Aşağıdaki her iki `/api/convos` rotası da kimliği doğrulanmış bir kullan
 - **200**: `{ "results": [ { "conversationId", "pullRequest" } | { "conversationId", "error": { "code" } } ] }`, talep edilen sırada. Başarısız olan bir arama, diğerlerini gizlemez.
 - Eksik bir token yalnızca ona ihtiyaç duyan girdilerin başarısız olmasına neden olur.
 
+### Hesap bağlantısı (**Beklemede**) [#account-connection-pending]
+
+Bu rotalar yalnızca `JWT_SECRET` ayarlandığında mevcuttur. Geri çağırma (callback) dışındakilerin tümü kimliği doğrulanmış bir kullanıcı gerektirir.
+
+- `GET /api/pull-requests/oauth/connect`: bir bağlantı başlatır ve açılacak sağlayıcı sayfasını içeren `{ "url" }` yanıtını döner.
+- `GET /api/pull-requests/oauth/callback`: sağlayıcının kullanıcıyı geri yönlendirdiği yer.
+- `GET /api/pull-requests/oauth/status`: kullanıcının bağlı olup olmadığı.
+- `DELETE /api/pull-requests/oauth`: kullanıcının bağlantısını keser.
+
 ### Başlangıç yapılandırması [#startup-config]
 
 `GET /api/config` şu alanları içerir. Bunlar sunucu tarafından ayarlanır; kullanıcı ayarları değildir.
@@ -233,5 +457,6 @@ Aşağıdaki her iki `/api/convos` rotası da kimliği doğrulanmış bir kullan
 - `pullRequestsEnabled` (boole değeri)
 - `pullRequestsBatchVersion` (`1`, yalnızca özellik açıkken mevcuttur)
 - `pullRequestsMaxConcurrentLookups` (sayı, yalnızca özellik açıkken mevcuttur)
+- `pullRequestsConnect` (`github`, `gitlab` veya `bitbucket`, yalnızca kullanıcılar kendi hesaplarını bağlayabildiğinde mevcuttur; **Beklemede**)
 
 Yalnızca yukarıda listelenen hata kodları kararlıdır.

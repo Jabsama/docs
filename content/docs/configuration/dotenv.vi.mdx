@@ -1578,37 +1578,53 @@ Các môi trường được gắn tên (named attached environments) cũng có 
 
 ## Conversation Pull Requests [#conversation-pull-requests]
 
-Các cài đặt để hiển thị pull request GitHub của một cuộc trò chuyện. Xem [Conversation Pull Requests](/docs/features/pull_requests) và [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests).
+Các cài đặt để hiển thị pull request của cuộc trò chuyện từ GitHub, GitLab hoặc Bitbucket Cloud. Xem [Conversation Pull Requests](/docs/features/pull_requests) và [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests).
 
-<Callout type="important" title="Đang chờ xử lý: chưa được phát hành">
-  Ba biến token dự phòng là một phần của LibreChat-AI/LibreChat#16876. Trong các phiên bản cũ hơn, hãy thiết lập biến mà `token: "${NAME}"` tham chiếu đến.
-</Callout>
+Các biến dự phòng chỉ được sử dụng khi `pullRequests.token` không được thiết lập và chỉ những biến của `provider` được cấu hình mới được đọc, theo thứ tự được liệt kê. Hãy thiết lập chúng trên máy chủ LibreChat.
 
 <OptionTable
   options={[
     [
       'GITHUB_PULL_REQUEST_TOKEN',
       'string',
-      'Đang chờ xử lý. Token GitHub chỉ đọc dự phòng khi `pullRequests.token` không được thiết lập. Đã thử trước tiên. Được thiết lập trên máy chủ LibreChat.',
+      'Token GitHub chỉ đọc dự phòng. Đã thử trên GitHub trước.',
       '# GITHUB_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'GITHUB_TOKEN',
       'string',
-      'Đang chờ xử lý. Token dự phòng, đã thử lần thứ hai. Đây là một tên gọi phổ biến: nếu quá trình triển khai của bạn đã sử dụng nó cho mục đích khác, thì dự phòng sẽ bắt đầu sử dụng nó tại đây ngay khi phạm vi kho lưu trữ được thiết lập.',
+      'Token GitHub dự phòng, đã thử cái thứ hai. Đây là một tên gọi phổ biến: nếu quá trình triển khai của bạn đã sử dụng nó cho mục đích khác, thì dự phòng sẽ bắt đầu sử dụng nó tại đây ngay khi phạm vi kho lưu trữ được thiết lập.',
       '# GITHUB_TOKEN=your-read-only-token',
     ],
     [
       'GH_TOKEN',
       'string',
-      'Đang chờ xử lý. Token dự phòng, đã thử lần thứ ba.',
+      'Token GitHub dự phòng, đã thử cái thứ ba.',
       '# GH_TOKEN=your-read-only-token',
+    ],
+    [
+      'GITLAB_PULL_REQUEST_TOKEN',
+      'string',
+      'Token GitLab dự phòng với phạm vi `read_api`. Được thử nghiệm đầu tiên trên GitLab.',
+      '# GITLAB_PULL_REQUEST_TOKEN=your-read-api-token',
+    ],
+    [
+      'GITLAB_TOKEN',
+      'string',
+      'Token GitLab dự phòng, đã thử cái thứ hai. Đây cũng là một tên gọi phổ biến; xem `GITHUB_TOKEN`.',
+      '# GITLAB_TOKEN=your-read-api-token',
+    ],
+    [
+      'BITBUCKET_PULL_REQUEST_TOKEN',
+      'string',
+      'Đang chờ xử lý. Token truy cập dự phòng cho kho lưu trữ, dự án hoặc không gian làm việc của Bitbucket Cloud với quyền đọc đối với các pull request và kho lưu trữ.',
+      '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'Biến mà `pullRequests.token: "${NAME}"` tham chiếu đến. Được thiết lập trên máy chủ LibreChat.',
-      '# MY_GITHUB_TOKEN=your-read-only-token',
+      'Biến mà `pullRequests.token: "${NAME}"` tham chiếu đến. Cũng được sử dụng cho `pullRequests.oauth.clientId` và `clientSecret` (Đang chờ xử lý), vốn cũng là các tham chiếu.',
+      '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
       'CODEAPI_BRIDGE_LANE_GIT',
@@ -1619,7 +1635,9 @@ Các cài đặt để hiển thị pull request GitHub của một cuộc trò 
   ]}
 />
 
-Các yêu cầu GitHub sử dụng cài đặt proxy của quá trình triển khai (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` và các dạng chữ thường của chúng), và `NO_PROXY` được tuân thủ. Các cài đặt này được chia sẻ với lưu lượng truy cập gửi đi khác của LibreChat và không dành riêng cho tính năng này.
+Người dùng kết nối tài khoản của riêng họ (Đang chờ xử lý) cần `JWT_SECRET`, dùng để ký quy trình kết nối, và `DOMAIN_SERVER`, dùng để tạo URL callback `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` (Đang chờ xử lý) chỉ có hiệu lực khi `USE_REDIS=true`.
+
+Các yêu cầu của nhà cung cấp sử dụng cài đặt proxy của triển khai (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` và các dạng chữ thường của chúng), và `NO_PROXY` được tuân thủ. Các cài đặt này được chia sẻ với lưu lượng truy cập đi khác của LibreChat và không dành riêng cho tính năng này.
 
 ## Artifacts [#artifacts]
 

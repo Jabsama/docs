@@ -550,14 +550,14 @@ L'achèvement de l'Action détachée de l'Event Actor est sélectionné automati
 
 ## pullRequests
 
-{/* Pending items (LibreChat-AI/LibreChat#16876): delete the "Older versions" notes and Pending markers once it merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
+{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
 
-Affiche la pull request GitHub pour l'espace de travail de code attaché à une conversation dans l'en-tête du chat et la barre latérale. Voir [Conversation Pull Requests](/docs/features/pull_requests) pour la configuration, le comportement et le dépannage. Chaque clé est optionnelle.
+Affiche la pull request (une merge request sur GitLab) pour l'espace de travail de code attaché à une conversation dans l'en-tête du chat et la barre latérale. Voir [Conversation Pull Requests](/docs/features/pull_requests) pour la configuration, le comportement et le dépannage. Chaque clé est optionnelle.
 
-La plupart des administrateurs définissent uniquement un jeton, une portée de dépôt et éventuellement `enabled: false`. Les clés restantes servent au réglage fin, et leurs valeurs par défaut conviennent parfaitement.
+La fonctionnalité est activée dès que le serveur dispose d'un jeton et d'une portée de dépôt, ou les utilisateurs peuvent connecter leurs propres comptes via `oauth`. La plupart des administrateurs définissent uniquement une portée de dépôt et un jeton, ainsi que `provider` et `host` lorsqu'ils ne sont pas sur github.com. Les valeurs par défaut des clés de réglage sont appropriées.
 
-<Callout type="important" title="En attente : pas encore publié">
-  Le comportement activé par défaut, la variable d'environnement de secours pour le jeton (token) et `allowAllRepositories` font partie de LibreChat-AI/LibreChat#16876. Dans les versions plus anciennes, `enabled` est défini par défaut sur `false` et `token` est requis.
+<Callout type="info" title="Lire uniquement depuis librechat.yaml">
+  `provider`, `host` et `oauth` sont lus uniquement à partir de `librechat.yaml`. Les remplacements de configuration de rôle, de groupe, d'utilisateur et de locataire pour ces clés sont ignorés, donc un remplacement ne peut pas rediriger un jeton vers un autre service.
 </Callout>
 
 <OptionTable
@@ -565,31 +565,49 @@ La plupart des administrateurs définissent uniquement un jeton, une portée de 
     [
       'enabled',
       'Boolean',
-      'Définissez sur `false` pour désactiver la fonctionnalité. En attente : elle est activée dès qu\'un jeton et une portée de dépôt existent. Versions antérieures : la valeur par défaut est `false`, et `true` nécessite un `token` et un `allowedRepositories` non vide.',
+      'Définissez sur `false` pour désactiver la fonctionnalité. Sinon, elle est activée dès qu\'un jeton et une portée de dépôt existent, ou qu\'une application `oauth` est résolue.',
       'enabled: false',
+    ],
+    [
+      'provider',
+      'String',
+      '`github` (par défaut), `gitlab` pour les merge requests sur gitlab.com ou un GitLab auto-hébergé, ou `bitbucket` pour Bitbucket Cloud (en attente). Lecture à partir du YAML uniquement.',
+      'provider: "gitlab"',
+    ],
+    [
+      'host',
+      'String',
+      'Nom d\'hôte auquel le jeton appartient, sans schéma ni chemin : un hôte GitHub Enterprise Server, un locataire `*.ghe.com` ou un hôte GitLab auto-hébergé. Un port de 1 à 65535 est autorisé, et `:443` est supprimé. Par défaut, `github.com`, `gitlab.com` ou `bitbucket.org` pour le fournisseur. Bitbucket n\'accepte aucun autre hôte. Lu uniquement à partir du YAML.',
+      'host: "github.example.com"',
     ],
     [
       'token',
       'String',
-      'Référence à une variable d\'environnement contenant un jeton GitHub en lecture seule, sous la forme `${NAME}`. Jamais le jeton lui-même. En attente : lorsqu\'elle n\'est pas définie, le serveur utilise la première variable parmi `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN` qui est définie. Un `token` qui ne se résout pas échoue avec `NOT_CONFIGURED` et ne propose pas de solution de repli. Anciennes versions : requis.',
+      'Référence à une variable d\'environnement contenant un jeton en lecture seule, sous la forme `${NAME}`. Jamais le jeton lui-même. Lorsqu\'elle n\'est pas définie, la première variable de secours définie est utilisée : `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN` sur GitHub ; `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN` sur GitLab ; `BITBUCKET_PULL_REQUEST_TOKEN` sur Bitbucket. Un `token` qui ne se résout pas échoue avec `NOT_CONFIGURED` et n\'utilise pas de secours.',
       'token: "${GITHUB_PULL_REQUEST_TOKEN}"',
+    ],
+    [
+      'oauth',
+      'Object',
+      'En attente. Permet à chaque utilisateur de connecter son propre compte, afin que les recherches utilisent le jeton, la limite de débit et l\'accès au dépôt de cet utilisateur. Lecture à partir du YAML uniquement. Voir [oauth](#pullrequestsoauth) ci-dessous.',
+      'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
       'allowedRepositories',
       'Array of Strings',
-      'Dépôts pour lesquels le jeton peut être utilisé, sous la forme `owner/name` ou `owner/*` (jusqu\'à 256 entrées, insensible à la casse). `*/*`, `*`, `owner` et les entrées contenant `..` sont rejetés.',
+      'Dépôts pour lesquels le jeton du serveur peut être utilisé, sous la forme `owner/name` ou `owner/*` (jusqu\'à 256 entrées, insensible à la casse). Sur GitLab, les chemins de groupes imbriqués tels que `group/sub/name` ou `group/sub/*` sont autorisés ; `*` correspond à un segment. `*/*`, `*`, `owner` et les entrées contenant des segments `.` ou `..` sont rejetés.',
       'allowedRepositories: ["LibreChat-AI/LibreChat", "my-org/*"]',
     ],
     [
       'allowAllRepositories',
       'Boolean',
-      'En attente. Recherchez tout dépôt que le jeton peut lire. Par défaut : `false`. Voir l\'avertissement ci-dessous.',
+      'Rechercher n\'importe quel dépôt que le jeton du serveur peut lire. Par défaut : `false`. Voir l\'avertissement ci-dessous.',
       'allowAllRepositories: false',
     ],
     [
       'cacheTtlSeconds',
       'Number',
-      'Secondes pendant lesquelles un résultat est réutilisé avant que GitHub ne soit à nouveau sollicité (5-3600). Les échecs sont mémorisés pendant 10 secondes au maximum. Par défaut : 30.',
+      'Secondes pendant lesquelles un résultat est réutilisé avant que le fournisseur ne soit à nouveau sollicité (5-3600). Les échecs sont mémorisés pendant 10 secondes au maximum. Par défaut : 30.',
       'cacheTtlSeconds: 30',
     ],
     [
@@ -601,13 +619,13 @@ La plupart des administrateurs définissent uniquement un jeton, une portée de 
     [
       'cacheMaxCredentials',
       'Number',
-      'Identifiants mis en cache simultanément, à l\'échelle du déploiement (1-10000). Le plus ancien inutilisé est supprimé au-delà de cette limite. Lorsque les principaux définissent des valeurs différentes, la plus grande s\'applique. Augmentez cette valeur lorsque de nombreux locataires utilisent chacun leur propre jeton. Par défaut : 256.',
+      'Identifiants mis en cache immédiatement, à l\'échelle du déploiement (1-10000). Celui qui est resté inactif le plus longtemps est supprimé au-delà de cette limite. Lorsque les principaux définissent des valeurs différentes, la plus grande s\'applique. Augmentez cette valeur lorsque de nombreux locataires utilisent chacun leur propre jeton, ou que de nombreux utilisateurs connectent leurs propres comptes. Par défaut : 256.',
       'cacheMaxCredentials: 256',
     ],
     [
       'maxConcurrentLookups',
       'Number',
-      'Les recherches exécutent une requête de barre latérale à la fois (1-16), comptées par identifiant à travers les requêtes. Chaque recherche correspond à quelques requêtes GitHub. Par défaut : 4.',
+      'Les recherches exécutent une requête de barre latérale à la fois (1-16), comptées par identifiant à travers les requêtes. Chaque recherche correspond à quelques requêtes de fournisseur. Par défaut : 4.',
       'maxConcurrentLookups: 4',
     ],
     [
@@ -619,7 +637,7 @@ La plupart des administrateurs définissent uniquement un jeton, une portée de 
     [
       'requestTimeoutSeconds',
       'Number',
-      'Durée maximale d\'une requête GitHub (1-60). Augmentez-la derrière un proxy lent. Par défaut : 10.',
+      'Durée maximale d\'une requête auprès d\'un fournisseur (1-60). À augmenter derrière un proxy lent. Par défaut : 10.',
       'requestTimeoutSeconds: 10',
     ],
     [
@@ -631,7 +649,7 @@ La plupart des administrateurs définissent uniquement un jeton, une portée de 
     [
       'maxCheckRunPages',
       'Number',
-      'Pages de 100 exécutions de vérification lues avant que le cumul ne soit signalé comme toujours en cours (1-50). Par défaut : 10.',
+      'Pages de vérifications (GitHub) ou statuts de commit (Bitbucket) lus avant que les vérifications ne soient signalées comme étant toujours en cours (1-50). GitLab lit le pipeline de tête à la place. Par défaut : 10.',
       'maxCheckRunPages: 10',
     ],
     [
@@ -652,11 +670,23 @@ La plupart des administrateurs définissent uniquement un jeton, une portée de 
       'Candidats comparés avec le commit sur lequel le chat a été exécuté pour la dernière fois avant que la recherche ne s\'arrête (0-20). Chaque comparaison correspond à une requête. `0` désactive la comparaison. Par défaut : 3.',
       'maxHeadComparisons: 3',
     ],
+    [
+      'sharedCache',
+      'Boolean',
+      'En attente. Partagez les pull requests recherchées et les temps de refroidissement des limites de débit entre les réplicas via Redis. Ne prend effet qu\'avec `USE_REDIS` ; chaque réplica conserve son propre cache en mémoire dans tous les cas. Par défaut : `false`.',
+      'sharedCache: true',
+    ],
+    [
+      'sharedCacheTimeoutMs',
+      'Number',
+      'En attente. Durée maximale, en millisecondes, qu\'une lecture ou écriture dans le cache partagé peut prendre avant que la recherche ne se poursuive sans lui (10-5000). Par défaut : 250.',
+      'sharedCacheTimeoutMs: 250',
+    ],
   ]}
 />
 
 <Callout type="warning" title="Sécurité : allowAllRepositories">
-  Avec cette option activée, tout utilisateur capable d'exécuter du code peut pointer le jeton du serveur vers n'importe quel dépôt que ce jeton peut lire, et voir le titre, la taille et le statut de vérification des pull requests. Utilisez un jeton en lecture seule limité aux dépôts que vous êtes prêt à afficher.
+  Le worker rapporte son propre dépôt, donc avec cette option activée, tout utilisateur capable d'exécuter du code peut pointer le jeton du serveur vers n'importe quel dépôt que ce jeton peut lire, et voir le titre, la taille et le statut de vérification de la pull request. Utilisez un jeton en lecture seule limité aux dépôts que vous êtes prêt à exposer.
 </Callout>
 
 ```yaml filename="endpoints / agents / pullRequests"
@@ -671,7 +701,62 @@ endpoints:
       maxConcurrentLookups: 4
 ```
 
-Sur les anciennes versions, ajoutez `enabled: true`.
+### pullRequests.oauth
+
+En attente. Permet à chaque utilisateur de connecter son propre compte sous **Paramètres > Compte > Compte de pull request**. Les recherches d'un utilisateur connecté utilisent son propre jeton et ne sont pas soumises à `allowedRepositories` ; les utilisateurs qui ne se sont pas connectés continuent d'utiliser le jeton du serveur. Enregistrez `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` comme URL de rappel de l'application. Sur GitHub, une GitHub App avec des autorisations en lecture seule pour les Pull requests, Checks et Contents est recommandée. Voir [Comptes par utilisateur](/docs/features/pull_requests#per-user-accounts).
+
+<OptionTable
+  options={[
+    [
+      'clientId',
+      'String',
+      'Requis. Référence de variable d\'environnement vers l\'ID client de l\'application, sous la forme `${NAME}`.',
+      'clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}"',
+    ],
+    [
+      'clientSecret',
+      'String',
+      'Obligatoire. Référence de variable d\'environnement vers le secret client de l\'application, sous la forme `${NAME}`.',
+      'clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}"',
+    ],
+    [
+      'scope',
+      'String',
+      'Scopes séparés par des espaces à demander, jusqu\'à 256 caractères. Par défaut : aucun sur GitHub, `read_api` sur GitLab, et les autorisations propres au consommateur sur Bitbucket. À définir uniquement pour une GitHub OAuth App classique.',
+      'scope: "repo"',
+    ],
+    [
+      'flowTimeoutMinutes',
+      'Number',
+      'Minutes dont dispose un utilisateur pour approuver la connexion auprès du fournisseur (1-60). Par défaut : 10.',
+      'flowTimeoutMinutes: 10',
+    ],
+    [
+      'requestTimeoutSeconds',
+      'Number',
+      'Secondes qu\'un échange de code ou un rafraîchissement de jeton peut prendre (1-60). Par défaut : 10.',
+      'requestTimeoutSeconds: 10',
+    ],
+    [
+      'retentionDays',
+      'Number',
+      'Nombre de jours pendant lesquels une connexion est conservée sans être utilisée (1-3650). Chaque utilisation prolonge cette durée. Par défaut : 180.',
+      'retentionDays: 180',
+    ],
+  ]}
+/>
+
+Si l'une ou l'autre référence ne se résout pas, les utilisateurs ne peuvent pas se connecter et seul le jeton du serveur est utilisé.
+
+```yaml filename="endpoints / agents / pullRequests / oauth"
+endpoints:
+  agents:
+    pullRequests:
+      oauth:
+        clientId: '${GITHUB_PR_OAUTH_CLIENT_ID}'
+        clientSecret: '${GITHUB_PR_OAUTH_CLIENT_SECRET}'
+        retentionDays: 180
+```
 
 ## backgroundTasks
 

@@ -1579,37 +1579,53 @@ Adlandırılmış ekli ortamlar, `pairing.allowPrincipalWorkers: true` ile kendi
 
 ## Sohbet Çekme İstekleri (Conversation Pull Requests) [#conversation-pull-requests]
 
-Bir konuşmanın GitHub çekme isteğini (pull request) göstermeye yönelik ayarlar. Bkz. [Conversation Pull Requests](/docs/features/pull_requests) ve [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests).
+GitHub, GitLab veya Bitbucket Cloud üzerinden bir konuşmanın çekme isteğini (pull request) göstermeye yönelik ayarlar. [Conversation Pull Requests](/docs/features/pull_requests) ve [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests) bölümlerine bakın.
 
-<Callout type="important" title="Beklemede: henüz yayınlanmadı">
-  Üç yedek token değişkeni, LibreChat-AI/LibreChat#16876'nın bir parçasıdır. Daha eski sürümlerde, `token: "${NAME}"` ifadesinin referans verdiği değişkeni ayarlayın.
-</Callout>
+Yedek değişkenler yalnızca `pullRequests.token` ayarlanmadığında kullanılır ve yalnızca yapılandırılmış `provider` değişkenleri, listelenen sırada okunur. Bunları LibreChat sunucusu üzerinde ayarlayın.
 
 <OptionTable
   options={[
     [
       'GITHUB_PULL_REQUEST_TOKEN',
       'string',
-      'Beklemede. `pullRequests.token` ayarlanmadığında kullanılan yedek salt okunur GitHub belirteci. İlk olarak denendi. LibreChat sunucusunda ayarlandı.',
+      'Yedek salt okunur GitHub token\'ı. İlk olarak GitHub üzerinde denendi.',
       '# GITHUB_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'GITHUB_TOKEN',
       'string',
-      'Beklemede. Yedek token, ikincisi denendi. Bu yaygın bir isimdir: Eğer dağıtımınız bunu zaten başka bir şey için kullanıyorsa, bir depo kapsamı ayarlandığı anda yedek burada onu kullanmaya başlar.',
+      'Yedek GitHub token\'ı, ikincisi denendi. Bu yaygın bir isimdir: Eğer dağıtımınız bunu zaten başka bir şey için kullanıyorsa, bir repository kapsamı ayarlandığı anda yedek burada onu kullanmaya başlar.',
       '# GITHUB_TOKEN=your-read-only-token',
     ],
     [
       'GH_TOKEN',
       'string',
-      'Beklemede. Yedek token, üçüncüsü denendi.',
+      'Yedek GitHub belirteci, üçüncüsü denendi.',
       '# GH_TOKEN=your-read-only-token',
+    ],
+    [
+      'GITLAB_PULL_REQUEST_TOKEN',
+      'string',
+      '`read_api` kapsamına sahip yedek GitLab token\'ı. İlk olarak GitLab üzerinde denendi.',
+      '# GITLAB_PULL_REQUEST_TOKEN=your-read-api-token',
+    ],
+    [
+      'GITLAB_TOKEN',
+      'string',
+      'Yedek GitLab belirteci, ikincisi denendi. Ayrıca yaygın bir isim; `GITHUB_TOKEN` kısmına bakın.',
+      '# GITLAB_TOKEN=your-read-api-token',
+    ],
+    [
+      'BITBUCKET_PULL_REQUEST_TOKEN',
+      'string',
+      'Beklemede. Pull request\'lere ve depolara okuma erişimi olan yedek Bitbucket Cloud deposu, proje veya çalışma alanı erişim belirteci.',
+      '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      '`pullRequests.token: "${NAME}"` ifadesinin atıfta bulunduğu değişken. LibreChat sunucusunda ayarlanır.',
-      '# MY_GITHUB_TOKEN=your-read-only-token',
+      '`pullRequests.token: "${NAME}"` ifadesinin atıfta bulunduğu değişken. Ayrıca referans niteliğinde olan `pullRequests.oauth.clientId` ve `clientSecret` (Beklemede) için de kullanılır.',
+      '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
       'CODEAPI_BRIDGE_LANE_GIT',
@@ -1620,7 +1636,9 @@ Bir konuşmanın GitHub çekme isteğini (pull request) göstermeye yönelik aya
   ]}
 />
 
-GitHub istekleri, dağıtımın proxy ayarlarını (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` ve bunların küçük harfli biçimlerini) kullanır ve `NO_PROXY` dikkate alınır. Bunlar diğer LibreChat giden trafiğiyle paylaşılır ve bu özelliğe özel değildir.
+Kendi hesaplarını bağlayan kullanıcılar (Beklemede), bağlantı akışını imzalayan `JWT_SECRET` değerine ve `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` geri çağırma URL'sini oluşturan `DOMAIN_SERVER` değerine ihtiyaç duyar. `pullRequests.sharedCache` (Beklemede) yalnızca `USE_REDIS=true` olduğunda devreye girer.
+
+Sağlayıcı istekleri, dağıtımın proxy ayarlarını (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` ve bunların küçük harfli biçimleri) kullanır ve `NO_PROXY` dikkate alınır. Bunlar, diğer LibreChat giden trafiğiyle paylaşılır ve bu özelliğe özel değildir.
 
 ## Artifacts [#artifacts]
 

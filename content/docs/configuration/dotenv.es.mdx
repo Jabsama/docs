@@ -1578,37 +1578,53 @@ Los entornos adjuntos con nombre también pueden exponer un plano de control de 
 
 ## Solicitudes de extracción de conversaciones [#conversation-pull-requests]
 
-Configuración para mostrar la solicitud de extracción (pull request) de GitHub de una conversación. Consulta [Conversation Pull Requests](/docs/features/pull_requests) y [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests).
+Configuración para mostrar la solicitud de extracción (pull request) de una conversación desde GitHub, GitLab o Bitbucket Cloud. Consulta [Solicitudes de extracción de conversaciones](/docs/features/pull_requests) y [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests).
 
-<Callout type="important" title="Pendiente: aún no publicado">
-  Las tres variables de token de respaldo son parte de LibreChat-AI/LibreChat#16876. En versiones anteriores, configure la variable a la que hace referencia `token: "${NAME}"`.
-</Callout>
+Las variables de respaldo se utilizan solo cuando `pullRequests.token` no está configurado, y solo se leen aquellas del `provider` configurado, en el orden indicado. Configúrelas en el servidor de LibreChat.
 
 <OptionTable
   options={[
     [
       'GITHUB_PULL_REQUEST_TOKEN',
       'string',
-      'Pendiente. Token de GitHub de solo lectura de respaldo cuando `pullRequests.token` no está configurado. Intentado primero. Configurado en el servidor de LibreChat.',
+      'Token de GitHub de solo lectura de respaldo. Se intentó primero en GitHub.',
       '# GITHUB_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'GITHUB_TOKEN',
       'string',
-      'Pendiente. Token de respaldo, se intentó el segundo. Es un nombre común: si su despliegue ya lo utiliza para otra cosa, el respaldo comienza a usarlo aquí tan pronto como se establece un ámbito de repositorio.',
+      'Token de GitHub de respaldo, probado en segundo lugar. Es un nombre común: si su despliegue ya lo utiliza para otra cosa, el respaldo comienza a usarlo aquí tan pronto como se establece un ámbito de repositorio.',
       '# GITHUB_TOKEN=your-read-only-token',
     ],
     [
       'GH_TOKEN',
       'string',
-      'Pendiente. Token de respaldo, se intentó el tercero.',
+      'Token de GitHub de respaldo, se intentó el tercero.',
       '# GH_TOKEN=your-read-only-token',
+    ],
+    [
+      'GITLAB_PULL_REQUEST_TOKEN',
+      'string',
+      'Token de respaldo de GitLab con el alcance `read_api`. Se intenta primero en GitLab.',
+      '# GITLAB_PULL_REQUEST_TOKEN=your-read-api-token',
+    ],
+    [
+      'GITLAB_TOKEN',
+      'string',
+      'Token de respaldo de GitLab, probado en segundo lugar. También es un nombre común; ver `GITHUB_TOKEN`.',
+      '# GITLAB_TOKEN=your-read-api-token',
+    ],
+    [
+      'BITBUCKET_PULL_REQUEST_TOKEN',
+      'string',
+      'Pendiente. Token de acceso de respaldo para el repositorio, proyecto o espacio de trabajo de Bitbucket Cloud con acceso de lectura a solicitudes de extracción y repositorios.',
+      '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'La variable a la que hace referencia `pullRequests.token: "${NAME}"`. Configurada en el servidor de LibreChat.',
-      '# MY_GITHUB_TOKEN=your-read-only-token',
+      'La variable a la que hace referencia `pullRequests.token: "${NAME}"`. También se utiliza para `pullRequests.oauth.clientId` y `clientSecret` (Pendiente), que también son referencias.',
+      '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
       'CODEAPI_BRIDGE_LANE_GIT',
@@ -1619,7 +1635,9 @@ Configuración para mostrar la solicitud de extracción (pull request) de GitHub
   ]}
 />
 
-Las solicitudes de GitHub utilizan la configuración de proxy del despliegue (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` y sus formas en minúsculas), y se respeta `NO_PROXY`. Estos se comparten con otro tráfico saliente de LibreChat y no son específicos de esta función.
+Los usuarios que conectan su propia cuenta (Pendiente) necesitan `JWT_SECRET`, que firma el flujo de conexión, y `DOMAIN_SERVER`, que forma la URL de callback `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` (Pendiente) solo surte efecto con `USE_REDIS=true`.
+
+Las solicitudes del proveedor utilizan la configuración de proxy del despliegue (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` y sus formas en minúsculas), y se respeta `NO_PROXY`. Estos se comparten con otro tráfico saliente de LibreChat y no son específicos de esta función.
 
 ## Artifacts [#artifacts]
 

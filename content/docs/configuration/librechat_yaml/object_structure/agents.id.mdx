@@ -550,14 +550,14 @@ Penyelesaian Action yang terlepas (detached) dari Event Actor dipilih secara oto
 
 ## pullRequests
 
-{/* Pending items (LibreChat-AI/LibreChat#16876): delete the "Older versions" notes and Pending markers once it merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
+{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
 
-Menampilkan pull request GitHub untuk workspace kode yang dilampirkan pada percakapan di header obrolan dan sidebar. Lihat [Conversation Pull Requests](/docs/features/pull_requests) untuk pengaturan, perilaku, dan pemecahan masalah. Setiap kunci bersifat opsional.
+Menampilkan pull request (merge request di GitLab) untuk workspace kode yang dilampirkan pada percakapan di header obrolan dan sidebar. Lihat [Conversation Pull Requests](/docs/features/pull_requests) untuk pengaturan, perilaku, dan pemecahan masalah. Setiap kunci bersifat opsional.
 
-Kebanyakan administrator hanya mengatur token, cakupan repositori, dan mungkin `enabled: false`. Kunci-kunci sisanya adalah untuk penyesuaian, dan nilai default-nya sudah cukup baik.
+Fitur ini aktif segera setelah server memiliki token dan cakupan repositori, atau pengguna dapat menghubungkan akun mereka sendiri melalui `oauth`. Sebagian besar administrator hanya mengatur cakupan repositori dan token, ditambah `provider` dan `host` jika tidak menggunakan github.com. Pengaturan bawaan untuk kunci penyetelan sudah memadai.
 
-<Callout type="important" title="Tertunda: belum dirilis">
-  Perilaku aktif secara default, variabel lingkungan fallback token, dan `allowAllRepositories` merupakan bagian dari LibreChat-AI/LibreChat#16876. Pada versi yang lebih lama, `enabled` secara default bernilai `false` dan `token` wajib diisi.
+<Callout type="info" title="Baca dari librechat.yaml saja">
+  `provider`, `host` dan `oauth` dibaca hanya dari `librechat.yaml`. Penggantian konfigurasi (override) untuk Role, group, user, dan tenant pada kunci-kunci ini akan diabaikan, sehingga penggantian tidak dapat mengalihkan token ke layanan lain.
 </Callout>
 
 <OptionTable
@@ -565,31 +565,49 @@ Kebanyakan administrator hanya mengatur token, cakupan repositori, dan mungkin `
     [
       'enabled',
       'Boolean',
-      'Atur ke `false` untuk mematikan fitur ini. Tertunda: fitur aktif setelah token dan cakupan repositori tersedia. Versi lama: default ke `false`, dan `true` memerlukan `token` serta `allowedRepositories` yang tidak kosong.',
+      'Atur ke `false` untuk menonaktifkan fitur ini. Jika tidak, fitur ini akan aktif setelah token dan cakupan repositori tersedia, atau aplikasi `oauth` teratasi.',
       'enabled: false',
+    ],
+    [
+      'provider',
+      'String',
+      '`github` (default), `gitlab` untuk merge request di gitlab.com atau GitLab yang dikelola sendiri, atau `bitbucket` untuk Bitbucket Cloud (Tertunda). Dibaca hanya dari YAML.',
+      'provider: "gitlab"',
+    ],
+    [
+      'host',
+      'String',
+      'Nama host tempat token tersebut berada, tanpa skema atau path: host GitHub Enterprise Server, tenant `*.ghe.com`, atau host GitLab yang dikelola sendiri. Port dari 1 hingga 65535 diperbolehkan, dan `:443` akan dihapus. Default ke `github.com`, `gitlab.com`, atau `bitbucket.org` untuk penyedia tersebut. Bitbucket tidak menerima host lain. Dibaca dari YAML saja.',
+      'host: "github.example.com"',
     ],
     [
       'token',
       'String',
-      'Referensi ke variabel lingkungan yang menyimpan token GitHub bersifat baca-saja, dalam bentuk `${NAME}`. Jangan pernah memasukkan token itu sendiri. Tertunda: jika tidak diatur, server akan menggunakan yang pertama dari `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN` yang telah diatur. `token` yang tidak teresolusi akan gagal dengan `NOT_CONFIGURED` dan tidak akan melakukan fallback. Versi lama: wajib.',
+      'Referensi ke variabel lingkungan yang menyimpan token baca-saja, dalam bentuk `${NAME}`. Jangan pernah memasukkan token itu sendiri. Jika tidak diatur, variabel cadangan pertama yang diatur akan digunakan: `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN` di GitHub; `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN` di GitLab; `BITBUCKET_PULL_REQUEST_TOKEN` di Bitbucket. `token` yang tidak teresolusi akan gagal dengan `NOT_CONFIGURED` dan tidak akan menggunakan cadangan.',
       'token: "${GITHUB_PULL_REQUEST_TOKEN}"',
+    ],
+    [
+      'oauth',
+      'Object',
+      'Tertunda. Memungkinkan setiap pengguna untuk menghubungkan akun mereka sendiri, sehingga pencarian menggunakan token, batas kecepatan, dan akses repositori pengguna tersebut. Hanya membaca dari YAML. Lihat [oauth](#pullrequestsoauth) di bawah.',
+      'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
       'allowedRepositories',
       'Array of Strings',
-      'Repositori yang dapat menggunakan token tersebut, sebagai `owner/name` atau `owner/*` (hingga 256 entri, tidak peka huruf besar/kecil). `*/*`, `*`, `owner`, dan entri yang mengandung `..` akan ditolak.',
+      'Repositori yang dapat menggunakan token server, sebagai `owner/name` atau `owner/*` (hingga 256 entri, tidak peka huruf besar/kecil). Di GitLab, jalur grup bertingkat seperti `group/sub/name` atau `group/sub/*` diperbolehkan; `*` mencocokkan satu segmen. `*/*`, `*`, `owner`, dan entri dengan segmen `.` atau `..` akan ditolak.',
       'allowedRepositories: ["LibreChat-AI/LibreChat", "my-org/*"]',
     ],
     [
       'allowAllRepositories',
       'Boolean',
-      'Tertunda. Cari repositori apa pun yang dapat dibaca oleh token tersebut. Default: `false`. Lihat peringatan di bawah.',
+      'Cari repositori apa pun yang dapat dibaca oleh token server. Default: `false`. Lihat peringatan di bawah.',
       'allowAllRepositories: false',
     ],
     [
       'cacheTtlSeconds',
       'Number',
-      'Detik hasil digunakan kembali sebelum GitHub diminta lagi (5-3600). Kegagalan diingat paling lama 10 detik. Default: 30.',
+      'Detik hasil digunakan kembali sebelum penyedia ditanya lagi (5-3600). Kegagalan diingat paling lama 10 detik. Default: 30.',
       'cacheTtlSeconds: 30',
     ],
     [
@@ -601,13 +619,13 @@ Kebanyakan administrator hanya mengatur token, cakupan repositori, dan mungkin `
     [
       'cacheMaxCredentials',
       'Number',
-      'Kredensial di-cache sekaligus, di seluruh deployment (1-10000). Kredensial yang paling lama tidak aktif akan dihapus setelah batas tersebut. Jika principal menetapkan nilai yang berbeda, nilai terbesar yang akan berlaku. Tingkatkan nilainya jika banyak tenant masing-masing menggunakan tokennya sendiri. Default: 256.',
+      'Kredensial di-cache sekaligus, di seluruh deployment (1-10000). Kredensial yang paling lama tidak aktif akan dihapus setelah batas tersebut. Jika prinsipal menetapkan nilai yang berbeda, nilai terbesar yang akan berlaku. Tingkatkan nilainya jika banyak penyewa masing-masing menggunakan token mereka sendiri, atau banyak pengguna menghubungkan akun mereka sendiri. Default: 256.',
       'cacheMaxCredentials: 256',
     ],
     [
       'maxConcurrentLookups',
       'Number',
-      'Pencarian menjalankan satu permintaan sidebar sekaligus (1-16), dihitung per kredensial di seluruh permintaan. Setiap pencarian terdiri dari beberapa permintaan GitHub. Default: 4.',
+      'Pencarian menjalankan satu permintaan bilah sisi sekaligus (1-16), dihitung per kredensial di seluruh permintaan. Setiap pencarian terdiri dari beberapa permintaan penyedia. Default: 4.',
       'maxConcurrentLookups: 4',
     ],
     [
@@ -619,7 +637,7 @@ Kebanyakan administrator hanya mengatur token, cakupan repositori, dan mungkin `
     [
       'requestTimeoutSeconds',
       'Number',
-      'Durasi terlama yang mungkin dibutuhkan oleh satu permintaan GitHub (1-60). Tingkatkan nilainya di balik proxy yang lambat. Default: 10.',
+      'Waktu terlama yang mungkin dibutuhkan untuk satu permintaan penyedia (1-60). Tingkatkan nilainya di balik proksi yang lambat. Default: 10.',
       'requestTimeoutSeconds: 10',
     ],
     [
@@ -631,7 +649,7 @@ Kebanyakan administrator hanya mengatur token, cakupan repositori, dan mungkin `
     [
       'maxCheckRunPages',
       'Number',
-      'Halaman dari 100 pemeriksaan yang dijalankan dibaca sebelum rollup dilaporkan masih berjalan (1-50). Default: 10.',
+      'Halaman pemeriksaan (GitHub) atau status commit (Bitbucket) yang dibaca sebelum pemeriksaan dilaporkan masih berjalan (1-50). GitLab membaca pipeline head sebagai gantinya. Default: 10.',
       'maxCheckRunPages: 10',
     ],
     [
@@ -652,11 +670,23 @@ Kebanyakan administrator hanya mengatur token, cakupan repositori, dan mungkin `
       'Kandidat dibandingkan dengan commit tempat chat terakhir dijalankan sebelum pencarian menyerah (0-20). Setiap perbandingan adalah satu permintaan. `0` menonaktifkan perbandingan. Default: 3.',
       'maxHeadComparisons: 3',
     ],
+    [
+      'sharedCache',
+      'Boolean',
+      'Tertunda. Bagikan pull request yang telah dicari dan cooldown batas kecepatan antar replika melalui Redis. Hanya berlaku jika `USE_REDIS` diaktifkan; setiap replika tetap menyimpan cache dalam memorinya sendiri. Default: `false`.',
+      'sharedCache: true',
+    ],
+    [
+      'sharedCacheTimeoutMs',
+      'Number',
+      'Tertunda. Durasi terlama dalam milidetik yang diizinkan untuk pembacaan atau penulisan cache bersama sebelum pencarian dilanjutkan tanpanya (10-5000). Default: 250.',
+      'sharedCacheTimeoutMs: 250',
+    ],
   ]}
 />
 
 <Callout type="warning" title="Keamanan: allowAllRepositories">
-  Dengan fitur ini aktif, setiap pengguna yang dapat menjalankan kode dapat mengarahkan token server ke repositori mana pun yang dapat dibaca oleh token tersebut, serta melihat judul, ukuran, dan status pemeriksaan pull request. Gunakan token read-only yang dibatasi pada repositori yang ingin Anda tampilkan.
+  Worker melaporkan repositorinya sendiri, jadi dengan mengaktifkan ini, setiap pengguna yang dapat menjalankan kode dapat mengarahkan token server ke repositori mana pun yang dapat dibaca oleh token tersebut, serta melihat judul, ukuran, dan status pemeriksaan pull request. Gunakan token read-only yang dibatasi pada repositori yang ingin Anda tampilkan.
 </Callout>
 
 ```yaml filename="endpoints / agents / pullRequests"
@@ -671,7 +701,62 @@ endpoints:
       maxConcurrentLookups: 4
 ```
 
-Pada versi yang lebih lama, tambahkan `enabled: true`.
+### pullRequests.oauth
+
+Tertunda. Memungkinkan setiap pengguna untuk menghubungkan akun mereka sendiri di bawah **Settings > Account > Pull request account**. Pencarian pengguna yang terhubung menggunakan token mereka sendiri dan tidak terikat pada `allowedRepositories`; pengguna yang belum terhubung tetap menggunakan token server. Daftarkan `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` sebagai URL callback aplikasi. Di GitHub, GitHub App dengan izin read-only untuk Pull requests, Checks, dan Contents sangat disarankan. Lihat [Per-user accounts](/docs/features/pull_requests#per-user-accounts).
+
+<OptionTable
+  options={[
+    [
+      'clientId',
+      'String',
+      'Wajib. Referensi variabel lingkungan ke client ID aplikasi, dalam bentuk `${NAME}`.',
+      'clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}"',
+    ],
+    [
+      'clientSecret',
+      'String',
+      'Wajib. Referensi variabel lingkungan ke client secret aplikasi, dalam bentuk `${NAME}`.',
+      'clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}"',
+    ],
+    [
+      'scope',
+      'String',
+      'Cakupan yang dipisahkan spasi untuk diminta, hingga 256 karakter. Default: tidak ada di GitHub, `read_api` di GitLab, dan izin milik konsumen sendiri di Bitbucket. Atur hanya untuk GitHub OAuth App klasik.',
+      'scope: "repo"',
+    ],
+    [
+      'flowTimeoutMinutes',
+      'Number',
+      'Menit yang mungkin dibutuhkan pengguna untuk menyetujui koneksi di penyedia (1-60). Default: 10.',
+      'flowTimeoutMinutes: 10',
+    ],
+    [
+      'requestTimeoutSeconds',
+      'Number',
+      'Detik yang mungkin diperlukan untuk pertukaran kode atau penyegaran token (1-60). Default: 10.',
+      'requestTimeoutSeconds: 10',
+    ],
+    [
+      'retentionDays',
+      'Number',
+      'Jumlah hari koneksi tetap aktif tanpa digunakan (1-3650). Setiap penggunaan akan memperpanjang durasinya. Default: 180.',
+      'retentionDays: 180',
+    ],
+  ]}
+/>
+
+Jika salah satu referensi tidak teratasi, pengguna tidak dapat terhubung dan hanya token server yang digunakan.
+
+```yaml filename="endpoints / agents / pullRequests / oauth"
+endpoints:
+  agents:
+    pullRequests:
+      oauth:
+        clientId: '${GITHUB_PR_OAUTH_CLIENT_ID}'
+        clientSecret: '${GITHUB_PR_OAUTH_CLIENT_SECRET}'
+        retentionDays: 180
+```
 
 ## backgroundTasks
 

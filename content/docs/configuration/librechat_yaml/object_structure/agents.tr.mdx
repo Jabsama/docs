@@ -550,14 +550,14 @@ Event Actor detached Action tamamlanması, yerleşik üretim deposundan otomatik
 
 ## pullRequests
 
-{/* Pending items (LibreChat-AI/LibreChat#16876): delete the "Older versions" notes and Pending markers once it merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
+{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
 
-Sohbet başlığında ve kenar çubuğunda, bir konuşmanın ekli kod çalışma alanı için GitHub çekme isteğini (pull request) gösterir. Kurulum, davranış ve sorun giderme için [Conversation Pull Requests](/docs/features/pull_requests) bölümüne bakın. Her anahtar isteğe bağlıdır.
+Sohbet başlığında ve kenar çubuğunda, bir sohbetin ekli kod çalışma alanı için çekme isteğini (GitLab üzerinde birleştirme isteği) gösterir. Kurulum, davranış ve sorun giderme için [Conversation Pull Requests](/docs/features/pull_requests) bölümüne bakın. Her anahtar isteğe bağlıdır.
 
-Çoğu yönetici yalnızca bir token, bir repository kapsamı ve muhtemelen `enabled: false` ayarını yapar. Geriye kalan anahtarlar ince ayar içindir ve varsayılan değerleri yeterlidir.
+Bu özellik, sunucunun bir token ve repository kapsamına sahip olduğu anda etkinleşir veya kullanıcılar kendi hesaplarını `oauth` aracılığıyla bağlayabilirler. Çoğu yönetici yalnızca bir repository kapsamı ve token ayarlar; github.com üzerinde olunmadığında ise bunlara ek olarak `provider` ve `host` bilgilerini yapılandırır. Ayar anahtarlarının varsayılan değerleri yeterlidir.
 
-<Callout type="important" title="Beklemede: henüz yayınlanmadı">
-  Varsayılan olarak açık davranış, ortam değişkeni token yedeği ve `allowAllRepositories`, LibreChat-AI/LibreChat#16876'nın bir parçasıdır. Daha eski sürümlerde `enabled` varsayılan olarak `false` değerindedir ve `token` gereklidir.
+<Callout type="info" title="Sadece librechat.yaml dosyasından oku">
+  `provider`, `host` ve `oauth` yalnızca `librechat.yaml` dosyasından okunur. Bu anahtarların rol, grup, kullanıcı ve kiracı (tenant) yapılandırma geçersiz kılmaları (override) yoksayılır, bu nedenle bir geçersiz kılma işlemi bir belirteci (token) başka bir hizmete yönlendiremez.
 </Callout>
 
 <OptionTable
@@ -565,31 +565,49 @@ Sohbet başlığında ve kenar çubuğunda, bir konuşmanın ekli kod çalışma
     [
       'enabled',
       'Boolean',
-      'Özelliği kapatmak için `false` olarak ayarlayın. Beklemede: bir token ve bir repository kapsamı mevcut olduğunda açılır. Eski sürümler: varsayılan olarak `false` değerindedir ve `true` olması için `token` ve boş olmayan bir `allowedRepositories` gereklidir.',
+      'Özelliği kapatmak için `false` olarak ayarlayın. Aksi takdirde, bir token ve depo kapsamı mevcut olduğunda veya bir `oauth` uygulaması çözümlendiğinde özellik açık olacaktır.',
       'enabled: false',
+    ],
+    [
+      'provider',
+      'String',
+      '`github` (varsayılan), gitlab.com veya kendi kendine barındırılan bir GitLab üzerinde birleştirme istekleri (merge requests) için `gitlab` veya Bitbucket Cloud için `bitbucket` (Beklemede). Yalnızca YAML dosyasından okunur.',
+      'provider: "gitlab"',
+    ],
+    [
+      'host',
+      'String',
+      'Token\'ın ait olduğu ana bilgisayar adı (şema veya yol olmadan): bir GitHub Enterprise Server ana bilgisayarı, bir `*.ghe.com` kiracısı veya kendi kendine barındırılan bir GitLab ana bilgisayarı. 1 ile 65535 arasında bir bağlantı noktasına izin verilir ve `:443` kaldırılır. Sağlayıcı için varsayılan olarak `github.com`, `gitlab.com` veya `bitbucket.org` kullanılır. Bitbucket başka hiçbir ana bilgisayarı kabul etmez. Yalnızca YAML dosyasından okunur.',
+      'host: "github.example.com"',
     ],
     [
       'token',
       'String',
-      'Salt okunur bir GitHub token\'ı tutan ortam değişkenine `${NAME}` biçiminde referans. Token\'ın kendisi asla değil. Beklemede: ayarlanmadığında, sunucu `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN` arasından ayarlanan ilkini kullanır. Çözümlenemeyen bir `token`, `NOT_CONFIGURED` hatası verir ve geri dönüş yapmaz. Eski sürümler: zorunludur.',
+      '`${NAME}` biçiminde, salt okunur bir belirteç tutan ortam değişkenine başvuru. Belirtecin kendisi asla kullanılmamalıdır. Ayarlanmadığında, ayarlanan ilk yedek değişken kullanılır: GitHub\'da `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`; GitLab\'da `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN`; Bitbucket\'ta `BITBUCKET_PULL_REQUEST_TOKEN`. Çözümlenemeyen bir `token`, `NOT_CONFIGURED` hatası verir ve yedek değişkenlere başvurmaz.',
       'token: "${GITHUB_PULL_REQUEST_TOKEN}"',
+    ],
+    [
+      'oauth',
+      'Object',
+      'Beklemede. Her kullanıcının kendi hesabını bağlamasına olanak tanır, böylece aramalar o kullanıcının token\'ını, hız sınırını ve depo erişimini kullanır. Sadece YAML dosyasından okur. Aşağıdaki [oauth](#pullrequestsoauth) bölümüne bakın.',
+      'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
       'allowedRepositories',
       'Array of Strings',
-      'Token\'ın kullanılabileceği depolar; `owner/name` veya `owner/*` biçiminde (en fazla 256 girdi, büyük/küçük harf duyarsız). `*/*`, `*`, `owner` ve `..` içeren girdiler reddedilir.',
+      'Sunucu belirtecinin kullanılabileceği depolar; `owner/name` veya `owner/*` biçiminde (256 girişe kadar, büyük/küçük harf duyarsız). GitLab üzerinde `group/sub/name` veya `group/sub/*` gibi iç içe grup yollarına izin verilir; `*` tek bir segment ile eşleşir. `*/*`, `*`, `owner` ve `.` veya `..` segmentleri içeren girişler reddedilir.',
       'allowedRepositories: ["LibreChat-AI/LibreChat", "my-org/*"]',
     ],
     [
       'allowAllRepositories',
       'Boolean',
-      'Beklemede. Token\'ın okuyabildiği herhangi bir depoyu arayın. Varsayılan: `false`. Aşağıdaki uyarıya bakın.',
+      'Sunucu token\'ının okuyabildiği herhangi bir depoyu arayın. Varsayılan: `false`. Aşağıdaki uyarıya bakın.',
       'allowAllRepositories: false',
     ],
     [
       'cacheTtlSeconds',
       'Number',
-      'GitHub\'a tekrar sorulmadan önce bir sonucun yeniden kullanılacağı saniye sayısı (5-3600). Hatalar en fazla 10 saniye boyunca hatırlanır. Varsayılan: 30.',
+      'Bir sonucun sağlayıcıya tekrar sorulmadan önce yeniden kullanılacağı saniye süresi (5-3600). Hatalar en fazla 10 saniye boyunca hatırlanır. Varsayılan: 30.',
       'cacheTtlSeconds: 30',
     ],
     [
@@ -601,13 +619,13 @@ Sohbet başlığında ve kenar çubuğunda, bir konuşmanın ekli kod çalışma
     [
       'cacheMaxCredentials',
       'Number',
-      'Kimlik bilgileri dağıtım genelinde (1-10000) anında önbelleğe alınır. En uzun süre boşta kalan, bu sayıyı aştığında düşürülür. Sorumlular farklı değerler belirlediğinde en büyük olan geçerli olur. Birçok kiracının her birinin kendi token\'ını kullandığı durumlarda bu değeri artırın. Varsayılan: 256.',
+      'Kimlik bilgileri bir kerede, dağıtım genelinde (1-10000) önbelleğe alınır. En uzun süre boşta kalan, bu sınırı aştığında düşürülür. Asıllar (principals) farklı değerler ayarladığında, en büyük olan geçerli olur. Birçok kiracının her birinin kendi token\'ını kullandığı veya birçok kullanıcının kendi hesaplarını bağladığı durumlarda bu değeri artırın. Varsayılan: 256.',
       'cacheMaxCredentials: 256',
     ],
     [
       'maxConcurrentLookups',
       'Number',
-      'Aynı anda çalışacak kenar çubuğu arama isteği sayısı (1-16), istekler genelinde kimlik bilgisi başına hesaplanır. Her arama birkaç GitHub isteği gerektirir. Varsayılan: 4.',
+      'Aynı anda çalışan sidebar istekleri için aramalar (1-16), istekler genelinde kimlik bilgisi başına sayılır. Her arama birkaç sağlayıcı isteğinden oluşur. Varsayılan: 4.',
       'maxConcurrentLookups: 4',
     ],
     [
@@ -619,7 +637,7 @@ Sohbet başlığında ve kenar çubuğunda, bir konuşmanın ekli kod çalışma
     [
       'requestTimeoutSeconds',
       'Number',
-      'Bir GitHub isteğinin sürebileceği en uzun süre (1-60). Yavaş bir proxy arkasında artırın. Varsayılan: 10.',
+      'Tek bir sağlayıcı isteğinin sürebileceği en uzun süre (1-60). Yavaş bir proxy arkasında artırın. Varsayılan: 10.',
       'requestTimeoutSeconds: 10',
     ],
     [
@@ -631,7 +649,7 @@ Sohbet başlığında ve kenar çubuğunda, bir konuşmanın ekli kod çalışma
     [
       'maxCheckRunPages',
       'Number',
-      'Toplu işlem hala çalışıyor olarak bildirilmeden önce okunan 100 kontrol çalıştırması sayfası (1-50). Varsayılan: 10.',
+      'Kontrollerin hala çalışıyor olarak raporlanmasından önce okunan check run (GitHub) veya commit durumu (Bitbucket) sayfaları (1-50). GitLab bunun yerine head pipeline\'ı okur. Varsayılan: 10.',
       'maxCheckRunPages: 10',
     ],
     [
@@ -652,11 +670,23 @@ Sohbet başlığında ve kenar çubuğunda, bir konuşmanın ekli kod çalışma
       'Arama vazgeçmeden önce sohbetin en son çalıştığı commit ile karşılaştırılan adaylar (0-20). Her karşılaştırma bir istektir. `0` karşılaştırmayı devre dışı bırakır. Varsayılan: 3.',
       'maxHeadComparisons: 3',
     ],
+    [
+      'sharedCache',
+      'Boolean',
+      'Beklemede. Redis aracılığıyla replikalar arasında aranan pull request\'leri ve hız sınırı bekleme sürelerini paylaşır. Yalnızca `USE_REDIS` ile etkinleşir; her iki durumda da her replika kendi bellek içi önbelleğini tutar. Varsayılan: `false`.',
+      'sharedCache: true',
+    ],
+    [
+      'sharedCacheTimeoutMs',
+      'Number',
+      'Beklemede. Paylaşılan bir önbellek okuma veya yazma işleminin, arama işlemi onsuz devam etmeden önce alabileceği en uzun süre (milisaniye cinsinden, 10-5000 arası). Varsayılan: 250.',
+      'sharedCacheTimeoutMs: 250',
+    ],
   ]}
 />
 
 <Callout type="warning" title="Güvenlik: allowAllRepositories">
-  Bu özellik açıkken, kod çalıştırabilen herhangi bir kullanıcı, sunucunun token'ını bu token'ın okuyabildiği herhangi bir depoya yönlendirebilir ve çekme isteği (pull request) başlığını, boyutunu ve kontrol durumunu görebilir. Yalnızca göstermek istediğiniz depolarla sınırlandırılmış, salt okunur bir token kullanın.
+  Worker kendi deposunu raporlar, bu nedenle bu özellik açıkken, kod çalıştırabilen herhangi bir kullanıcı sunucunun token'ını, o token'ın okuyabildiği herhangi bir depoya yönlendirebilir ve çekme isteği (pull request) başlığını, boyutunu ve kontrol durumunu görebilir. Yalnızca göstermek istediğiniz depolarla sınırlı, salt okunur bir token kullanın.
 </Callout>
 
 ```yaml filename="endpoints / agents / pullRequests"
@@ -671,7 +701,62 @@ endpoints:
       maxConcurrentLookups: 4
 ```
 
-Daha eski sürümlerde `enabled: true` ekleyin.
+### pullRequests.oauth
+
+Beklemede. Her kullanıcının kendi hesabını **Ayarlar > Hesap > Pull request hesabı** altında bağlamasına olanak tanır. Bağlı bir kullanıcının aramaları kendi token'ını kullanır ve `allowedRepositories` kısıtlamasına tabi değildir; hesabını bağlamamış kullanıcılar sunucu token'ını kullanmaya devam eder. Uygulamanın geri çağırma (callback) URL'si olarak `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` adresini kaydedin. GitHub üzerinde, salt okunur Pull requests, Checks ve Contents izinlerine sahip bir GitHub App önerilir. Bkz. [Kullanıcı bazlı hesaplar](/docs/features/pull_requests#per-user-accounts).
+
+<OptionTable
+  options={[
+    [
+      'clientId',
+      'String',
+      'Zorunlu. Uygulamanın istemci kimliğine (client ID) yönelik, `${NAME}` biçimindeki ortam değişkeni referansı.',
+      'clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}"',
+    ],
+    [
+      'clientSecret',
+      'String',
+      'Zorunlu. Uygulamanın istemci gizli anahtarına yapılan ortam değişkeni referansı, `${NAME}` biçiminde.',
+      'clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}"',
+    ],
+    [
+      'scope',
+      'String',
+      'İstenen kapsamlar (boşlukla ayrılmış), en fazla 256 karakter. Varsayılanlar: GitHub\'da yok, GitLab\'de `read_api` ve Bitbucket\'ta tüketicinin kendi izinleri. Yalnızca klasik bir GitHub OAuth Uygulaması için ayarlayın.',
+      'scope: "repo"',
+    ],
+    [
+      'flowTimeoutMinutes',
+      'Number',
+      'Bir kullanıcının sağlayıcı tarafında bağlantıyı onaylaması için tanınan süre (dakika, 1-60). Varsayılan: 10.',
+      'flowTimeoutMinutes: 10',
+    ],
+    [
+      'requestTimeoutSeconds',
+      'Number',
+      'Bir kod değişimi veya token yenilemenin sürebileceği saniye (1-60). Varsayılan: 10.',
+      'requestTimeoutSeconds: 10',
+    ],
+    [
+      'retentionDays',
+      'Number',
+      'Bir bağlantının kullanılmadan tutulduğu gün sayısı (1-3650). Her kullanım süreyi uzatır. Varsayılan: 180.',
+      'retentionDays: 180',
+    ],
+  ]}
+/>
+
+Her iki referans da çözümlenmezse, kullanıcılar bağlanamaz ve yalnızca sunucu belirteci (token) kullanılır.
+
+```yaml filename="endpoints / agents / pullRequests / oauth"
+endpoints:
+  agents:
+    pullRequests:
+      oauth:
+        clientId: '${GITHUB_PR_OAUTH_CLIENT_ID}'
+        clientSecret: '${GITHUB_PR_OAUTH_CLIENT_SECRET}'
+        retentionDays: 180
+```
 
 ## backgroundTasks
 

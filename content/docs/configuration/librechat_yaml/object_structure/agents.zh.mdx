@@ -550,14 +550,14 @@ Event Actor detached Action completion 会自动从内置生成存储中选择�
 
 ## pullRequests
 
-{/* Pending items (LibreChat-AI/LibreChat#16876): delete the "Older versions" notes and Pending markers once it merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
+{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
 
-在聊天标题和侧边栏中显示对话所关联代码工作区的 GitHub 拉取请求。有关设置、行为和故障排除，请参阅 [Conversation Pull Requests](/docs/features/pull_requests)。每个键都是可选的。
+在聊天标题和侧边栏中显示对话所关联代码工作区的拉取请求（GitLab 上称为合并请求）。有关设置、行为和故障排除，请参阅 [Conversation Pull Requests](/docs/features/pull_requests)。每个键都是可选的。
 
-大多数管理员仅设置 token、repository 范围，以及可能的 `enabled: false`。其余键用于微调，使用其默认值即可。
+一旦服务器拥有 token 和 repository 范围，该功能即刻启用，或者用户可以通过 `oauth` 连接他们自己的账户。大多数管理员仅设置 repository 范围和 token，并在非 github.com 环境下额外设置 `provider` 和 `host`。调整键（tuning keys）的默认值即可满足需求。
 
-<Callout type="important" title="待定：尚未发布">
-  默认开启行为、环境变量 token 回退以及 `allowAllRepositories` 均属于 LibreChat-AI/LibreChat#16876 的一部分。在旧版本中，`enabled` 默认为 `false` 且 `token` 为必填项。
+<Callout type="info" title="仅从 librechat.yaml 读取">
+  `provider`、`host` 和 `oauth` 仅从 `librechat.yaml` 中读取。这些键的 Role、group、user 和 tenant 配置覆盖将被忽略，因此覆盖配置无法将令牌重定向到其他服务。
 </Callout>
 
 <OptionTable
@@ -565,31 +565,49 @@ Event Actor detached Action completion 会自动从内置生成存储中选择�
     [
       'enabled',
       'Boolean',
-      '设置为 `false` 以关闭此功能。待定：当存在 token 和 repository 范围时，它即为开启状态。旧版本：默认为 `false`，若要设为 `true`，则需要 `token` 和非空的 `allowedRepositories`。',
+      '设置为 `false` 以关闭此功能。否则，一旦存在令牌和存储库范围，或者 `oauth` 应用程序解析成功，该功能即会开启。',
       'enabled: false',
+    ],
+    [
+      'provider',
+      'String',
+      '`github`（默认），`gitlab` 用于 gitlab.com 或自托管 GitLab 上的合并请求，或 `bitbucket` 用于 Bitbucket Cloud（待定）。仅从 YAML 读取。',
+      'provider: "gitlab"',
+    ],
+    [
+      'host',
+      'String',
+      '令牌所属的主机名，不含协议或路径：GitHub Enterprise Server 主机、`*.ghe.com` 租户或自托管的 GitLab 主机。允许使用 1 到 65535 之间的端口，`:443` 会被丢弃。对于该提供商，默认为 `github.com`、`gitlab.com` 或 `bitbucket.org`。Bitbucket 不接受其他主机。仅从 YAML 读取。',
+      'host: "github.example.com"',
     ],
     [
       'token',
       'String',
-      '引用一个包含只读 GitHub 令牌的环境变量，格式为 `${NAME}`。切勿直接使用令牌本身。待处理：当未设置时，服务器将使用 `GITHUB_PULL_REQUEST_TOKEN`、`GITHUB_TOKEN`、`GH_TOKEN` 中第一个已设置的值。无法解析的 `token` 将导致 `NOT_CONFIGURED` 错误，且不会回退。旧版本：必需。',
+      '引用一个包含只读令牌的环境变量，格式为 `${NAME}`。切勿直接使用令牌本身。当未设置时，将使用第一个已设置的后备变量：GitHub 上的 `GITHUB_PULL_REQUEST_TOKEN`、`GITHUB_TOKEN`、`GH_TOKEN`；GitLab 上的 `GITLAB_PULL_REQUEST_TOKEN`、`GITLAB_TOKEN`；Bitbucket 上的 `BITBUCKET_PULL_REQUEST_TOKEN`。无法解析的 `token` 将导致 `NOT_CONFIGURED` 错误，且不会使用后备变量。',
       'token: "${GITHUB_PULL_REQUEST_TOKEN}"',
+    ],
+    [
+      'oauth',
+      'Object',
+      '待定。允许每个用户连接自己的账户，以便查询时使用该用户的令牌、速率限制和仓库访问权限。仅从 YAML 读取。请参阅下方的 [oauth](#pullrequestsoauth)。',
+      'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
       'allowedRepositories',
       'Array of Strings',
-      '令牌可用于的存储库，格式为 `owner/name` 或 `owner/*`（最多 256 个条目，不区分大小写）。`*/*`、`*`、`owner` 以及包含 `..` 的条目将被拒绝。',
+      '服务器令牌可用于的存储库，格式为 `owner/name` 或 `owner/*`（最多 256 个条目，不区分大小写）。在 GitLab 上，允许使用嵌套组路径，例如 `group/sub/name` 或 `group/sub/*`；`*` 匹配一个段。`*/*`、`*`、`owner` 以及包含 `.` 或 `..` 段的条目将被拒绝。',
       'allowedRepositories: ["LibreChat-AI/LibreChat", "my-org/*"]',
     ],
     [
       'allowAllRepositories',
       'Boolean',
-      '待定。查找令牌可以读取的任何存储库。默认值：`false`。请参阅下方的警告。',
+      '查找服务器令牌可读取的任何仓库。默认值：`false`。请参阅下方的警告。',
       'allowAllRepositories: false',
     ],
     [
       'cacheTtlSeconds',
       'Number',
-      '在再次请求 GitHub 之前重用结果的秒数（5-3600）。失败记录最多保留 10 秒。默认值：30。',
+      '结果被重复使用前等待的秒数，之后会再次请求提供商 (5-3600)。失败记录最多保留 10 秒。默认值：30。',
       'cacheTtlSeconds: 30',
     ],
     [
@@ -601,13 +619,13 @@ Event Actor detached Action completion 会自动从内置生成存储中选择�
     [
       'cacheMaxCredentials',
       'Number',
-      '凭据在整个部署范围内一次性缓存（1-10000）。超过此数量时，空闲时间最长的凭据将被丢弃。当主体设置不同值时，取最大值。当多个租户各自使用自己的令牌时，请调高此值。默认值：256。',
+      '凭据在整个部署范围内一次性缓存（1-10000）。超过此数量时，空闲时间最长的凭据将被丢弃。当主体设置了不同的值时，以最大值为准。当许多租户各自使用自己的令牌，或许多用户连接自己的账户时，请调高此值。默认值：256。',
       'cacheMaxCredentials: 256',
     ],
     [
       'maxConcurrentLookups',
       'Number',
-      '一次运行一个侧边栏请求的查找（1-16），按每个凭据跨请求计算。每次查找包含少量 GitHub 请求。默认值：4。',
+      '查找一次仅运行一个侧边栏请求（1-16），按跨请求的凭据计算。每次查找包含少量提供商请求。默认值：4。',
       'maxConcurrentLookups: 4',
     ],
     [
@@ -619,7 +637,7 @@ Event Actor detached Action completion 会自动从内置生成存储中选择�
     [
       'requestTimeoutSeconds',
       'Number',
-      'GitHub 请求可能耗时的最长时间（1-60）。在慢速代理后调高此值。默认值：10。',
+      '单个提供商请求的最长耗时（1-60）。在慢速代理后增加此值。默认值：10。',
       'requestTimeoutSeconds: 10',
     ],
     [
@@ -631,7 +649,7 @@ Event Actor detached Action completion 会自动从内置生成存储中选择�
     [
       'maxCheckRunPages',
       'Number',
-      '在报告汇总显示仍在运行之前读取的 100 次检查运行页面（1-50）。默认值：10。',
+      '在检查报告为仍在运行之前读取的检查运行（GitHub）或提交状态（Bitbucket）页面数（1-50）。GitLab 则读取头流水线（head pipeline）。默认值：10。',
       'maxCheckRunPages: 10',
     ],
     [
@@ -652,11 +670,23 @@ Event Actor detached Action completion 会自动从内置生成存储中选择�
       '在搜索放弃前，与聊天上次运行时的提交进行比较的候选对象数量（0-20）。每次比较均为一次请求。`0` 表示禁用比较。默认值：3。',
       'maxHeadComparisons: 3',
     ],
+    [
+      'sharedCache',
+      'Boolean',
+      'Pending. Share looked-up pull requests and rate limit cooldowns between replicas through Redis. Takes effect only with `USE_REDIS`; each replica keeps its own in-memory cache either way. Default: `false`.',
+      'sharedCache: true',
+    ],
+    [
+      'sharedCacheTimeoutMs',
+      'Number',
+      '待定。共享缓存读取或写入操作在查找继续进行而不等待其完成前可能花费的最长时间（以毫秒为单位，范围 10-5000）。默认值：250。',
+      'sharedCacheTimeoutMs: 250',
+    ],
   ]}
 />
 
 <Callout type="warning" title="安全性：allowAllRepositories">
-  开启此功能后，任何能够运行代码的用户都可以将服务器的令牌指向该令牌有权读取的任何存储库，并查看拉取请求的标题、大小和检查状态。请使用仅限于您愿意展示的存储库的只读令牌。
+  worker 会报告其自身的仓库，因此开启此功能后，任何能够运行代码的用户都可以将服务器的令牌指向该令牌有权读取的任何仓库，并查看拉取请求的标题、大小和检查状态。请使用仅限于您愿意展示的仓库的只读令牌。
 </Callout>
 
 ```yaml filename="endpoints / agents / pullRequests"
@@ -671,7 +701,62 @@ endpoints:
       maxConcurrentLookups: 4
 ```
 
-在旧版本中，请添加 `enabled: true`。
+### pullRequests.oauth
+
+待定。允许每个用户在 **Settings > Account > Pull request account** 下连接自己的账户。已连接用户的查询将使用其自己的令牌，且不受 `allowedRepositories` 的限制；未连接的用户将继续使用服务器令牌。请将 `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` 注册为应用程序的回调 URL。在 GitHub 上，建议创建一个具有只读 Pull requests、Checks 和 Contents 权限的 GitHub App。请参阅 [Per-user accounts](/docs/features/pull_requests#per-user-accounts)。
+
+<OptionTable
+  options={[
+    [
+      'clientId',
+      'String',
+      '必填。应用客户端 ID 的环境变量引用，格式为 `${NAME}`。',
+      'clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}"',
+    ],
+    [
+      'clientSecret',
+      'String',
+      '必需。应用客户端密钥的环境变量引用，格式为 `${NAME}`。',
+      'clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}"',
+    ],
+    [
+      'scope',
+      'String',
+      '以空格分隔的请求范围，最多 256 个字符。默认值：GitHub 为空，GitLab 为 `read_api`，Bitbucket 为消费者自身的权限。仅针对经典的 GitHub OAuth App 进行设置。',
+      'scope: "repo"',
+    ],
+    [
+      'flowTimeoutMinutes',
+      'Number',
+      '用户批准提供商连接所需的分钟数（1-60）。默认值：10。',
+      'flowTimeoutMinutes: 10',
+    ],
+    [
+      'requestTimeoutSeconds',
+      'Number',
+      '代码交换或令牌刷新可能花费的秒数（1-60）。默认值：10。',
+      'requestTimeoutSeconds: 10',
+    ],
+    [
+      'retentionDays',
+      'Number',
+      '连接保持不被使用的天数（1-3650）。每次使用都会延长该时间。默认值：180。',
+      'retentionDays: 180',
+    ],
+  ]}
+/>
+
+如果任一引用无法解析，用户将无法连接，且仅会使用服务器令牌。
+
+```yaml filename="endpoints / agents / pullRequests / oauth"
+endpoints:
+  agents:
+    pullRequests:
+      oauth:
+        clientId: '${GITHUB_PR_OAUTH_CLIENT_ID}'
+        clientSecret: '${GITHUB_PR_OAUTH_CLIENT_SECRET}'
+        retentionDays: 180
+```
 
 ## backgroundTasks
 

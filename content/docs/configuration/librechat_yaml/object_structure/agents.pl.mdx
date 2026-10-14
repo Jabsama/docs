@@ -550,14 +550,14 @@ Ukończenie akcji (Action completion) dla Event Actor detached jest wybierane au
 
 ## pullRequests
 
-{/* Pending items (LibreChat-AI/LibreChat#16876): delete the "Older versions" notes and Pending markers once it merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
+{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
 
-Wyświetla pull request z GitHub dla dołączonego obszaru roboczego kodu konwersacji w nagłówku czatu i na pasku bocznym. Zobacz [Conversation Pull Requests](/docs/features/pull_requests), aby uzyskać informacje na temat konfiguracji, działania i rozwiązywania problemów. Każdy klucz jest opcjonalny.
+Wyświetla pull request (merge request w GitLab) dla dołączonego obszaru roboczego kodu konwersacji w nagłówku czatu oraz na pasku bocznym. Zobacz [Conversation Pull Requests](/docs/features/pull_requests), aby uzyskać informacje na temat konfiguracji, działania i rozwiązywania problemów. Każdy klucz jest opcjonalny.
 
-Większość administratorów ustawia tylko token, zakres repozytorium (repository scope) oraz ewentualnie `enabled: false`. Pozostałe klucze służą do dostrajania, a ich wartości domyślne są odpowiednie.
+Funkcja jest włączona, gdy tylko serwer posiada token i zakres repozytorium (repository scope), lub użytkownicy mogą połączyć własne konta poprzez `oauth`. Większość administratorów ustawia tylko zakres repozytorium i token, a także `provider` oraz `host`, jeśli nie korzystają z github.com. Domyślne wartości kluczy dostrajania (tuning keys) są odpowiednie.
 
-<Callout type="important" title="Oczekujące: jeszcze niewydane">
-  Domyślne włączenie, zmienna środowiskowa token fallback oraz `allowAllRepositories` są częścią LibreChat-AI/LibreChat#16876. W starszych wersjach `enabled` domyślnie ustawione jest na `false`, a `token` jest wymagany.
+<Callout type="info" title="Czytaj tylko z librechat.yaml">
+  `provider`, `host` oraz `oauth` są odczytywane wyłącznie z `librechat.yaml`. Nadpisania tych kluczy w konfiguracji ról, grup, użytkowników i dzierżaw (tenant) są ignorowane, więc nadpisanie nie może przekierować tokena do innej usługi.
 </Callout>
 
 <OptionTable
@@ -565,31 +565,49 @@ Większość administratorów ustawia tylko token, zakres repozytorium (reposito
     [
       'enabled',
       'Boolean',
-      'Ustaw `false`, aby wyłączyć tę funkcję. Oczekujące: jest włączona, gdy istnieją token i zakres repozytorium. Starsze wersje: domyślnie `false`, a `true` wymaga `token` oraz niepustego `allowedRepositories`.',
+      'Ustaw `false`, aby wyłączyć tę funkcję. W przeciwnym razie jest ona włączona, gdy istnieją token i zakres repozytorium lub gdy aplikacja `oauth` zostanie rozpoznana.',
       'enabled: false',
+    ],
+    [
+      'provider',
+      'String',
+      '`github` (domyślnie), `gitlab` dla merge requests w gitlab.com lub własnej instancji GitLab, albo `bitbucket` dla Bitbucket Cloud (oczekujące). Odczytywane tylko z pliku YAML.',
+      'provider: "gitlab"',
+    ],
+    [
+      'host',
+      'String',
+      'Nazwa hosta, do którego należy token, bez schematu i ścieżki: host GitHub Enterprise Server, dzierżawa `*.ghe.com` lub samodzielnie zarządzany host GitLab. Dozwolony jest port od 1 do 65535, a `:443` jest pomijane. Domyślnie przyjmuje `github.com`, `gitlab.com` lub `bitbucket.org` w zależności od dostawcy. Bitbucket nie akceptuje żadnego innego hosta. Odczytywane tylko z pliku YAML.',
+      'host: "github.example.com"',
     ],
     [
       'token',
       'String',
-      'Odniesienie do zmiennej środowiskowej przechowującej token GitHub tylko do odczytu, w formacie `${NAME}`. Nigdy sam token. Oczekujące: gdy nie jest ustawiona, serwer używa pierwszej ustawionej zmiennej spośród `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`. `token`, który nie zostanie rozpoznany, kończy się błędem `NOT_CONFIGURED` i nie posiada mechanizmu rezerwowego. Starsze wersje: wymagane.',
+      'Odniesienie do zmiennej środowiskowej przechowującej token tylko do odczytu, w formacie `${NAME}`. Nigdy sam token. Jeśli zmienna nie jest ustawiona, używana jest pierwsza ustawiona zmienna rezerwowa: `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN` w serwisie GitHub; `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN` w serwisie GitLab; `BITBUCKET_PULL_REQUEST_TOKEN` w serwisie Bitbucket. `token`, którego nie można rozpoznać, kończy się błędem `NOT_CONFIGURED` i nie korzysta z wartości rezerwowych.',
       'token: "${GITHUB_PULL_REQUEST_TOKEN}"',
+    ],
+    [
+      'oauth',
+      'Object',
+      'Oczekujące. Pozwala każdemu użytkownikowi połączyć własne konto, dzięki czemu wyszukiwania wykorzystują token, limit zapytań i dostęp do repozytorium danego użytkownika. Odczyt tylko z pliku YAML. Zobacz [oauth](#pullrequestsoauth) poniżej.',
+      'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
       'allowedRepositories',
       'Array of Strings',
-      'Repozytoria, dla których token może być używany, w formacie `owner/name` lub `owner/*` (do 256 wpisów, wielkość liter nie ma znaczenia). Wpisy `*/*`, `*`, `owner` oraz zawierające `..` są odrzucane.',
+      'Repozytoria, dla których może być użyty token serwera, w formacie `owner/name` lub `owner/*` (do 256 wpisów, wielkość liter nie ma znaczenia). W GitLab dozwolone są zagnieżdżone ścieżki grup, takie jak `group/sub/name` lub `group/sub/*`; `*` dopasowuje jeden segment. `*/*`, `*`, `owner` oraz wpisy zawierające segmenty `.` lub `..` są odrzucane.',
       'allowedRepositories: ["LibreChat-AI/LibreChat", "my-org/*"]',
     ],
     [
       'allowAllRepositories',
       'Boolean',
-      'Oczekujące. Przeszukaj dowolne repozytorium, które token może odczytać. Domyślnie: `false`. Zobacz ostrzeżenie poniżej.',
+      'Wyszukaj dowolne repozytorium, które może odczytać token serwera. Domyślnie: `false`. Zobacz ostrzeżenie poniżej.',
       'allowAllRepositories: false',
     ],
     [
       'cacheTtlSeconds',
       'Number',
-      'Liczba sekund, przez które wynik jest ponownie używany, zanim GitHub zostanie ponownie odpytany (5-3600). Błędy są zapamiętywane maksymalnie przez 10 sekund. Domyślnie: 30.',
+      'Liczba sekund, przez które wynik jest ponownie używany, zanim dostawca zostanie zapytany ponownie (5-3600). Błędy są zapamiętywane przez maksymalnie 10 sekund. Domyślnie: 30.',
       'cacheTtlSeconds: 30',
     ],
     [
@@ -601,13 +619,13 @@ Większość administratorów ustawia tylko token, zakres repozytorium (reposito
     [
       'cacheMaxCredentials',
       'Number',
-      'Poświadczenia są buforowane jednocześnie w całym wdrożeniu (1-10000). Po przekroczeniu limitu usuwany jest element najdłużej nieaktywny. Gdy podmioty ustawiają różne wartości, stosowana jest największa z nich. Zwiększ tę wartość, gdy wielu najemców używa własnych tokenów. Domyślnie: 256.',
+      'Poświadczenia buforowane jednocześnie w ramach całego wdrożenia (1-10000). Najdłużej nieaktywny element jest usuwany po przekroczeniu tego limitu. Gdy podmioty ustawiają różne wartości, stosowana jest największa z nich. Zwiększ tę wartość, gdy wielu najemców używa własnych tokenów lub wielu użytkowników łączy własne konta. Domyślnie: 256.',
       'cacheMaxCredentials: 256',
     ],
     [
       'maxConcurrentLookups',
       'Number',
-      'Wyszukiwania uruchamiają jedno żądanie paska bocznego naraz (1-16), liczone na poświadczenie w ramach żądań. Każde wyszukiwanie to kilka żądań do GitHub. Domyślnie: 4.',
+      'Wyszukiwania: jedno żądanie paska bocznego na raz (1-16), liczone na poświadczenie w ramach żądań. Każde wyszukiwanie to kilka żądań do dostawcy. Domyślnie: 4.',
       'maxConcurrentLookups: 4',
     ],
     [
@@ -619,7 +637,7 @@ Większość administratorów ustawia tylko token, zakres repozytorium (reposito
     [
       'requestTimeoutSeconds',
       'Number',
-      'Najdłuższy czas trwania żądania GitHub (1-60). Zwiększ go w przypadku korzystania z wolnego proxy. Domyślnie: 10.',
+      'Najdłuższy czas oczekiwania na żądanie od jednego dostawcy (1-60). Zwiększ go w przypadku korzystania z wolnego proxy. Domyślnie: 10.',
       'requestTimeoutSeconds: 10',
     ],
     [
@@ -631,7 +649,7 @@ Większość administratorów ustawia tylko token, zakres repozytorium (reposito
     [
       'maxCheckRunPages',
       'Number',
-      'Strony zawierające 100 przebiegów testów odczytywane przed zgłoszeniem zbiorczego statusu jako wciąż działającego (1-50). Domyślnie: 10.',
+      'Strony testów (GitHub) lub statusów commitów (Bitbucket) odczytywane przed zgłoszeniem testów jako nadal uruchomione (1-50). GitLab odczytuje główny potok (head pipeline). Domyślnie: 10.',
       'maxCheckRunPages: 10',
     ],
     [
@@ -652,11 +670,23 @@ Większość administratorów ustawia tylko token, zakres repozytorium (reposito
       'Kandydaci porównywani z commitem, na którym czat był uruchomiony przed przerwaniem wyszukiwania (0-20). Każde porównanie to jedno żądanie. `0` wyłącza porównywanie. Domyślnie: 3.',
       'maxHeadComparisons: 3',
     ],
+    [
+      'sharedCache',
+      'Boolean',
+      'Oczekujące. Udostępnia wyszukane pull requesty i limity szybkości między replikami za pośrednictwem Redis. Działa tylko przy `USE_REDIS`; w każdym przypadku każda replika zachowuje własną pamięć podręczną w pamięci RAM. Domyślnie: `false`.',
+      'sharedCache: true',
+    ],
+    [
+      'sharedCacheTimeoutMs',
+      'Number',
+      'Oczekujące. Najdłuższy czas w milisekundach, przez jaki odczyt lub zapis w pamięci podręcznej współdzielonej może trwać, zanim wyszukiwanie będzie kontynuowane bez niego (10-5000). Domyślnie: 250.',
+      'sharedCacheTimeoutMs: 250',
+    ],
   ]}
 />
 
 <Callout type="warning" title="Bezpieczeństwo: allowAllRepositories">
-  Gdy ta opcja jest włączona, każdy użytkownik, który może uruchamiać kod, może wskazać token serwera na dowolne repozytorium, które ten token może odczytać, oraz zobaczyć tytuł, rozmiar i status sprawdzenia pull requesta. Używaj tokena tylko do odczytu, ograniczonego do repozytoriów, które chcesz udostępnić.
+  Worker zgłasza własne repozytorium, więc przy włączonej tej opcji każdy użytkownik, który może uruchamiać kod, może wskazać token serwera na dowolne repozytorium, które ten token może odczytać, oraz zobaczyć tytuł, rozmiar i status sprawdzenia pull requesta. Używaj tokena tylko do odczytu, ograniczonego do repozytoriów, które chcesz udostępnić.
 </Callout>
 
 ```yaml filename="endpoints / agents / pullRequests"
@@ -671,7 +701,62 @@ endpoints:
       maxConcurrentLookups: 4
 ```
 
-W starszych wersjach dodaj `enabled: true`.
+### pullRequests.oauth
+
+Oczekujące. Pozwala każdemu użytkownikowi połączyć własne konto w sekcji **Ustawienia > Konto > Pull request account**. Wyszukiwania połączonego użytkownika wykorzystują jego własny token i nie podlegają ograniczeniu `allowedRepositories`; użytkownicy, którzy nie połączyli konta, nadal korzystają z tokena serwera. Zarejestruj `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` jako adres URL wywołania zwrotnego (callback URL) aplikacji. W przypadku GitHub zalecana jest aplikacja GitHub App z uprawnieniami tylko do odczytu (read-only) dla Pull requests, Checks oraz Contents. Zobacz [Konta dla poszczególnych użytkowników](/docs/features/pull_requests#per-user-accounts).
+
+<OptionTable
+  options={[
+    [
+      'clientId',
+      'String',
+      'Wymagane. Odwołanie do zmiennej środowiskowej zawierającej identyfikator klienta aplikacji, w formacie `${NAME}`.',
+      'clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}"',
+    ],
+    [
+      'clientSecret',
+      'String',
+      'Wymagane. Odniesienie do zmiennej środowiskowej zawierającej klucz tajny klienta aplikacji, w formacie `${NAME}`.',
+      'clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}"',
+    ],
+    [
+      'scope',
+      'String',
+      'Zakresy oddzielone spacjami, o których należy wysłać zapytanie, do 256 znaków. Domyślnie: brak w GitHub, `read_api` w GitLab oraz własne uprawnienia użytkownika w Bitbucket. Ustawiaj tylko dla klasycznej aplikacji GitHub OAuth.',
+      'scope: "repo"',
+    ],
+    [
+      'flowTimeoutMinutes',
+      'Number',
+      'Liczba minut, jaką użytkownik ma na zatwierdzenie połączenia u dostawcy (1-60). Domyślnie: 10.',
+      'flowTimeoutMinutes: 10',
+    ],
+    [
+      'requestTimeoutSeconds',
+      'Number',
+      'Liczba sekund, jaką może zająć wymiana kodu lub odświeżenie tokena (1-60). Domyślnie: 10.',
+      'requestTimeoutSeconds: 10',
+    ],
+    [
+      'retentionDays',
+      'Number',
+      'Liczba dni, przez które połączenie jest utrzymywane bez użycia (1-3650). Każde użycie przedłuża ten czas. Domyślnie: 180.',
+      'retentionDays: 180',
+    ],
+  ]}
+/>
+
+Jeśli którekolwiek z odwołań nie zostanie rozpoznane, użytkownicy nie będą mogli się połączyć i użyty zostanie tylko token serwera.
+
+```yaml filename="endpoints / agents / pullRequests / oauth"
+endpoints:
+  agents:
+    pullRequests:
+      oauth:
+        clientId: '${GITHUB_PR_OAUTH_CLIENT_ID}'
+        clientSecret: '${GITHUB_PR_OAUTH_CLIENT_SECRET}'
+        retentionDays: 180
+```
 
 ## backgroundTasks
 

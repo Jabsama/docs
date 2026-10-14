@@ -2,102 +2,131 @@
 title: Pull Request Percakapan
 icon: GitPullRequest
 description: >-
-  Tampilkan pull request GitHub, ukuran, dan status CI untuk chat yang
-  menjalankan kode di workspace terlampir.
+  Tampilkan pull request atau merge request, ukuran, dan status CI untuk obrolan
+  yang menjalankan kode di workspace yang dilampirkan, di GitHub, GitLab, atau
+  Bitbucket Cloud.
 ---
 
 {/*
-  PUBLISHING GATE. Do not merge this page until LibreChat-AI/LibreChat#16876 (default-on, token
-  fallback, allowAllRepositories) is merged to dev. Until then, only the blocks marked
-  "Pending" are unreleased. After it merges: re-check the schema in
-  packages/data-provider/src/config.ts, delete the "Older versions" blocks and every Pending marker.
+  Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988), per-user
+  accounts through `oauth` (#16989) and the "Pull request account" setting (#16990). Delete the
+  Pending markers once each merges to dev, and re-check the schema in
+  packages/data-provider/src/config.ts.
   TODO(maintainer): first release version for each part (do not guess).
   TODO(maintainer): requirement 4 (where an admin sets the workspace environment's repository).
-  Add it to "Requirements" once confirmed. Do not publish without it.
+  Add it to "Requirements" once confirmed.
 */}
 
-Saat obrolan menjalankan kode di workspace yang dilampirkan, worker akan melaporkan branch git dan commit yang sedang digunakan. LibreChat menggunakan branch tersebut untuk menemukan pull request GitHub yang cocok, dengan token yang disimpan di server, dan menampilkannya di dua tempat:
+Saat obrolan menjalankan kode di workspace yang dilampirkan, worker akan melaporkan branch git dan commit yang sedang digunakan. LibreChat menggunakan branch tersebut untuk menemukan pull request (merge request di GitLab) yang cocok, dengan token yang disimpan di server atau akun pengguna yang terhubung, dan menampilkannya di dua tempat:
 
 - **Header obrolan**: sebuah chip dengan ikon pull request dan titik CI. Mengarahkan kursor atau memfokuskan pada elemen ini akan membuka sebuah kartu.
 - **Daftar percakapan sidebar**: ikon dan titik CI yang sama di akhir baris. Baris tersebut tetap menggunakan judul percakapan itu sendiri; judul pull request hanya muncul di dalam kartu.
+
+Pull request dapat berasal dari GitHub (default), GitLab, atau Bitbucket Cloud (**Tertunda**). Satu deployment menggunakan satu penyedia.
 
 ## Persyaratan [#requirements]
 
 Semua hal berikut harus terpenuhi agar obrolan menampilkan pull request:
 
-1. LibreChat memiliki token GitHub dan cakupan repositori. Lihat [Setup](#setup).
+1. LibreChat memiliki cakupan token dan repositori (`allowedRepositories` atau `allowAllRepositories`), atau pengguna menghubungkan akun mereka sendiri. Lihat [Setup](#setup) dan [Per-user accounts](#per-user-accounts).
 2. Obrolan ini menggunakan **ruang kerja kode terlampir** (code worker), bukan obrolan biasa.
 3. Worker melaporkan branch-nya. Hal ini memerlukan worker yang dibangun dari PR #311 `LibreChat-AI/code-interpreter` atau yang lebih baru, dan `CODEAPI_BRIDGE_LANE_GIT=true` yang diatur pada Code API. Lihat [Code Interpreter](/docs/features/code_interpreter#attached-environments-and-pairing).
 
-Jika persyaratan tidak terpenuhi, obrolan tidak akan menampilkan pull request dan tidak ada kesalahan yang ditunjukkan kepada pengguna. Pengecualiannya adalah `token` yang telah diatur tetapi variabel lingkungannya kosong atau tidak ada: pencarian kemudian akan gagal dengan `NOT_CONFIGURED`, dan baris bilah sisi akan menampilkan ikon peringatan dengan tombol coba lagi.
+Fitur ini aktif secara default. Tanpa token atau cakupan repositori, fitur ini tetap tidak aktif, dan setiap obrolan hanya akan menampilkan tidak ada pull request, tanpa kesalahan. `enabled: false` akan mematikannya terlepas dari pengaturan lainnya.
+
+Pengecualiannya adalah `token` yang telah diatur tetapi variabel lingkungannya kosong atau tidak ada: pencarian kemudian akan gagal dengan `NOT_CONFIGURED`, dan baris bilah sisi akan menampilkan ikon peringatan dengan tombol coba lagi.
 
 ## Pengaturan [#setup]
 
-### 1. Membuat token [#1-create-a-token]
+### 1. Pilih penyedia dan host [#1-choose-the-provider-and-host]
 
-Gunakan token GitHub fine-grained yang dibatasi pada repositori yang ingin Anda tampilkan, dengan izin **read-only**:
+`provider` memilih di mana pull request berada:
+
+| `provider`         | Layanan                                                                                                   | `host` Default  |
+| ------------------ | --------------------------------------------------------------------------------------------------------- | --------------- |
+| `github` (default) | GitHub.com, GitHub Enterprise Server, atau penyewa residensi data GitHub Enterprise Cloud (`*.ghe.com`)     | `github.com`    |
+| `gitlab`           | Merge request di gitlab.com atau GitLab yang dikelola sendiri (self-managed)                              | `gitlab.com`    |
+| `bitbucket`        | Hanya Bitbucket Cloud (**Tertunda**)                                                                      | `bitbucket.org` |
+
+Atur `host` hanya untuk GitHub Enterprise Server, tenant `*.ghe.com`, atau GitLab yang dikelola sendiri (self-managed):
+
+- Ini adalah nama host, bukan URL: tanpa skema dan tanpa path, contohnya `github.example.com`.
+- Port eksplisit diperbolehkan, dari 1 hingga 65535, sebagai contoh `git.example.com:8443`. `:443` akan dihapus, karena merupakan default untuk https.
+- Di GitHub, LibreChat memanggil `api.github.com` untuk `github.com`, `api.<host>` untuk tenant `*.ghe.com`, dan `https://<host>/api/v3` untuk Enterprise Server. Di GitLab, LibreChat memanggil `https://<host>/api/v4` dan `https://<host>/api/graphql`.
+- Bitbucket tidak menerima host lain. `host` apa pun selain `bitbucket.org` akan mematikan fitur tersebut alih-alih mengirim token ke tempat lain.
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      provider: 'gitlab'
+      host: 'gitlab.example.com'
+      allowedRepositories:
+        - 'platform/backend/api'
+        - 'platform/frontend/*'
+```
+
+<Callout type="info" title="Baca dari librechat.yaml saja">
+  `provider`, `host` dan `oauth` dibaca hanya dari `librechat.yaml`. Penggantian (override) konfigurasi Role, group, user, dan tenant untuk kunci-kunci ini diabaikan, karena kunci tersebut menentukan ke mana token dikirim dan aplikasi mana yang diberikan akses oleh pengguna. Penggantian tidak dapat mengalihkan token ke layanan lain. Kunci lain, seperti `token` dan `allowedRepositories`, masih dapat berbeda untuk setiap principal.
+</Callout>
+
+### 2. Buat token [#2-create-a-token]
+
+Token server digunakan untuk setiap pengguna yang belum menghubungkan akun mereka sendiri.
+
+**GitHub**: gunakan token fine-grained yang dibatasi pada repositori yang ingin Anda tampilkan, dengan izin **read-only**:
 
 - Pull requests
 - Pemeriksaan
 - Daftar Isi
 
 <Callout type="warning" title="Mode kegagalan izin">
-  Tanpa **Checks**, setiap pull request yang cocok gagal dimuat. Tanpa **Contents**, obrolan yang cabangnya telah berubah sejak perintah terakhirnya gagal dimuat.
+  Tanpa **Checks**, setiap pull request yang cocok gagal dimuat. Tanpa **Contents**, obrolan yang cabangnya telah berubah sejak perintah terakhirnya gagal dimuat, karena LibreChat membandingkan commit untuk mengonfirmasi kecocokan.
 </Callout>
 
-### 2. Berikan token kepada LibreChat [#2-give-librechat-the-token]
+**GitLab**: token akses pribadi, grup, atau proyek dengan scope `read_api`.
 
-<Callout type="important" title="Tertunda: belum dirilis">
-  Fallback variabel lingkungan adalah bagian dari perubahan default-on (LibreChat-AI/LibreChat#16876).
-</Callout>
+**Bitbucket Cloud** (**Tertunda**): token akses repositori, proyek, atau ruang kerja, dikirim sebagai bearer token. LibreChat membaca pull request, diffstat, status commit, dan merge base-nya, jadi berikan akses baca ke pull request dan repositori.
+
+### 3. Berikan token kepada LibreChat [#3-give-librechat-the-token]
 
 LibreChat mencari token dengan urutan berikut:
 
-1. `token: "${MY_VAR}"` di dalam `librechat.yaml`. Ini adalah **referensi** variabel lingkungan; YAML tidak pernah menyimpan token itu sendiri.
-2. Jika `token` tidak diatur, variabel lingkungan pertama dari daftar berikut yang diatur akan digunakan: `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`.
-3. Tidak ada token di mana pun: fitur tersebut tetap tidak aktif.
+1. `token: "${MY_VAR}"` di dalam `librechat.yaml`. Ini adalah **referensi** variabel lingkungan; YAML tidak pernah menyimpan token itu sendiri, dan token literal akan ditolak oleh skema.
+2. Jika `token` tidak diatur, variabel lingkungan pertama dari daftar berikut yang diatur:
 
-`token` yang telah diatur namun tidak teratasi (variabel kosong atau hilang) akan gagal dengan status `NOT_CONFIGURED`. Hal ini **tidak** akan kembali ke tiga variabel di atas.
+| Penyedia | Variabel cadangan, sesuai urutan |
+| --------- | --------------------------------------------------------- |
+| GitHub    | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`   |
+| GitLab    | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN`               |
+| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` (**Tertunda**)              |
 
-<Callout type="info" title="GITHUB_TOKEN adalah nama yang umum">
-  Jika deployment Anda sudah menggunakan `GITHUB_TOKEN` untuk keperluan lain, perilaku default-on akan mulai menggunakannya di sini segera setelah cakupan repositori ditetapkan. Tetapkan `token` secara eksplisit, atau gunakan `GITHUB_PULL_REQUEST_TOKEN`, untuk menghindari penggunaannya secara bersamaan.
+3. Tidak ada token di mana pun: fitur ini tetap tidak aktif, kecuali pengguna dapat menghubungkan akun mereka sendiri.
+
+`token` yang telah diatur namun tidak teresolusi (variabel kosong atau hilang) akan gagal dengan status `NOT_CONFIGURED`. Hal ini **tidak** akan kembali ke variabel di atas.
+
+<Callout type="info" title="GITHUB_TOKEN dan GITLAB_TOKEN adalah nama yang umum">
+  Jika deployment Anda sudah menggunakan salah satu dari ini untuk keperluan lain, hal tersebut akan langsung terdeteksi di sini segera setelah cakupan repositori diatur. Atur `token` secara eksplisit, atau gunakan variabel `*_PULL_REQUEST_TOKEN`, untuk menghindari penggunaannya secara bersamaan.
 </Callout>
 
-**Versi lama:** `token` diperlukan saat fitur diaktifkan, dan harus berupa referensi `${NAME}` seperti `"${GITHUB_PULL_REQUEST_TOKEN}"`. Tidak ada fallback variabel lingkungan.
+### 4. Pilih repositori mana yang boleh diaksesnya [#4-choose-which-repositories-it-may-look-up]
 
-### 3. Pilih repositori mana yang boleh diaksesnya [#3-choose-which-repositories-it-may-look-up]
+Worker melaporkan repositorinya sendiri, sehingga server harus memutuskan repositori mana yang boleh menggunakan tokennya. Tanpa cakupan (scope), fitur ini akan tetap tidak aktif. Ada dua cara:
 
-Worker melaporkan repositorinya sendiri, sehingga server harus memutuskan repositori mana yang boleh menggunakan token tersebut. Tanpa cakupan (scope), fitur ini akan tetap tidak aktif. Ada dua cara:
-
-- `allowedRepositories`: daftar entri `owner/name` atau `owner/*` (hingga 256). Pencocokan tidak peka huruf besar/kecil (case-insensitive). Entri seperti `*/*`, `*`, `owner`, atau yang mengandung `..` akan ditolak oleh skema.
-- `allowAllRepositories: true` (**Tertunda**): mencari repositori apa pun yang dapat dibaca oleh token tersebut. Standarnya adalah `false`.
+- `allowedRepositories`: daftar entri `owner/name` atau `owner/*` (hingga 256). Pencocokan tidak peka huruf besar-kecil (case-insensitive). Pada GitLab, entri dapat berupa jalur grup bersarang seperti `group/sub/name` atau `group/sub/*`. `*` mewakili tepat satu segmen, sehingga `group/*` tidak cocok dengan `group/sub/name`. Entri seperti `*/*`, `*`, `owner`, atau entri yang mengandung segmen `.` atau `..` akan ditolak oleh skema.
+- `allowAllRepositories: true`: mencari repositori apa pun yang dapat dibaca oleh token tersebut. Default-nya adalah `false`.
 
 <Callout type="warning" title="Keamanan: allowAllRepositories">
-  Dengan fitur ini aktif, setiap pengguna yang dapat menjalankan kode dapat mengarahkan token server ke repositori mana pun yang dapat dibaca oleh token tersebut, serta melihat judul, ukuran, dan status pemeriksaan pull request. Gunakan token read-only yang dibatasi pada repositori yang ingin Anda tampilkan.
+  Ini dinonaktifkan secara default karena repositori berasal dari worker, bukan dari server. Jika diaktifkan, pengguna mana pun yang dapat menjalankan kode dapat mengarahkan token server ke repositori mana pun yang dapat dibaca oleh token tersebut, serta melihat judul, ukuran, dan status pemeriksaan pull request. Gunakan token read-only yang dicakup ke repositori yang ingin Anda tampilkan.
 </Callout>
 
-### 4. Aktifkan [#4-turn-it-on]
+### 5. Aktifkan [#5-turn-it-on]
 
-<Callout type="important" title="Tertunda: belum dirilis">
-  Perilaku default-on adalah bagian dari LibreChat-AI/LibreChat#16876.
-</Callout>
-
-Fitur ini aktif segera setelah terdapat token dan cakupan repositori. Tidak ada tombol `enabled` untuk diatur. `enabled: false` akan mematikannya, terlepas dari pengaturan lainnya.
-
-**Versi lama:** `enabled: true` diperlukan, dan skema akan menolak `enabled: true` jika tidak menyertakan `token` dan `allowedRepositories` yang tidak kosong.
+Tidak ada tombol untuk diatur. Fitur ini aktif segera setelah terdapat token dan cakupan repositori, atau aplikasi `oauth` yang berfungsi. `enabled: false` akan mematikannya, terlepas dari pengaturan lainnya.
 
 ### Contoh minimal [#minimal-examples]
 
-Form default-on (**Pending**), dengan `GITHUB_TOKEN` diatur di lingkungan server:
-
-```yaml filename="librechat.yaml"
-endpoints:
-  agents:
-    pullRequests:
-      allowAllRepositories: true
-```
-
-Dibatasi pada repositori tertentu (**Tertunda**, fallback token yang sama):
+GitHub, dengan `GITHUB_PULL_REQUEST_TOKEN` yang diatur di lingkungan server:
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -108,18 +137,195 @@ endpoints:
         - 'my-org/*'
 ```
 
-Formulir yang berfungsi pada versi yang lebih lama:
+GitHub Enterprise Server, dengan referensi token eksplisit:
 
 ```yaml filename="librechat.yaml"
 endpoints:
   agents:
     pullRequests:
-      enabled: true
-      token: '${GITHUB_PULL_REQUEST_TOKEN}'
-      allowedRepositories: ['LibreChat-AI/LibreChat']
+      host: 'github.example.com'
+      token: '${GHES_PULL_REQUEST_TOKEN}'
+      allowedRepositories: ['platform/*']
 ```
 
-Lihat referensi [`pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests) untuk setiap kunci, termasuk opsi penalaan.
+Bitbucket Cloud (**Tertunda**), dengan `BITBUCKET_PULL_REQUEST_TOKEN` diatur:
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      provider: 'bitbucket'
+      allowedRepositories: ['my-workspace/*']
+```
+
+Lihat referensi [`pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests) untuk setiap kunci.
+
+## Akun per pengguna [#per-user-accounts]
+
+<Callout type="important" title="Tertunda: belum dirilis">
+  Akun per-pengguna adalah bagian dari LibreChat-AI/LibreChat#16989 dan #16990.
+</Callout>
+
+Dengan `oauth` diatur, setiap pengguna dapat menghubungkan akun GitHub, GitLab, atau Bitbucket mereka sendiri di **Settings > Account**, di bawah **Pull request account**. Pencarian mereka kemudian akan dijalankan dengan token, batas kecepatan (rate limit), dan akses repositori milik mereka sendiri, bukan milik server.
+
+- Token pengguna yang terhubung hanya dapat melihat apa yang sudah bisa dilihat oleh pengguna tersebut, sehingga token ini tidak terikat pada `allowedRepositories`.
+- Pengguna yang belum terhubung masih menggunakan token server, di bawah cakupan repositorinya. Tanpa token server, mereka tidak akan melihat pull request sampai mereka terhubung.
+- Dengan aplikasi `oauth` yang berfungsi, fitur ini aktif bahkan tanpa token server atau cakupan repositori.
+- **Disconnect** menghapus izin yang tersimpan. Pengguna dapat menghubungkan kembali kapan saja.
+- Jika token pengguna yang terhubung tidak dapat diperbarui karena penyedia atau penyimpanan kunci sedang tidak aktif, pencarian mereka akan melaporkan bahwa pull request tidak tersedia. Mereka **tidak** akan beralih ke token server, yang mungkin melihat lebih sedikit daripada milik pengguna itu sendiri.
+- Jika penyedia layanan secara tegas menolak penyegaran (grant telah dicabut), koneksi akan dihapus. Pengguna kemudian akan ditampilkan sebagai tidak terhubung dan diperlakukan seperti pengguna mana pun yang belum terhubung.
+- Grants disimpan dalam keadaan terenkripsi, satu per pengguna dan host penyedia. Mengubah `clientId` ke aplikasi yang berbeda akan membuat koneksi yang ada dianggap tidak terhubung, sehingga pengguna harus menghubungkan kembali.
+
+### Konfigurasi aplikasi [#configure-the-app]
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      oauth:
+        clientId: '${GITHUB_PR_OAUTH_CLIENT_ID}'
+        clientSecret: '${GITHUB_PR_OAUTH_CLIENT_SECRET}'
+      # optional: the server token for users who have not connected
+      allowedRepositories: ['my-org/*']
+```
+
+| Kunci | Default | Rentang | Deskripsi |
+| ----------------------- | ------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------- |
+| `clientId`              | wajib diisi | | Referensi variabel lingkungan, bukan nilainya. |
+| `clientSecret`          | wajib diisi | | Referensi variabel lingkungan, bukan nilainya. |
+| `scope`                 | tidak ada di GitHub, `read_api` di GitLab, milik konsumen sendiri di Bitbucket | | Scope yang dipisahkan dengan spasi untuk diminta. Hanya huruf, angka, `_`, `:`, `.`, `-` dan spasi, hingga 256 karakter. |
+| `flowTimeoutMinutes`    | 10 | 1-60 | Menit yang boleh digunakan pengguna untuk menyetujui koneksi di penyedia. |
+| `requestTimeoutSeconds` | 10 | 1-60 | Detik yang boleh digunakan untuk pertukaran kode atau penyegaran token. |
+| `retentionDays`         | 180 | 1-3650 | Hari koneksi disimpan tanpa digunakan. Setiap penggunaan akan memperpanjangnya. |
+
+Jika salah satu referensi tidak terselesaikan, pengguna tidak dapat terhubung dan hanya token server yang digunakan. Alur koneksi juga memerlukan `JWT_SECRET`, yang ditetapkan oleh setiap penyebaran LibreChat.
+
+Daftarkan URL callback ini dengan aplikasi tersebut, di mana `DOMAIN_SERVER` adalah URL publik server Anda:
+
+```
+<DOMAIN_SERVER>/api/pull-requests/oauth/callback
+```
+
+### Daftarkan aplikasi [#register-the-app]
+
+<Tabs items={["GitHub", "GitLab", "Bitbucket"]}>
+<Tabs.Tab>
+
+GitHub App direkomendasikan: token penggunanya tidak memerlukan cakupan (scope) dan hanya dapat menjangkau repositori tempat aplikasi tersebut diinstal.
+
+<Steps>
+<Step>
+
+Buka **Settings > Developer settings > GitHub Apps > New GitHub App** untuk akun atau organisasi Anda. Pada GitHub Enterprise Server atau `*.ghe.com`, gunakan halaman yang sama pada host tersebut.
+
+</Step>
+<Step>
+
+Atur **Callback URL** ke `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. Di bawah **Webhook**, hapus centang pada **Active**.
+
+</Step>
+<Step>
+
+Di bawah **Repository permissions**, atur **Pull requests**, **Checks**, dan **Contents** ke **Read-only**.
+
+</Step>
+<Step>
+
+Buat aplikasinya, lalu salin **Client ID** dan buat **client secret**. Simpan keduanya dalam variabel lingkungan dan referensikan dari `oauth.clientId` dan `oauth.clientSecret`.
+
+</Step>
+<Step>
+
+Instal aplikasi tersebut pada akun atau organisasi yang repositorinya ingin dilihat oleh pengguna.
+
+</Step>
+</Steps>
+
+Aplikasi OAuth klasik juga dapat berfungsi, tetapi memerlukan scope seperti `scope: 'repo'`, yang memberikan akses lebih dari sekadar akses baca.
+
+</Tabs.Tab>
+<Tabs.Tab>
+
+<Steps>
+<Step>
+
+Buka **Edit profile > Applications** (atau halaman **Applications** milik grup atau instans) pada host GitLab yang diatur di `host`.
+
+</Step>
+<Step>
+
+Atur **Redirect URI** ke `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`, pastikan **Confidential** tetap dicentang, dan pilih scope `read_api`.
+
+</Step>
+<Step>
+
+Simpan, lalu salin **Application ID** dan **Secret** ke dalam variabel lingkungan yang direferensikan oleh `oauth.clientId` dan `oauth.clientSecret`. Atur `provider: 'gitlab'`, dan `host` untuk GitLab yang dikelola sendiri (self-managed).
+
+</Step>
+</Steps>
+
+</Tabs.Tab>
+<Tabs.Tab>
+
+<Steps>
+<Step>
+
+Buka **Workspace settings > OAuth consumers > Add consumer** di Bitbucket Cloud.
+
+</Step>
+<Step>
+
+Atur **Callback URL** ke `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`, dan berikan izin **Pull requests: Read** serta **Repositories: Read**. LibreChat tidak meminta scope apa pun di Bitbucket, jadi izin yang dimiliki konsumen adalah apa yang diberikan oleh pengguna.
+
+</Step>
+<Step>
+
+Simpan, lalu salin **Key** dan **Secret** konsumen ke dalam variabel lingkungan yang dirujuk oleh `oauth.clientId` dan `oauth.clientSecret`. Atur `provider: 'bitbucket'`.
+
+</Step>
+</Steps>
+
+</Tabs.Tab>
+</Tabs>
+
+## Penskalaan dengan replika [#scaling-with-replicas]
+
+<Callout type="important" title="Tertunda: belum dirilis">
+  `sharedCache` adalah bagian dari LibreChat-AI/LibreChat#16988.
+</Callout>
+
+Setiap replika menyimpan hasil dalam memori. Dengan beberapa replika, atur `sharedCache: true` agar mereka berbagi permintaan penarikan (pull request) yang telah dicari dan waktu tunggu batas kecepatan (rate limit cooldowns) melalui Redis, sehingga tidak masing-masing menghabiskan token untuk jawaban yang sama.
+
+- Ini hanya berlaku ketika deployment dijalankan dengan Redis (`USE_REDIS`). Default: `false`.
+- Setiap replika tetap memiliki cache dalam memori miliknya sendiri, di depan cache yang digunakan bersama.
+- `sharedCacheTimeoutMs` (10-5000, default 250) membatasi setiap pembacaan atau penulisan cache bersama. Redis yang lebih lambat akan dilewati dan pencarian akan dilanjutkan tanpanya.
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      allowedRepositories: ['my-org/*']
+      sharedCache: true
+      sharedCacheTimeoutMs: 250
+```
+
+## Penyetelan [#tuning]
+
+Pengaturan default sudah cukup untuk sebagian besar deployment.
+
+| Kunci | Rentang | Default | Deskripsi |
+| -------------------------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
+| `cacheTtlSeconds`          | 5-3600    | 30      | Detik hasil digunakan kembali sebelum penyedia ditanya lagi. Kegagalan diingat paling lama 10 detik.      |
+| `cacheMaxEntries`          | 10-100000 | 500     | Hasil yang di-cache per kredensial sebelum yang terlama dihapus.                                                         |
+| `cacheMaxCredentials`      | 1-10000   | 256     | Kredensial yang di-cache sekaligus, di seluruh deployment. Yang paling lama tidak aktif akan dihapus setelah batas ini.                               |
+| `maxConcurrentLookups`     | 1-16      | 4       | Pencarian yang dijalankan satu permintaan sidebar sekaligus, dihitung per kredensial di seluruh permintaan.                                   |
+| `batchTimeoutSeconds`      | 1-120     | 20      | Durasi terlama satu permintaan sidebar tetap terbuka.                                                                             |
+| `requestTimeoutSeconds`    | 1-60      | 10      | Durasi terlama satu permintaan penyedia. Tingkatkan jika berada di belakang proxy yang lambat.                                                |
+| `lookupTimeoutSeconds`     | 1-120     | 30      | Durasi terlama seluruh pencarian, semua permintaan digabungkan, dapat berlangsung.                                                           |
+| `maxCheckRunPages`         | 1-50      | 10      | Halaman pemeriksaan (GitHub) atau status commit (Bitbucket) yang dibaca sebelum pemeriksaan dilaporkan sedang berjalan.            |
+| `maxCandidatePullRequests` | 1-100     | 10      | Pull request yang dicantumkan per status saat mencocokkan nama cabang yang digunakan kembali.                                                  |
+| `maxCandidatePages`        | 1-10      | 1       | Halaman kandidat tersebut yang dibaca per status. Setiap halaman adalah satu permintaan.                                                 |
+| `maxHeadComparisons`       | 0-20      | 3       | Kandidat yang dibandingkan dengan commit terakhir saat chat dijalankan sebelum pencarian berhenti. Setiap perbandingan adalah satu permintaan.           |
 
 ## Apa yang dilihat pengguna [#what-users-see]
 
@@ -138,10 +344,10 @@ Lihat referensi [`pullRequests`](/docs/configuration/librechat_yaml/object_struc
 
 ### Kartu tersebut [#the-card]
 
-Kartu tersebut menampilkan `PR #number`, `+additions` dengan warna hijau, `-deletions` dengan warna merah, tautan yang membuka pull request di GitHub, judul pull request, dan dua lencana:
+Kartu tersebut menampilkan `PR #number` (`MR !number` di GitLab), `+additions` berwarna hijau, `-deletions` berwarna merah, tautan **Open in GitHub**, **Open in GitLab**, atau **Open in Bitbucket**, judul, serta dua lencana:
 
 - **State**: Open, Draft, Merged, atau Closed.
-- **Pemeriksaan**: Berhasil (Passing), Gagal (Failing), Berjalan (Running), atau tidak ada (none).
+- **Checks**: Passing (Berhasil), Failing (Gagal), Running (Sedang Berjalan), atau tidak ada. Pada GitLab ini adalah pipeline utama, dihitung hanya ketika dijalankan untuk commit utama saat ini. Pada Bitbucket ini adalah status commit.
 
 {/* TODO(docs): add the screenshots from LibreChat PRs #16794 and #16815. */}
 
@@ -160,19 +366,21 @@ Warna titik CI: hijau untuk lulus, merah untuk gagal, kuning untuk sedang berjal
 ## Bagaimana pull request dicocokkan [#how-a-pull-request-is-matched]
 
 1. Worker melaporkan repositori, branch, dan commit (head) tempat chat terakhir kali dijalankan.
-2. LibreChat mencantumkan pull request terbuka untuk branch tersebut terlebih dahulu, sehingga riwayat tertutup pada nama branch yang digunakan kembali tidak dapat menyembunyikan yang terbuka. Kemudian, sistem akan memeriksa pull request terbuka dari fork (ditemukan melalui commit), lalu yang tertutup.
-3. Dengan commit yang tercatat, sebuah pull request hanya akan dihitung jika head-nya adalah commit tersebut atau dibangun di atasnya. Hal ini mencegah nama branch yang telah dihapus dan digunakan kembali menampilkan pull request lama.
-4. Branch yang belum memiliki commit (branch baru yang kosong) tidak mencocokkan apa pun.
-5. Hasilnya di-cache per kredensial, repositori, branch, dan commit.
-6. Check runs dibaca untuk head saat ini dari pull request. Untuk pull request dari fork, check dibaca dari fork hanya ketika repositori fork tersebut berada dalam cakupan (terdaftar, atau `allowAllRepositories`). Jika tidak, repositori dasar yang akan dibaca dan token tidak akan pernah dikirim ke fork yang tidak terdaftar.
+2. Jika output perintah obrolan itu sendiri menautkan ke pull request dari repositori tersebut pada host yang dikonfigurasi (sebagai contoh, tautan yang dicetak oleh `gh pr create`), pull request tersebut dibaca secara langsung, dengan ketentuan head-nya adalah branch obrolan tersebut. Tautan ke repositori lain atau host lain akan diabaikan.
+3. Jika tidak, LibreChat akan mencantumkan pull request terbuka untuk branch tersebut terlebih dahulu, sehingga riwayat tertutup pada nama branch yang digunakan kembali tidak dapat menyembunyikan yang terbuka. Kemudian, sistem akan memeriksa pull request terbuka dari fork, lalu yang tertutup.
+4. Dengan commit yang tercatat, sebuah pull request hanya dihitung jika head-nya adalah commit tersebut atau dibangun di atasnya. Hal ini mencegah nama branch yang telah dihapus dan digunakan kembali menampilkan pull request lama. Sebuah pull request dari fork hanya dihitung jika membawa commit yang tercatat, karena siapa pun dapat membuka branch fork dengan nama yang sama.
+5. Branch yang belum memiliki commit (branch baru yang kosong) tidak mencocokkan apa pun.
+6. Hasilnya di-cache per kredensial, repositori, branch, dan commit.
+7. Di GitHub, pemeriksaan (check runs) dibaca untuk head saat ini dari pull request. Untuk pull request dari fork, pemeriksaan hanya dibaca dari fork tersebut jika repositori fork itu berada dalam cakupan (terdaftar, atau `allowAllRepositories`). Jika tidak, repositori dasar yang akan dibaca dan token tidak akan pernah dikirim ke fork yang tidak terdaftar.
 
 ## Perilaku [#behavior]
 
 ### Batas kecepatan (Rate limits) [#rate-limits]
 
-- Batas kecepatan GitHub berlaku untuk kredensial tersebut, sehingga pencarian untuk setiap branch di bawah token itu akan dijeda.
-- Jeda minimum adalah 10 detik. Batas sekunder tanpa waktu tunggu yang ditentukan akan menunggu selama 60 detik. Waktu tunggu yang ditentukan oleh GitHub akan dipatuhi, dengan batas maksimal 1 jam.
+- Batas laju berlaku untuk kredensial pada satu host penyedia, sehingga proses pencarian untuk setiap cabang di bawah token tersebut akan dijeda. Dengan akun per-pengguna, batas setiap pengguna adalah milik mereka sendiri.
+- Jeda minimum adalah 10 detik, dan waktu tunggu yang ditentukan oleh penyedia akan dipatuhi, dengan batas maksimal 1 jam. Di GitHub, batas sekunder tanpa waktu tunggu yang ditentukan akan menjeda selama 60 detik.
 - Selama jeda, pencarian akan menjawab `RATE_LIMITED` dan baris akan menampilkan status coba ulang.
+- Dengan `sharedCache`, jeda yang dimulai pada satu replika akan berlaku untuk setiap replika.
 
 ### Pembaruan bergulir (Rolling upgrades) [#rolling-upgrades]
 
@@ -181,28 +389,35 @@ Warna titik CI: hijau untuk lulus, merah untuk gagal, kuning untuk sedang berjal
 
 ### Default saat tidak diatur [#defaults-when-unset]
 
-- Tanpa token atau cakupan repositori, fitur ini tidak aktif: tidak ada yang diiklankan dalam konfigurasi startup, tidak ada yang direkam, dan tidak ada yang ditampilkan.
+- Tanpa token atau cakupan repositori, dan tanpa aplikasi `oauth`, fitur ini tidak aktif: tidak ada yang diiklankan dalam konfigurasi startup, tidak ada yang direkam, dan tidak ada yang ditampilkan.
 - Dengan fitur ini dimatikan dalam konfigurasi, obrolan yang sudah ada tidak akan berubah dan klien tidak akan pernah memanggil rute baru tersebut.
 
 ## Model keamanan [#security-model]
 
-- Token tersebut berada di server. Token tidak pernah dikirim ke browser, dan respons kesalahan tidak pernah menyertakan teks respons GitHub, token, atau jejak tumpukan (stack traces).
-- Token tersebut hanya digunakan untuk repositori dalam cakupan. Token ini tidak pernah dikirim ke fork yang tidak berada dalam cakupan.
-- Dua rute pencarian `/api/convos` memerlukan pengguna yang terautentikasi dan memiliki cakupan pemilik (owner-scoped). Percakapan yang hilang, kedaluwarsa, atau milik pengguna lain akan terlihat sama dengan percakapan tanpa pull request.
-- Gunakan token *read-only* dengan cakupan terbatas yang hanya mencakup repositori yang ingin Anda tampilkan.
+- Token tersimpan di server. Token tidak pernah dikirim ke browser, dan respons kesalahan tidak pernah menyertakan teks respons penyedia, token, atau jejak tumpukan (stack traces).
+- Token server hanya digunakan untuk repositori dalam cakupan, dan hanya pada host yang dikonfigurasi. Token ini tidak pernah dikirim ke fork yang tidak berada dalam cakupan.
+- `provider`, `host` dan `oauth` hanya berasal dari `librechat.yaml`, sehingga penggantian peran, grup, pengguna, atau penyewa tidak dapat mengirim token ke layanan lain atau menukar akses yang diberikan pengguna aplikasi.
+- Rute pencarian `/api/convos` memerlukan pengguna yang terautentikasi dan memiliki cakupan pemilik (owner-scoped). Percakapan yang hilang, kedaluwarsa, atau milik pengguna lain akan terlihat sama dengan percakapan yang tidak memiliki pull request.
+- Gunakan token read-only yang dibatasi pada repositori yang ingin Anda tampilkan.
 
 ## Pemecahan Masalah [#troubleshooting]
 
 | Gejala | Kemungkinan penyebab | Perbaikan |
 | ------------------------------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | Tidak ada chip dan tidak ada tanda sidebar di mana pun | Tidak ada token, tidak ada cakupan repositori, atau `enabled: false` | Periksa [Setup](#setup). Buka `/api/config` saat masuk dan cari `pullRequestsEnabled: true`. |
-| Chip header berfungsi, baris sidebar tidak menampilkan apa pun | `pullRequestsBatchVersion` hilang dari `/api/config` (build lama, atau tab usang) | Bangun ulang atau tingkatkan server, mulai ulang, dan lakukan hard reload. Konfirmasi `pullRequestsBatchVersion: 1`. |
-| Chip hanya muncul untuk beberapa obrolan | Hanya obrolan pada ruang kerja kode terlampir yang telah melaporkan cabang yang memiliki jalur | Konfirmasi `CODEAPI_BRIDGE_LANE_GIT=true` pada Code API dan worker yang dibangun dari code-interpreter PR #311 atau setelahnya. |
-| Ikon peringatan dengan coba lagi | Pencarian gagal (batas kecepatan, kesalahan GitHub, atau `NOT_CONFIGURED`) | Coba lagi. Jika terus-menerus, periksa token dan izinnya. |
-| `NOT_CONFIGURED` | `token` diatur tetapi variabelnya kosong atau hilang | Atur variabelnya. **Pending:** atau hapus `token` untuk menggunakan variabel cadangan. |
-| Pull request dimuat tetapi pemeriksaan terlihat salah atau gagal | Token tidak memiliki izin Checks atau Contents | Berikan izin baca-saja untuk Checks dan Contents. |
-| Pull request dari fork tidak menampilkan pemeriksaan | Fork tidak dalam cakupan, jadi pemeriksaan dibaca dari repositori dasar | Tambahkan pemilik fork ke `allowedRepositories`. **Pending:** atau atur `allowAllRepositories: true`. |
-| Tidak ada pull request untuk nama cabang yang telah digunakan berkali-kali | `maxCandidatePullRequests`, `maxCandidatePages` atau `maxHeadComparisons` terlalu rendah untuk seberapa sering nama tersebut digunakan kembali, sehingga pencarian berhenti sebelum mencapai pull request yang cocok | Tingkatkan nilainya. |
+| Tidak ada chip untuk obrolan di workspace yang dilampirkan | Repositori tidak ada di `allowedRepositories` | Tambahkan repositori tersebut, atau pemiliknya sebagai `owner/*`. Repositori di luar cakupan terlihat sama dengan repositori tanpa pull request. |
+| Chip hanya muncul untuk beberapa obrolan | Hanya obrolan pada workspace kode yang dilampirkan yang telah melaporkan branch yang memiliki lane | Konfirmasi `CODEAPI_BRIDGE_LANE_GIT=true` pada Code API dan worker yang dibangun dari PR code-interpreter #311 atau yang lebih baru. |
+| Chip header berfungsi, baris sidebar tidak menampilkan apa pun | `pullRequestsBatchVersion` tidak ada di `/api/config` (build lama, atau tab usang) | Bangun ulang atau tingkatkan server, mulai ulang, dan lakukan hard reload. Konfirmasi `pullRequestsBatchVersion: 1`. |
+| Ikon peringatan dengan coba lagi | Pencarian gagal (limit rate, kesalahan penyedia, atau `NOT_CONFIGURED`) | Coba lagi. Jika terus terjadi, periksa token dan izinnya. |
+| `NOT_CONFIGURED` | `token` diatur tetapi variabelnya kosong atau hilang | Atur variabelnya, atau hapus `token` untuk menggunakan variabel cadangan. |
+| Setiap pull request GitHub gagal dimuat | Token tidak memiliki izin Checks | Berikan izin Checks read-only. |
+| Gagal hanya setelah branch berpindah | Token tidak memiliki izin Contents, sehingga commit tidak dapat dibandingkan | Berikan izin Contents read-only. |
+| `RATE_LIMITED` yang sering terjadi | Banyak pengguna berbagi token server, atau setiap replika meminta ke penyedia | Tingkatkan `cacheTtlSeconds`, turunkan `maxConcurrentLookups`, atur `sharedCache: true` dengan Redis, atau biarkan pengguna menghubungkan akun mereka sendiri. |
+| Pull request dari fork tidak menampilkan checks | Fork tidak dalam cakupan, sehingga checks dibaca dari repositori dasar | Tambahkan pemilik fork ke `allowedRepositories`, atau atur `allowAllRepositories: true`. |
+| GitLab atau Bitbucket tidak menampilkan apa pun | `provider` tidak diatur, atau `host` tidak cocok dengan tempat proyek berada | Atur `provider`. Untuk GitLab yang dikelola sendiri, atur `host` ke nama host-nya. Bitbucket hanya berfungsi dengan host default `bitbucket.org`. |
+| Tautan yang dicetak oleh `gh pr create` tidak terdeteksi | Tautan mengarah ke host atau repositori lain selain milik lane | Periksa `host`. Hanya tautan pada host yang dikonfigurasi dan repositori lane yang dihitung. |
+| Pengguna yang terhubung melihat "unavailable" | Penyedia atau penyimpanan kunci tidak dapat menyegarkan token mereka | Coba lagi nanti. Pencarian tidak kembali ke token server untuk pengguna yang terhubung. |
+| Tidak ada pull request untuk nama branch yang telah digunakan berkali-kali | `maxCandidatePullRequests`, `maxCandidatePages` atau `maxHeadComparisons` terlalu rendah untuk seberapa sering nama tersebut digunakan kembali, sehingga pencarian berhenti sebelum mencapai pull request yang cocok | Tingkatkan nilainya. |
 | Pencarian lambat atau timeout di balik proxy | `requestTimeoutSeconds` terlalu rendah | Tingkatkan nilainya. Periksa `HTTPS_PROXY` dan `NO_PROXY`. |
 
 ## Referensi API [#api-reference]
@@ -226,6 +441,15 @@ Kedua rute `/api/convos` di bawah ini memerlukan pengguna yang terautentikasi da
 - **200**: `{ "results": [ { "conversationId", "pullRequest" } | { "conversationId", "error": { "code" } } ] }`, sesuai urutan yang diminta. Satu pencarian yang gagal tidak akan menyembunyikan yang lainnya.
 - Token yang hilang hanya akan menggagalkan entri yang memerlukannya.
 
+### Koneksi akun (**Tertunda**) [#account-connection-pending]
+
+Rute-rute ini hanya ada jika `JWT_SECRET` diatur. Semuanya kecuali callback memerlukan pengguna yang terautentikasi.
+
+- `GET /api/pull-requests/oauth/connect`: memulai koneksi dan menjawab `{ "url" }`, halaman penyedia untuk dibuka.
+- `GET /api/pull-requests/oauth/callback`: tempat penyedia mengirim pengguna kembali.
+- `GET /api/pull-requests/oauth/status`: apakah pengguna terhubung.
+- `DELETE /api/pull-requests/oauth`: memutuskan koneksi pengguna.
+
 ### Konfigurasi startup [#startup-config]
 
 `GET /api/config` mencakup kolom-kolom ini. Server yang mengaturnya; ini bukan pengaturan.
@@ -233,5 +457,6 @@ Kedua rute `/api/convos` di bawah ini memerlukan pengguna yang terautentikasi da
 - `pullRequestsEnabled` (boolean)
 - `pullRequestsBatchVersion` (`1`, hanya ada jika fitur diaktifkan)
 - `pullRequestsMaxConcurrentLookups` (angka, hanya ada jika fitur diaktifkan)
+- `pullRequestsConnect` (`github`, `gitlab` atau `bitbucket`, hanya ada saat pengguna dapat menghubungkan akun mereka sendiri; **Tertunda**)
 
 Hanya kode kesalahan yang tercantum di atas yang stabil.

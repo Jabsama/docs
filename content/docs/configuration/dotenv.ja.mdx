@@ -1577,37 +1577,53 @@ Statefulなリクエストは、決して `LIBRECHAT_CODE_BASEURL` にフォー�
 
 ## 会話のプルリクエスト (Conversation Pull Requests) [#conversation-pull-requests]
 
-会話のGitHubプルリクエストを表示するための設定です。[会話のプルリクエスト](/docs/features/pull_requests)および[`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests)を参照してください。
+GitHub、GitLab、またはBitbucket Cloudからの会話のプルリクエストを表示するための設定です。[会話のプルリクエスト](/docs/features/pull_requests)および[`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests)を参照してください。
 
-<Callout type="important" title="保留中：未リリース">
-  3つのフォールバックトークン変数は、LibreChat-AI/LibreChat#16876の一部です。古いバージョンでは、`token: "${NAME}"`が参照する変数を設定してください。
-</Callout>
+フォールバック変数は `pullRequests.token` が設定されていない場合にのみ使用され、設定された `provider` の変数のみがリストされた順序で読み込まれます。これらは LibreChat サーバー上で設定してください。
 
 <OptionTable
   options={[
     [
       'GITHUB_PULL_REQUEST_TOKEN',
       'string',
-      '保留中。`pullRequests.token` が設定されていない場合のフォールバック用読み取り専用 GitHub トークン。最初に試行されます。LibreChat サーバー上で設定してください。',
+      'フォールバック用の読み取り専用GitHubトークン。GitHubで最初に試行されました。',
       '# GITHUB_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'GITHUB_TOKEN',
       'string',
-      '保留中。フォールバックトークン、2番目を試行しました。これは一般的な名前です。もしデプロイメントですでに別の用途で使用している場合、リポジトリスコープが設定されるとすぐにフォールバックがここでの使用を開始します。',
+      'フォールバック用のGitHubトークン。2番目に試行されます。これは一般的な名称であるため、デプロイメントで既に他の用途に使用されている場合、リポジトリスコープが設定されるとすぐにフォールバックがここでも使用を開始します。',
       '# GITHUB_TOKEN=your-read-only-token',
     ],
     [
       'GH_TOKEN',
       'string',
-      '保留中。フォールバックトークン、3番目を試行。',
+      'フォールバック用のGitHubトークン、3番目を試行しました。',
       '# GH_TOKEN=your-read-only-token',
+    ],
+    [
+      'GITLAB_PULL_REQUEST_TOKEN',
+      'string',
+      '`read_api` スコープを持つフォールバック用 GitLab トークン。GitLab で最初に試行されます。',
+      '# GITLAB_PULL_REQUEST_TOKEN=your-read-api-token',
+    ],
+    [
+      'GITLAB_TOKEN',
+      'string',
+      'フォールバック用のGitLabトークン、2番目に試行。一般的な名前でもあります。`GITHUB_TOKEN`を参照してください。',
+      '# GITLAB_TOKEN=your-read-api-token',
+    ],
+    [
+      'BITBUCKET_PULL_REQUEST_TOKEN',
+      'string',
+      '保留中。プルリクエストおよびリポジトリへの読み取りアクセス権を持つ、フォールバック用のBitbucket Cloudリポジトリ、プロジェクト、またはワークスペースのアクセストークン。',
+      '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      '`pullRequests.token: "${NAME}"` が参照する変数。LibreChatサーバー上で設定します。',
-      '# MY_GITHUB_TOKEN=your-read-only-token',
+      '`pullRequests.token: "${NAME}"` が参照する変数。`pullRequests.oauth.clientId` および `clientSecret`（保留中）にも使用され、これらも参照となります。',
+      '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
       'CODEAPI_BRIDGE_LANE_GIT',
@@ -1618,7 +1634,9 @@ Statefulなリクエストは、決して `LIBRECHAT_CODE_BASEURL` にフォー�
   ]}
 />
 
-GitHubリクエストは、デプロイメントのプロキシ設定（`PROXY`、`HTTP_PROXY`、`HTTPS_PROXY`、`NO_PROXY`、およびそれらの小文字形式）を使用し、`NO_PROXY`が尊重されます。これらは他のLibreChatの送信トラフィックと共有されており、この機能専用のものではありません。
+自身の接続アカウントを使用するユーザー（保留中）には、接続フローに署名するための `JWT_SECRET` と、コールバックURL `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` を形成する `DOMAIN_SERVER` が必要です。`pullRequests.sharedCache`（保留中）は `USE_REDIS=true` の場合にのみ有効になります。
+
+プロバイダーのリクエストは、デプロイメントのプロキシ設定（`PROXY`、`HTTP_PROXY`、`HTTPS_PROXY`、`NO_PROXY`、およびそれらの小文字形式）を使用し、`NO_PROXY` が尊重されます。これらは他の LibreChat のアウトバウンドトラフィックと共有されており、この機能専用のものではありません。
 
 ## Artifacts [#artifacts]
 

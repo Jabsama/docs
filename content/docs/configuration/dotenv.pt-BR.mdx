@@ -1578,37 +1578,53 @@ Ambientes anexados nomeados também podem expor um plano de controle de pareamen
 
 ## Pull Requests de Conversa [#conversation-pull-requests]
 
-Configurações para exibir o pull request do GitHub de uma conversa. Veja [Conversation Pull Requests](/docs/features/pull_requests) e [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests).
+Configurações para exibir o pull request de uma conversa do GitHub, GitLab ou Bitbucket Cloud. Veja [Conversation Pull Requests](/docs/features/pull_requests) e [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests).
 
-<Callout type="important" title="Pendente: ainda não lançado">
-  As três variáveis de token de fallback fazem parte do LibreChat-AI/LibreChat#16876. Em versões mais antigas, defina a variável à qual `token: "${NAME}"` se refere.
-</Callout>
+As variáveis de fallback são usadas apenas quando `pullRequests.token` não está definido, e apenas aquelas do `provider` configurado são lidas, na ordem listada. Defina-as no servidor LibreChat.
 
 <OptionTable
   options={[
     [
       'GITHUB_PULL_REQUEST_TOKEN',
       'string',
-      'Pendente. Token de leitura apenas do GitHub de fallback quando `pullRequests.token` não estiver definido. Tentado primeiro. Definido no servidor LibreChat.',
+      'Token do GitHub somente leitura de fallback. Tentado primeiro no GitHub.',
       '# GITHUB_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'GITHUB_TOKEN',
       'string',
-      'Pendente. Token de fallback, segunda tentativa. É um nome comum: se sua implantação já o utiliza para outra coisa, o fallback começa a usá-lo aqui assim que um escopo de repositório é definido.',
+      'Token do GitHub de fallback, tentado em segundo lugar. É um nome comum: se sua implantação já o utiliza para outra coisa, o fallback começa a usá-lo aqui assim que um escopo de repositório é definido.',
       '# GITHUB_TOKEN=your-read-only-token',
     ],
     [
       'GH_TOKEN',
       'string',
-      'Pendente. Token de fallback, tentou o terceiro.',
+      'Token do GitHub de fallback, tentado em terceiro.',
       '# GH_TOKEN=your-read-only-token',
+    ],
+    [
+      'GITLAB_PULL_REQUEST_TOKEN',
+      'string',
+      'Token de fallback do GitLab com o escopo `read_api`. Tentado primeiro no GitLab.',
+      '# GITLAB_PULL_REQUEST_TOKEN=your-read-api-token',
+    ],
+    [
+      'GITLAB_TOKEN',
+      'string',
+      'Token de fallback do GitLab, tentado em segundo lugar. Também é um nome comum; veja `GITHUB_TOKEN`.',
+      '# GITLAB_TOKEN=your-read-api-token',
+    ],
+    [
+      'BITBUCKET_PULL_REQUEST_TOKEN',
+      'string',
+      'Pendente. Token de acesso de fallback para repositório, projeto ou workspace do Bitbucket Cloud com acesso de leitura a pull requests e repositórios.',
+      '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'A variável à qual `pullRequests.token: "${NAME}"` se refere. Definida no servidor LibreChat.',
-      '# MY_GITHUB_TOKEN=your-read-only-token',
+      'A variável à qual `pullRequests.token: "${NAME}"` se refere. Também usada para `pullRequests.oauth.clientId` e `clientSecret` (Pendente), que também são referências.',
+      '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
       'CODEAPI_BRIDGE_LANE_GIT',
@@ -1619,7 +1635,9 @@ Configurações para exibir o pull request do GitHub de uma conversa. Veja [Conv
   ]}
 />
 
-As solicitações do GitHub usam as configurações de proxy da implantação (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` e suas formas em minúsculas), e o `NO_PROXY` é respeitado. Elas são compartilhadas com outros tráfegos de saída do LibreChat e não são específicas para este recurso.
+Usuários conectando suas próprias contas (Pendente) precisam de `JWT_SECRET`, que assina o fluxo de conexão, e `DOMAIN_SERVER`, que forma a URL de retorno `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` (Pendente) entra em vigor apenas com `USE_REDIS=true`.
+
+As solicitações de provedores usam as configurações de proxy da implantação (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` e suas formas em minúsculas), e `NO_PROXY` é respeitado. Elas são compartilhadas com outros tráfegos de saída do LibreChat e não são específicas deste recurso.
 
 ## Artifacts [#artifacts]
 

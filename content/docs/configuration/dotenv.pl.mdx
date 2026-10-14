@@ -1578,37 +1578,53 @@ Nazwane dołączone środowiska mogą również udostępniać samoobsługowy pł
 
 ## Pull Requesty Konwersacji [#conversation-pull-requests]
 
-Ustawienia wyświetlania pull requesta z serwisu GitHub dla konwersacji. Zobacz [Conversation Pull Requests](/docs/features/pull_requests) oraz [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests).
+Ustawienia wyświetlania pull requesta konwersacji z GitHub, GitLab lub Bitbucket Cloud. Zobacz [Conversation Pull Requests](/docs/features/pull_requests) oraz [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests).
 
-<Callout type="important" title="Oczekujące: jeszcze niewydane">
-  Trzy zmienne tokenów zastępczych są częścią LibreChat-AI/LibreChat#16876. W starszych wersjach należy ustawić zmienną, do której odnosi się `token: "${NAME}"`.
-</Callout>
+Zmienne zastępcze (fallback) są używane tylko wtedy, gdy `pullRequests.token` nie jest ustawiony i odczytywane są tylko te dla skonfigurowanego `provider`, w podanej kolejności. Ustaw je na serwerze LibreChat.
 
 <OptionTable
   options={[
     [
       'GITHUB_PULL_REQUEST_TOKEN',
       'string',
-      'Oczekujące. Zapasowy token GitHub tylko do odczytu, gdy `pullRequests.token` nie jest ustawiony. Wypróbowano jako pierwszy. Ustawiony na serwerze LibreChat.',
+      'Zapasowy token GitHub tylko do odczytu. Najpierw wypróbowano w GitHub.',
       '# GITHUB_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'GITHUB_TOKEN',
       'string',
-      'Oczekujące. Token zapasowy, wypróbowano drugi. Jest to powszechna nazwa: jeśli Twoje wdrożenie używa jej już do czegoś innego, token zapasowy zacznie jej używać w tym miejscu, gdy tylko zostanie ustawiony zakres repozytorium.',
+      'Zapasowy token GitHub, wypróbowano jako drugi. Jest to powszechna nazwa: jeśli Twoje wdrożenie używa jej już do czegoś innego, zapasowy token zacznie jej tutaj używać, gdy tylko zostanie ustawiony zakres repozytorium.',
       '# GITHUB_TOKEN=your-read-only-token',
     ],
     [
       'GH_TOKEN',
       'string',
-      'Oczekujące. Token zapasowy, wypróbowano trzeci.',
+      'Zapasowy token GitHub, wypróbowano trzeci.',
       '# GH_TOKEN=your-read-only-token',
+    ],
+    [
+      'GITLAB_PULL_REQUEST_TOKEN',
+      'string',
+      'Zapasowy token GitLab z zakresem `read_api`. Wypróbowano najpierw w GitLab.',
+      '# GITLAB_PULL_REQUEST_TOKEN=your-read-api-token',
+    ],
+    [
+      'GITLAB_TOKEN',
+      'string',
+      'Zapasowy token GitLab, użyty jako drugi. Również powszechna nazwa; zobacz `GITHUB_TOKEN`.',
+      '# GITLAB_TOKEN=your-read-api-token',
+    ],
+    [
+      'BITBUCKET_PULL_REQUEST_TOKEN',
+      'string',
+      'Oczekujące. Zapasowy token dostępu do repozytorium, projektu lub obszaru roboczego Bitbucket Cloud z uprawnieniami do odczytu pull requestów i repozytoriów.',
+      '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'Zmienna, do której odwołuje się `pullRequests.token: "${NAME}"`. Ustawiana na serwerze LibreChat.',
-      '# MY_GITHUB_TOKEN=your-read-only-token',
+      'Zmienna, do której odnosi się `pullRequests.token: "${NAME}"`. Używana również dla `pullRequests.oauth.clientId` oraz `clientSecret` (oczekujące), które również są referencjami.',
+      '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
       'CODEAPI_BRIDGE_LANE_GIT',
@@ -1619,7 +1635,9 @@ Ustawienia wyświetlania pull requesta z serwisu GitHub dla konwersacji. Zobacz 
   ]}
 />
 
-Żądania GitHub korzystają z ustawień proxy wdrożenia (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` oraz ich odpowiedników pisanych małymi literami), przy czym `NO_PROXY` jest uwzględniane. Ustawienia te są współdzielone z innym ruchem wychodzącym LibreChat i nie są specyficzne dla tej funkcji.
+Użytkownicy łączący własne konto (oczekujące) potrzebują `JWT_SECRET`, który podpisuje proces łączenia, oraz `DOMAIN_SERVER`, który tworzy adres URL wywołania zwrotnego `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` (oczekujące) działa tylko przy ustawieniu `USE_REDIS=true`.
+
+Żądania dostawcy korzystają z ustawień proxy wdrożenia (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` oraz ich odpowiedników pisanych małymi literami), przy czym `NO_PROXY` jest uwzględniane. Ustawienia te są współdzielone z innym ruchem wychodzącym LibreChat i nie są specyficzne dla tej funkcji.
 
 ## Artefakty [#artifacts]
 

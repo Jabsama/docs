@@ -550,14 +550,14 @@ Event Actor detached Action completion được chọn tự động từ kho lư
 
 ## pullRequests
 
-{/* Pending items (LibreChat-AI/LibreChat#16876): delete the "Older versions" notes and Pending markers once it merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
+{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
 
-Hiển thị pull request trên GitHub cho không gian làm việc mã nguồn được đính kèm của một cuộc trò chuyện trong tiêu đề trò chuyện và thanh bên. Xem [Conversation Pull Requests](/docs/features/pull_requests) để biết cách thiết lập, hành vi và khắc phục sự cố. Mọi khóa đều là tùy chọn.
+Hiển thị pull request (merge request trên GitLab) cho không gian làm việc mã nguồn được đính kèm của một cuộc trò chuyện trong tiêu đề trò chuyện và thanh bên. Xem [Conversation Pull Requests](/docs/features/pull_requests) để biết cách thiết lập, hành vi và khắc phục sự cố. Mọi khóa đều là tùy chọn.
 
-Hầu hết các quản trị viên chỉ thiết lập token, phạm vi repository và có thể là `enabled: false`. Các khóa còn lại dùng để tinh chỉnh và các giá trị mặc định của chúng đã phù hợp.
+Tính năng này sẽ được bật ngay khi máy chủ có token và phạm vi repository, hoặc người dùng có thể kết nối tài khoản của riêng họ thông qua `oauth`. Hầu hết các quản trị viên chỉ thiết lập phạm vi repository và token, cùng với `provider` và `host` khi không sử dụng github.com. Các giá trị mặc định của các khóa tinh chỉnh (tuning keys) đã là phù hợp.
 
-<Callout type="important" title="Đang chờ xử lý: chưa được phát hành">
-  Hành vi mặc định bật, biến môi trường dự phòng token và `allowAllRepositories` là một phần của LibreChat-AI/LibreChat#16876. Trong các phiên bản cũ hơn, `enabled` mặc định là `false` và `token` là bắt buộc.
+<Callout type="info" title="Chỉ đọc từ librechat.yaml">
+  `provider`, `host` và `oauth` chỉ được đọc từ `librechat.yaml`. Các cấu hình ghi đè (override) cho vai trò, nhóm, người dùng và đối tượng thuê (tenant) của các khóa này sẽ bị bỏ qua, do đó việc ghi đè không thể chuyển hướng token sang một dịch vụ khác.
 </Callout>
 
 <OptionTable
@@ -565,31 +565,49 @@ Hầu hết các quản trị viên chỉ thiết lập token, phạm vi reposit
     [
       'enabled',
       'Boolean',
-      'Đặt `false` để tắt tính năng này. Đang chờ xử lý: tính năng sẽ bật khi có token và phạm vi repository. Các phiên bản cũ hơn: mặc định là `false`, và `true` yêu cầu phải có `token` và `allowedRepositories` không trống.',
+      'Đặt là `false` để tắt tính năng này. Nếu không, tính năng sẽ được bật khi đã có token và phạm vi repository, hoặc khi một ứng dụng `oauth` được giải quyết.',
       'enabled: false',
+    ],
+    [
+      'provider',
+      'String',
+      '`github` (mặc định), `gitlab` cho các yêu cầu hợp nhất (merge requests) trên gitlab.com hoặc GitLab tự quản lý, hoặc `bitbucket` cho Bitbucket Cloud (Đang chờ xử lý). Chỉ đọc từ YAML.',
+      'provider: "gitlab"',
+    ],
+    [
+      'host',
+      'String',
+      'Tên máy chủ mà token thuộc về, không bao gồm lược đồ hoặc đường dẫn: một máy chủ GitHub Enterprise Server, một tenant `*.ghe.com`, hoặc một máy chủ GitLab tự quản lý. Cổng từ 1 đến 65535 được cho phép, và `:443` sẽ bị lược bỏ. Mặc định là `github.com`, `gitlab.com` hoặc `bitbucket.org` tùy theo nhà cung cấp. Bitbucket không chấp nhận máy chủ nào khác. Chỉ đọc từ YAML.',
+      'host: "github.example.com"',
     ],
     [
       'token',
       'String',
-      'Tham chiếu đến một biến môi trường chứa token GitHub ở chế độ chỉ đọc, dưới dạng `${NAME}`. Tuyệt đối không nhập trực tiếp token. Đang chờ xử lý: khi không được thiết lập, máy chủ sẽ sử dụng biến đầu tiên trong số `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN` được thiết lập. Một `token` không thể phân giải sẽ trả về lỗi `NOT_CONFIGURED` và không có cơ chế dự phòng. Các phiên bản cũ hơn: bắt buộc.',
+      'Tham chiếu đến một biến môi trường chứa token chỉ đọc, ở định dạng `${NAME}`. Không bao giờ được là chính token đó. Khi không được thiết lập, biến dự phòng đầu tiên được thiết lập sẽ được sử dụng: `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN` trên GitHub; `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN` trên GitLab; `BITBUCKET_PULL_REQUEST_TOKEN` trên Bitbucket. Một `token` không thể phân giải sẽ thất bại với thông báo `NOT_CONFIGURED` và không có dự phòng.',
       'token: "${GITHUB_PULL_REQUEST_TOKEN}"',
+    ],
+    [
+      'oauth',
+      'Object',
+      'Đang chờ xử lý. Cho phép mỗi người dùng kết nối tài khoản riêng của họ, để các tra cứu sử dụng token, giới hạn tốc độ và quyền truy cập kho lưu trữ của người dùng đó. Chỉ đọc từ YAML. Xem [oauth](#pullrequestsoauth) bên dưới.',
+      'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
       'allowedRepositories',
       'Array of Strings',
-      'Các kho lưu trữ mà token có thể được sử dụng, dưới dạng `owner/name` hoặc `owner/*` (tối đa 256 mục, không phân biệt chữ hoa chữ thường). `*/*`, `*`, `owner` và các mục chứa `..` sẽ bị từ chối.',
+      'Các kho lưu trữ mà token máy chủ có thể được sử dụng, dưới dạng `owner/name` hoặc `owner/*` (tối đa 256 mục, không phân biệt chữ hoa chữ thường). Trên GitLab, các đường dẫn nhóm lồng nhau như `group/sub/name` hoặc `group/sub/*` được cho phép; `*` khớp với một phân đoạn. `*/*`, `*`, `owner` và các mục có chứa phân đoạn `.` hoặc `..` sẽ bị từ chối.',
       'allowedRepositories: ["LibreChat-AI/LibreChat", "my-org/*"]',
     ],
     [
       'allowAllRepositories',
       'Boolean',
-      'Đang chờ xử lý. Tra cứu bất kỳ kho lưu trữ nào mà token có thể đọc. Mặc định: `false`. Xem cảnh báo bên dưới.',
+      'Tra cứu bất kỳ kho lưu trữ nào mà token máy chủ có thể đọc. Mặc định: `false`. Xem cảnh báo bên dưới.',
       'allowAllRepositories: false',
     ],
     [
       'cacheTtlSeconds',
       'Number',
-      'Số giây một kết quả được tái sử dụng trước khi GitHub được truy vấn lại (5-3600). Các lỗi sẽ được ghi nhớ tối đa 10 giây. Mặc định: 30.',
+      'Số giây một kết quả được tái sử dụng trước khi nhà cung cấp được hỏi lại (5-3600). Các lỗi được ghi nhớ tối đa 10 giây. Mặc định: 30.',
       'cacheTtlSeconds: 30',
     ],
     [
@@ -601,13 +619,13 @@ Hầu hết các quản trị viên chỉ thiết lập token, phạm vi reposit
     [
       'cacheMaxCredentials',
       'Number',
-      'Thông tin xác thực được lưu vào bộ nhớ đệm cùng lúc trên toàn bộ quá trình triển khai (1-10000). Thông tin không hoạt động lâu nhất sẽ bị loại bỏ khi vượt quá giới hạn. Khi các chủ thể đặt các giá trị khác nhau, giá trị lớn nhất sẽ được áp dụng. Hãy tăng giá trị này khi nhiều người thuê cùng sử dụng token riêng của họ. Mặc định: 256.',
+      'Thông tin xác thực được lưu vào bộ nhớ đệm cùng lúc, trên toàn bộ quá trình triển khai (1-10000). Thông tin không hoạt động lâu nhất sẽ bị loại bỏ sau đó. Khi các hiệu trưởng đặt các giá trị khác nhau, giá trị lớn nhất sẽ được áp dụng. Hãy tăng giá trị này khi nhiều người thuê cùng sử dụng token riêng của họ hoặc nhiều người dùng kết nối tài khoản riêng của họ. Mặc định: 256.',
       'cacheMaxCredentials: 256',
     ],
     [
       'maxConcurrentLookups',
       'Number',
-      'Các yêu cầu tra cứu trên thanh bên chạy lần lượt (1-16), được tính theo thông tin xác thực trên các yêu cầu. Mỗi lượt tra cứu tương ứng với một vài yêu cầu GitHub. Mặc định: 4.',
+      'Các yêu cầu tra cứu trên thanh bên chạy lần lượt (1-16), được tính theo thông tin xác thực trên các yêu cầu. Mỗi lượt tra cứu bao gồm một vài yêu cầu tới nhà cung cấp. Mặc định: 4.',
       'maxConcurrentLookups: 4',
     ],
     [
@@ -619,7 +637,7 @@ Hầu hết các quản trị viên chỉ thiết lập token, phạm vi reposit
     [
       'requestTimeoutSeconds',
       'Number',
-      'Thời gian tối đa một yêu cầu GitHub có thể mất (1-60). Tăng giá trị này nếu sử dụng proxy chậm. Mặc định: 10.',
+      'Thời gian chờ tối đa cho một yêu cầu tới nhà cung cấp (1-60). Tăng giá trị này nếu sử dụng proxy chậm. Mặc định: 10.',
       'requestTimeoutSeconds: 10',
     ],
     [
@@ -631,7 +649,7 @@ Hầu hết các quản trị viên chỉ thiết lập token, phạm vi reposit
     [
       'maxCheckRunPages',
       'Number',
-      'Số trang của 100 lần chạy kiểm tra được đọc trước khi quá trình tổng hợp được báo cáo là vẫn đang chạy (1-50). Mặc định: 10.',
+      'Các trang kiểm tra (GitHub) hoặc trạng thái commit (Bitbucket) được đọc trước khi các kiểm tra được báo cáo là vẫn đang chạy (1-50). GitLab đọc pipeline đầu thay thế. Mặc định: 10.',
       'maxCheckRunPages: 10',
     ],
     [
@@ -652,11 +670,23 @@ Hầu hết các quản trị viên chỉ thiết lập token, phạm vi reposit
       'Các ứng viên được so sánh với commit mà cuộc trò chuyện đã chạy lần cuối trước khi tìm kiếm dừng lại (0-20). Mỗi lần so sánh là một yêu cầu. `0` sẽ vô hiệu hóa việc so sánh. Mặc định: 3.',
       'maxHeadComparisons: 3',
     ],
+    [
+      'sharedCache',
+      'Boolean',
+      'Đang chờ xử lý. Chia sẻ các pull request đã tra cứu và thời gian chờ giới hạn tốc độ giữa các bản sao thông qua Redis. Chỉ có hiệu lực khi dùng `USE_REDIS`; mỗi bản sao vẫn giữ bộ nhớ đệm trong RAM riêng. Mặc định: `false`.',
+      'sharedCache: true',
+    ],
+    [
+      'sharedCacheTimeoutMs',
+      'Number',
+      'Đang chờ. Thời gian tối đa tính bằng mili giây mà một lần đọc hoặc ghi bộ nhớ đệm dùng chung có thể mất trước khi quá trình tra cứu tiếp tục mà không cần nó (10-5000). Mặc định: 250.',
+      'sharedCacheTimeoutMs: 250',
+    ],
   ]}
 />
 
 <Callout type="warning" title="Bảo mật: allowAllRepositories">
-  Khi bật tính năng này, bất kỳ người dùng nào có thể chạy mã đều có thể trỏ token của máy chủ vào bất kỳ kho lưu trữ nào mà token đó có quyền đọc, đồng thời xem tiêu đề, kích thước và trạng thái kiểm tra của pull request. Hãy sử dụng token chỉ đọc (read-only) được giới hạn phạm vi cho các kho lưu trữ mà bạn sẵn sàng hiển thị.
+  Worker sẽ báo cáo kho lưu trữ của chính nó, vì vậy khi bật tính năng này, bất kỳ người dùng nào có thể chạy mã đều có thể trỏ token của server vào bất kỳ kho lưu trữ nào mà token đó có quyền đọc, đồng thời xem được tiêu đề, kích thước và trạng thái kiểm tra của pull request. Hãy sử dụng token chỉ đọc (read-only) được giới hạn phạm vi cho các kho lưu trữ mà bạn sẵn sàng hiển thị.
 </Callout>
 
 ```yaml filename="endpoints / agents / pullRequests"
@@ -671,7 +701,62 @@ endpoints:
       maxConcurrentLookups: 4
 ```
 
-Trên các phiên bản cũ hơn, hãy thêm `enabled: true`.
+### pullRequests.oauth
+
+Đang chờ xử lý. Cho phép mỗi người dùng kết nối tài khoản riêng của họ trong **Settings > Account > Pull request account**. Các lượt tra cứu của người dùng đã kết nối sẽ sử dụng token của chính họ và không bị giới hạn bởi `allowedRepositories`; những người dùng chưa kết nối sẽ tiếp tục sử dụng token của máy chủ. Hãy đăng ký `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` làm URL callback của ứng dụng. Trên GitHub, khuyến nghị sử dụng GitHub App với các quyền read-only cho Pull requests, Checks và Contents. Xem [Per-user accounts](/docs/features/pull_requests#per-user-accounts).
+
+<OptionTable
+  options={[
+    [
+      'clientId',
+      'String',
+      'Bắt buộc. Tham chiếu biến môi trường tới client ID của ứng dụng, theo định dạng `${NAME}`.',
+      'clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}"',
+    ],
+    [
+      'clientSecret',
+      'String',
+      'Bắt buộc. Tham chiếu biến môi trường đến client secret của ứng dụng, dưới dạng `${NAME}`.',
+      'clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}"',
+    ],
+    [
+      'scope',
+      'String',
+      'Các phạm vi được phân tách bằng dấu cách để yêu cầu, tối đa 256 ký tự. Mặc định: không có trên GitHub, `read_api` trên GitLab và quyền của chính người dùng trên Bitbucket. Chỉ thiết lập cho GitHub OAuth App cổ điển.',
+      'scope: "repo"',
+    ],
+    [
+      'flowTimeoutMinutes',
+      'Number',
+      'Số phút người dùng có thể thực hiện để phê duyệt kết nối tại nhà cung cấp (1-60). Mặc định: 10.',
+      'flowTimeoutMinutes: 10',
+    ],
+    [
+      'requestTimeoutSeconds',
+      'Number',
+      'Số giây để thực hiện trao đổi mã hoặc làm mới token (1-60). Mặc định: 10.',
+      'requestTimeoutSeconds: 10',
+    ],
+    [
+      'retentionDays',
+      'Number',
+      'Số ngày duy trì kết nối mà không sử dụng (1-3650). Mỗi lần sử dụng sẽ gia hạn thời gian này. Mặc định: 180.',
+      'retentionDays: 180',
+    ],
+  ]}
+/>
+
+Nếu một trong hai tham chiếu không được phân giải, người dùng sẽ không thể kết nối và chỉ token máy chủ được sử dụng.
+
+```yaml filename="endpoints / agents / pullRequests / oauth"
+endpoints:
+  agents:
+    pullRequests:
+      oauth:
+        clientId: '${GITHUB_PR_OAUTH_CLIENT_ID}'
+        clientSecret: '${GITHUB_PR_OAUTH_CLIENT_SECRET}'
+        retentionDays: 180
+```
 
 ## backgroundTasks
 

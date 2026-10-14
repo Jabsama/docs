@@ -1578,37 +1578,53 @@ Gli ambienti collegati denominati possono anche esporre un piano di controllo di
 
 ## Pull Request di conversazione [#conversation-pull-requests]
 
-Impostazioni per mostrare la pull request GitHub di una conversazione. Vedi [Conversation Pull Requests](/docs/features/pull_requests) e [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests).
+Impostazioni per mostrare la pull request di una conversazione da GitHub, GitLab o Bitbucket Cloud. Vedi [Conversation Pull Requests](/docs/features/pull_requests) e [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests).
 
-<Callout type="important" title="In attesa: non ancora rilasciato">
-  Le tre variabili di fallback per i token fanno parte di LibreChat-AI/LibreChat#16876. Nelle versioni precedenti, imposta la variabile a cui fa riferimento `token: "${NAME}"`.
-</Callout>
+Le variabili di fallback vengono utilizzate solo quando `pullRequests.token` non è impostato e vengono lette solo quelle del `provider` configurato, nell'ordine elencato. Impostale sul server LibreChat.
 
 <OptionTable
   options={[
     [
       'GITHUB_PULL_REQUEST_TOKEN',
       'string',
-      'In sospeso. Token GitHub di fallback in sola lettura quando `pullRequests.token` non è impostato. Provato per primo. Impostato sul server LibreChat.',
+      'Token GitHub di fallback in sola lettura. Provato prima su GitHub.',
       '# GITHUB_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'GITHUB_TOKEN',
       'string',
-      'In sospeso. Token di fallback, secondo tentativo. È un nome comune: se la tua distribuzione lo utilizza già per altro, il fallback inizierà a usarlo qui non appena viene impostato un ambito di repository.',
+      'Token GitHub di fallback, provato come secondo. È un nome comune: se il tuo deployment lo utilizza già per qualcos\'altro, il fallback inizierà a usarlo qui non appena viene impostato un ambito di repository.',
       '# GITHUB_TOKEN=your-read-only-token',
     ],
     [
       'GH_TOKEN',
       'string',
-      'In attesa. Token di fallback, provato il terzo.',
+      'Token GitHub di fallback, provato come terzo.',
       '# GH_TOKEN=your-read-only-token',
+    ],
+    [
+      'GITLAB_PULL_REQUEST_TOKEN',
+      'string',
+      'Token GitLab di fallback con lo scope `read_api`. Provato per primo su GitLab.',
+      '# GITLAB_PULL_REQUEST_TOKEN=your-read-api-token',
+    ],
+    [
+      'GITLAB_TOKEN',
+      'string',
+      'Token GitLab di fallback, provato per secondo. Anche un nome comune; vedi `GITHUB_TOKEN`.',
+      '# GITLAB_TOKEN=your-read-api-token',
+    ],
+    [
+      'BITBUCKET_PULL_REQUEST_TOKEN',
+      'string',
+      'In sospeso. Token di accesso al repository, al progetto o all\'area di lavoro di Bitbucket Cloud di fallback con accesso in lettura a pull request e repository.',
+      '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'La variabile a cui fa riferimento `pullRequests.token: "${NAME}"`. Impostata sul server LibreChat.',
-      '# MY_GITHUB_TOKEN=your-read-only-token',
+      'La variabile a cui fa riferimento `pullRequests.token: "${NAME}"`. Utilizzata anche per `pullRequests.oauth.clientId` e `clientSecret` (in sospeso), che sono anch\'essi dei riferimenti.',
+      '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
       'CODEAPI_BRIDGE_LANE_GIT',
@@ -1619,7 +1635,9 @@ Impostazioni per mostrare la pull request GitHub di una conversazione. Vedi [Con
   ]}
 />
 
-Le richieste GitHub utilizzano le impostazioni proxy della distribuzione (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` e le loro forme minuscole), e `NO_PROXY` viene rispettato. Queste sono condivise con altro traffico in uscita di LibreChat e non sono specifiche per questa funzionalità.
+Gli utenti che collegano il proprio account (In sospeso) necessitano di `JWT_SECRET`, che firma il flusso di connessione, e `DOMAIN_SERVER`, che forma l'URL di callback `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` (In sospeso) ha effetto solo con `USE_REDIS=true`.
+
+Le richieste del provider utilizzano le impostazioni proxy della distribuzione (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` e le loro forme minuscole), e `NO_PROXY` viene rispettato. Queste sono condivise con altro traffico in uscita di LibreChat e non sono specifiche per questa funzionalità.
 
 ## Artifacts [#artifacts]
 

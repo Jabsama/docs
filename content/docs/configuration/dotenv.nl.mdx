@@ -1578,37 +1578,53 @@ Benoemde gekoppelde omgevingen kunnen ook een self-service pairing control plane
 
 ## Conversation Pull Requests [#conversation-pull-requests]
 
-Instellingen voor het weergeven van de GitHub pull request van een conversatie. Zie [Conversation Pull Requests](/docs/features/pull_requests) en [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests).
+Instellingen voor het weergeven van de pull request van een conversatie vanuit GitHub, GitLab of Bitbucket Cloud. Zie [Conversation Pull Requests](/docs/features/pull_requests) en [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests).
 
-<Callout type="important" title="In afwachting: nog niet uitgebracht">
-  De drie fallback-tokenvariabelen maken deel uit van LibreChat-AI/LibreChat#16876. Stel in oudere versies de variabele in waarnaar `token: "${NAME}"` verwijst.
-</Callout>
+De fallback-variabelen worden alleen gebruikt wanneer `pullRequests.token` niet is ingesteld, en alleen die van de geconfigureerde `provider` worden gelezen, in de vermelde volgorde. Stel ze in op de LibreChat-server.
 
 <OptionTable
   options={[
     [
       'GITHUB_PULL_REQUEST_TOKEN',
       'string',
-      'In afwachting. Fallback alleen-lezen GitHub-token wanneer `pullRequests.token` niet is ingesteld. Als eerste geprobeerd. Ingesteld op de LibreChat-server.',
+      'Fallback alleen-lezen GitHub-token. Eerst geprobeerd op GitHub.',
       '# GITHUB_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'GITHUB_TOKEN',
       'string',
-      'In afwachting. Fallback-token, tweede poging. Het is een veelgebruikte naam: als uw deployment deze al voor iets anders gebruikt, begint de fallback deze hier te gebruiken zodra een repository-scope is ingesteld.',
+      'Fallback GitHub-token, tweede geprobeerd. Het is een veelgebruikte naam: als je deployment deze al ergens anders voor gebruikt, begint de fallback deze hier te gebruiken zodra een repository-scope is ingesteld.',
       '# GITHUB_TOKEN=your-read-only-token',
     ],
     [
       'GH_TOKEN',
       'string',
-      'In afwachting. Fallback-token, derde poging.',
+      'Fallback GitHub-token, derde poging.',
       '# GH_TOKEN=your-read-only-token',
+    ],
+    [
+      'GITLAB_PULL_REQUEST_TOKEN',
+      'string',
+      'Fallback GitLab-token met de `read_api` scope. Eerst geprobeerd op GitLab.',
+      '# GITLAB_PULL_REQUEST_TOKEN=your-read-api-token',
+    ],
+    [
+      'GITLAB_TOKEN',
+      'string',
+      'Fallback GitLab-token, tweede geprobeerd. Ook een veelvoorkomende naam; zie `GITHUB_TOKEN`.',
+      '# GITLAB_TOKEN=your-read-api-token',
+    ],
+    [
+      'BITBUCKET_PULL_REQUEST_TOKEN',
+      'string',
+      'In afwachting. Fallback Bitbucket Cloud repository, project of workspace toegangstoken met leestoegang tot pull requests en repositories.',
+      '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'De variabele waarnaar `pullRequests.token: "${NAME}"` verwijst. Ingesteld op de LibreChat-server.',
-      '# MY_GITHUB_TOKEN=your-read-only-token',
+      'De variabele waarnaar `pullRequests.token: "${NAME}"` verwijst. Ook gebruikt voor `pullRequests.oauth.clientId` en `clientSecret` (in afwachting), die eveneens verwijzingen zijn.',
+      '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
       'CODEAPI_BRIDGE_LANE_GIT',
@@ -1619,7 +1635,9 @@ Instellingen voor het weergeven van de GitHub pull request van een conversatie. 
   ]}
 />
 
-GitHub-verzoeken gebruiken de proxy-instellingen van de deployment (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` en hun kleinelettervarianten), en `NO_PROXY` wordt gerespecteerd. Deze worden gedeeld met ander uitgaand verkeer van LibreChat en zijn niet specifiek voor deze functie.
+Gebruikers die hun eigen account koppelen (In afwachting) hebben `JWT_SECRET` nodig, die de koppelingsstroom ondertekent, en `DOMAIN_SERVER`, die de callback-URL `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` vormt. `pullRequests.sharedCache` (In afwachting) is alleen van kracht bij `USE_REDIS=true`.
+
+Provider-verzoeken gebruiken de proxy-instellingen van de deployment (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` en hun kleinelettervarianten), en `NO_PROXY` wordt gerespecteerd. Deze worden gedeeld met ander uitgaand verkeer van LibreChat en zijn niet specifiek voor deze functie.
 
 ## Artifacts [#artifacts]
 

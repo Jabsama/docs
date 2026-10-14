@@ -1,101 +1,131 @@
 ---
 title: 会話のプルリクエスト
 icon: GitPullRequest
-description: 添付されたワークスペースでコードを実行するチャットについて、GitHubのプルリクエスト、サイズ、およびCIステータスを表示します。
+description: >-
+  GitHub、GitLab、またはBitbucket
+  Cloudの添付ワークスペースでコードを実行するチャットについて、プルリクエストやマージリクエスト、サイズ、CIステータスを表示します。
 ---
 
 {/*
-  PUBLISHING GATE. Do not merge this page until LibreChat-AI/LibreChat#16876 (default-on, token
-  fallback, allowAllRepositories) is merged to dev. Until then, only the blocks marked
-  "Pending" are unreleased. After it merges: re-check the schema in
-  packages/data-provider/src/config.ts, delete the "Older versions" blocks and every Pending marker.
+  Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988), per-user
+  accounts through `oauth` (#16989) and the "Pull request account" setting (#16990). Delete the
+  Pending markers once each merges to dev, and re-check the schema in
+  packages/data-provider/src/config.ts.
   TODO(maintainer): first release version for each part (do not guess).
   TODO(maintainer): requirement 4 (where an admin sets the workspace environment's repository).
-  Add it to "Requirements" once confirmed. Do not publish without it.
+  Add it to "Requirements" once confirmed.
 */}
 
-チャットが添付されたワークスペースでコードを実行すると、ワーカーは現在チェックアウトしているgitブランチとコミットを報告します。LibreChatはそのブランチを使用して、サーバーで保持されているトークンで一致するGitHubプルリクエストを検索し、以下の2箇所に表示します。
+チャットが添付されたワークスペースでコードを実行すると、ワーカーは現在チェックアウトしているgitブランチとコミットを報告します。LibreChatはそのブランチを使用して、サーバー上に保持されているトークン、またはユーザー自身の接続済みアカウントを使用して、一致するプルリクエスト（GitLabの場合はマージリクエスト）を検索し、以下の2箇所に表示します。
 
 - **Chat header**: プルリクエストアイコンとCIドットが付いたチップ。ホバーまたはフォーカスするとカードが開きます。
 - **サイドバーの会話リスト**: 行の末尾に同じアイコンとCIドットが表示されます。行には会話自体のタイトルが保持され、プルリクエストのタイトルはカード内にのみ表示されます。
+
+Pull requestsはGitHub（デフォルト）、GitLab、またはBitbucket Cloud（**保留中**）から取得できます。1つのデプロイメントにつき1つのプロバイダーを使用します。
 
 ## 要件 [#requirements]
 
 チャットでプルリクエストを表示するには、以下のすべての条件が満たされている必要があります：
 
-1. LibreChatにはGitHubトークンとリポジトリスコープが必要です。詳細は[Setup](#setup)を参照してください。
+1. LibreChatにはトークンおよびリポジトリスコープ（`allowedRepositories`または`allowAllRepositories`）が存在するか、ユーザーが自身の接続アカウントを使用します。[Setup](#setup)および[Per-user accounts](#per-user-accounts)を参照してください。
 2. このチャットでは、単なるチャットではなく、**アタッチされたコードワークスペース**（コードワーカー）を使用します。
 3. ワーカーは自身のブランチを報告します。これには `LibreChat-AI/code-interpreter` の PR #311 以降からビルドされたワーカーが必要であり、Code API 上で `CODEAPI_BRIDGE_LANE_GIT=true` が設定されている必要があります。詳細は [Code Interpreter](/docs/features/code_interpreter#attached-environments-and-pairing) を参照してください。
 
-要件が不足している場合、チャットにはプルリクエストが表示されず、ユーザーに対してエラーも表示されません。例外として、`token` が設定されているものの、対応する環境変数が空であるか欠落している場合は、検索が `NOT_CONFIGURED` で失敗し、サイドバーの行に警告アイコンと再試行ボタンが表示されます。
+この機能はデフォルトで有効になっています。トークンやリポジトリのスコープがない場合、この機能は休止状態となり、すべてのチャットでエラーを表示することなく、プルリクエストは表示されません。`enabled: false` を設定すると、他の設定に関係なくこの機能は無効になります。
+
+例外として、`token` が設定されているものの、対応する環境変数が空であるか欠落している場合があります。この場合、ルックアップは `NOT_CONFIGURED` となり、サイドバーの行には再試行ボタン付きの警告アイコンが表示されます。
 
 ## セットアップ [#setup]
 
-### 1. トークンを作成する [#1-create-a-token]
+### 1. プロバイダーとホストを選択する [#1-choose-the-provider-and-host]
 
-表示したいリポジトリのみに制限された、**読み取り専用**権限を持つきめ細かなGitHubトークンを使用してください：
+`provider` はプルリクエストの保存先を選択します：
+
+| `provider`         | サービス                                                                                                   | デフォルトの `host`  |
+| ------------------ | --------------------------------------------------------------------------------------------------------- | --------------- |
+| `github` (デフォルト) | GitHub.com、GitHub Enterprise Server、または GitHub Enterprise Cloud データレジデンシーテナント (`*.ghe.com`)     | `github.com`    |
+| `gitlab`           | gitlab.com またはセルフホスト型 GitLab 上のマージリクエスト                                                     | `gitlab.com`    |
+| `bitbucket`        | Bitbucket Cloud のみ (**保留中**)                                                                        | `bitbucket.org` |
+
+GitHub Enterprise Server、`*.ghe.com` テナント、またはセルフマネージドの GitLab の場合にのみ `host` を設定してください：
+
+- これはホスト名であり、URLではありません。スキームやパスは含めず、例として `github.example.com` のように記述します。
+- 明示的なポート（1から65535まで）を指定できます。例として `git.example.com:8443` などがあります。`:443` は https のデフォルトであるため、省略されます。
+- GitHubでは、LibreChatは `github.com` に対して `api.github.com` を、`*.ghe.com` テナントに対して `api.<host>` を、そしてEnterprise Serverに対しては `https://<host>/api/v3` を呼び出します。GitLabでは、`https://<host>/api/v4` および `https://<host>/api/graphql` を呼び出します。
+- Bitbucketは他のホストを受け入れません。`bitbucket.org` 以外の `host` を指定すると、トークンを他の場所に送信するのではなく、機能が無効になります。
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      provider: 'gitlab'
+      host: 'gitlab.example.com'
+      allowedRepositories:
+        - 'platform/backend/api'
+        - 'platform/frontend/*'
+```
+
+<Callout type="info" title="librechat.yaml からのみ読み込む">
+  `provider`、`host`、および `oauth` は `librechat.yaml` からのみ読み込まれます。これらのキーに対するロール、グループ、ユーザー、およびテナントの設定オーバーライドは無視されます。これは、トークンの送信先およびユーザーがアクセスを許可するアプリを決定するためです。オーバーライドによってトークンを別のサービスにリダイレクトすることはできません。`token` や `allowedRepositories` などの他のキーは、引き続きプリンシパルごとに異なる設定が可能です。
+</Callout>
+
+### 2. トークンを作成する [#2-create-a-token]
+
+サーバーのトークンは、自身のアカウントを接続していないすべてのユーザーに対して使用されます。
+
+**GitHub**: 表示したいリポジトリのみに制限されたファイングレイン（きめ細かな）トークンを使用し、権限を**読み取り専用**に設定してください：
 
 - プルリクエスト
 - チェック
 - 目次
 
 <Callout type="warning" title="権限エラーのモード">
-  **Checks**がない場合、一致したすべてのプルリクエストは読み込みに失敗します。**Contents**がない場合、前回のコマンド実行時からブランチが更新されたチャットは読み込みに失敗します。
+  **Checks**がない場合、一致したプルリクエストはすべて読み込みに失敗します。**Contents**がない場合、前回のコマンド実行時からブランチが更新されたチャットは読み込みに失敗します。これは、LibreChatがコミットを比較して一致を確認するためです。
 </Callout>
 
-### 2. LibreChatにトークンを渡す [#2-give-librechat-the-token]
+**GitLab**: `read_api` スコープを持つ個人、グループ、またはプロジェクトのアクセストークン。
 
-<Callout type="important" title="保留中：未リリース">
-  環境変数のフォールバックは、デフォルトで有効化される変更の一部です (LibreChat-AI/LibreChat#16876)。
-</Callout>
+**Bitbucket Cloud** (**保留中**): リポジトリ、プロジェクト、またはワークスペースのアクセストークン。Bearerトークンとして送信されます。LibreChatはプルリクエスト、そのdiffstat、コミットステータス、およびマージベースを読み取るため、プルリクエストとリポジトリに対する読み取り権限を付与してください。
+
+### 3. LibreChatにトークンを渡す [#3-give-librechat-the-token]
 
 LibreChatは、以下の順序でトークンを検索します：
 
-1. `token: "${MY_VAR}"`（`librechat.yaml` 内）。これは環境変数の**参照**であり、YAML 自体にトークンが保持されることはありません。
-2. `token` が設定されていない場合、以下の環境変数のうち最初に設定されているものが使用されます: `GITHUB_PULL_REQUEST_TOKEN`、`GITHUB_TOKEN`、`GH_TOKEN`。
-3. トークンがどこにもない場合：この機能は休止状態のままになります。
+1. `token: "${MY_VAR}"` ( `librechat.yaml` 内)。これは環境変数の**参照**です。YAML 自体にはトークンは保持されず、リテラルのトークンはスキーマによって拒否されます。
+2. `token` が設定されていない場合、以下の環境変数のうち最初に設定されているものが使用されます：
 
-設定されているが解決されない（変数が空または欠落している）`token` は、`NOT_CONFIGURED` で失敗します。上記の3つの変数にフォールバックすることは**ありません**。
+| プロバイダー | フォールバック変数（優先順位順） |
+| --------- | --------------------------------------------------------- |
+| GitHub    | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`   |
+| GitLab    | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN`               |
+| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` (**保留中**)              |
 
-<Callout type="info" title="GITHUB_TOKEN は一般的な名称です">
-  デプロイメントで既に `GITHUB_TOKEN` を他の用途に使用している場合、リポジトリスコープが設定されるとすぐにデフォルトでオンの動作がそれを使用し始めます。共有を避けるには、`token` を明示的に設定するか、`GITHUB_PULL_REQUEST_TOKEN` を使用してください。
+3. トークンはどこにも存在しません：ユーザーが自身のアカウントを接続できない限り、この機能は休止状態のままとなります。
+
+設定されているが解決されない（変数が空または欠落している）`token` は、`NOT_CONFIGURED` で失敗します。上記の変数にフォールバックすることは**ありません**。
+
+<Callout type="info" title="GITHUB_TOKEN と GITLAB_TOKEN は一般的な名称です">
+  デプロイメントですでにこれらがいずれかの用途で使用されている場合、リポジトリのスコープが設定されるとすぐにここで取得されます。共有を避けるには、`token` を明示的に設定するか、`*_PULL_REQUEST_TOKEN` 変数を使用してください。
 </Callout>
 
-**Older versions:** `token` is required when the feature is enabled, and must be a `${NAME}` reference such as `"${GITHUB_PULL_REQUEST_TOKEN}"`. There is no environment variable fallback.
+### 4. 検索対象とするリポジトリを選択する [#4-choose-which-repositories-it-may-look-up]
 
-### 3. 検索対象とするリポジトリを選択する [#3-choose-which-repositories-it-may-look-up]
+ワーカーは自身のレポジトリを報告するため、サーバーはどのレポジトリに対してそのトークンを使用できるかを決定する必要があります。スコープがない場合、この機能は休止状態のままとなります。これには2つの方法があります。
 
-ワーカーは自身のレポジトリを報告するため、サーバー側でそのトークンがどのレポジトリに対して使用可能かを決定する必要があります。スコープが指定されていない場合、この機能は休止状態のままとなります。これには2つの方法があります：
-
-- `allowedRepositories`: `owner/name` または `owner/*` エントリのリスト（最大256個）。マッチングはケースインセンシティブです。`*/*`、`*`、`owner`、または `..` を含むエントリは、スキーマによって拒否されます。
-- `allowAllRepositories: true` (**保留中**): トークンが読み取り可能なすべてのリポジトリを検索します。デフォルトは `false` です。
+- `allowedRepositories`: `owner/name` または `owner/*` エントリのリスト（最大256個）。マッチングはケースインセンシティブです。GitLabでは、エントリは `group/sub/name` や `group/sub/*` のようなネストされたグループパスである可能性があります。`*` は正確に1つのセグメントを表すため、`group/*` は `group/sub/name` にはマッチしません。`*/*`、`*`、`owner`、または `.` や `..` セグメントを含むエントリは、スキーマによって拒否されます。
+- `allowAllRepositories: true`: トークンが読み取り可能なすべてのリポジトリを検索します。デフォルトは `false` です。
 
 <Callout type="warning" title="セキュリティ: allowAllRepositories">
-  これを有効にすると、コードを実行できるユーザーは誰でも、サーバーのトークンをそのトークンが読み取り可能な任意のレポジトリに向け、プルリクエストのタイトル、サイズ、およびチェックステータスを確認できるようになります。表示しても問題のないレポジトリにスコープを限定した、読み取り専用のトークンを使用してください。
+  これはデフォルトでオフになっています。なぜなら、リポジトリはサーバーからではなくワーカーから取得されるためです。これをオンにすると、コードを実行できるユーザーであれば誰でも、そのトークンが読み取り可能な任意のリポジトリにサーバーのトークンを向け、プルリクエストのタイトル、サイズ、チェックステータスを確認できるようになります。表示を許可するリポジトリのみにスコープを絞った、読み取り専用のトークンを使用してください。
 </Callout>
 
-### 4. 有効にする [#4-turn-it-on]
+### 5. 有効にする [#5-turn-it-on]
 
-<Callout type="important" title="保留中：未リリース">
-  Default-onの動作は、LibreChat-AI/LibreChat#16876の一部です。
-</Callout>
-
-トークンとリポジトリスコープが存在すれば、この機能はすぐに有効になります。設定する `enabled` スイッチはありません。`enabled: false` を設定すると、他の設定に関係なく機能が無効になります。
-
-**古いバージョン:** `enabled: true` が必須であり、スキーマは `token` と空ではない `allowedRepositories` の両方が指定されていない `enabled: true` を拒否します。
+設定するスイッチはありません。トークンとリポジトリのスコープ、または動作する `oauth` アプリが存在すれば、この機能はすぐに有効になります。`enabled: false` を設定すると、他の設定に関わらず機能は無効になります。
 
 ### 最小限の例 [#minimal-examples]
 
-サーバー環境で `GITHUB_TOKEN` が設定されている場合のデフォルトオンのフォーム (**Pending**):
-
-```yaml filename="librechat.yaml"
-endpoints:
-  agents:
-    pullRequests:
-      allowAllRepositories: true
-```
-
-特定のレポジトリに制限 (**Pending**、同じトークンのフォールバック):
+GitHub。サーバー環境で `GITHUB_PULL_REQUEST_TOKEN` が設定されている必要があります：
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -106,18 +136,195 @@ endpoints:
         - 'my-org/*'
 ```
 
-古いバージョンで動作するフォーム：
+GitHub Enterprise Server（明示的なトークン参照付き）:
 
 ```yaml filename="librechat.yaml"
 endpoints:
   agents:
     pullRequests:
-      enabled: true
-      token: '${GITHUB_PULL_REQUEST_TOKEN}'
-      allowedRepositories: ['LibreChat-AI/LibreChat']
+      host: 'github.example.com'
+      token: '${GHES_PULL_REQUEST_TOKEN}'
+      allowedRepositories: ['platform/*']
 ```
 
-チューニングオプションを含むすべてのキーについては、[`pullRequests` リファレンス](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests)を参照してください。
+Bitbucket Cloud (**保留中**)、`BITBUCKET_PULL_REQUEST_TOKEN` を設定した場合:
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      provider: 'bitbucket'
+      allowedRepositories: ['my-workspace/*']
+```
+
+すべてのキーについては、[`pullRequests` リファレンス](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests) を参照してください。
+
+## ユーザーごとのアカウント [#per-user-accounts]
+
+<Callout type="important" title="保留中：未リリース">
+  ユーザーごとのアカウントは、LibreChat-AI/LibreChat#16989 および #16990 の一部です。
+</Callout>
+
+`oauth` を設定すると、各ユーザーは **Settings > Account** の **Pull request account** から、自身の GitHub、GitLab、または Bitbucket アカウントを接続できるようになります。これにより、サーバーのトークン、レート制限、リポジトリアクセスではなく、ユーザー自身のトークン、レート制限、リポジトリアクセスを使用してルックアップが実行されるようになります。
+
+- 接続されたユーザーのトークンは、そのユーザーがすでに閲覧可能なものしか参照できないため、`allowedRepositories` の制限は適用されません。
+- 接続していないユーザーは、引き続きリポジトリスコープ下でサーバーのトークンを使用します。サーバーのトークンがない場合、接続するまでプルリクエストは表示されません。
+- `oauth`アプリが正常に動作していれば、サーバーのトークンやリポジトリのスコープがなくても、この機能は有効になります。
+- **Disconnect** は、保存された権限を削除します。ユーザーはいつでも再度接続できます。
+- 接続されたユーザーのトークンが、プロバイダーまたはキーストアのダウンにより更新できない場合、そのルックアップはプルリクエストが利用不可であると報告します。ユーザー自身のトークンよりも権限が低い可能性があるサーバー側のトークンにフォールバックすることは**ありません**。
+- プロバイダーが更新を明確に拒否した場合（権限が取り消された場合）、接続は削除されます。その際、ユーザーは未接続として表示され、接続していない他のユーザーと同様に扱われます。
+- Grantsは暗号化されて保存され、ユーザーおよびプロバイダーホストごとに1つずつ割り当てられます。`clientId`を別のアプリに変更すると、既存の接続は未接続として扱われるため、ユーザーは再度接続する必要があります。
+
+### アプリの設定 [#configure-the-app]
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      oauth:
+        clientId: '${GITHUB_PR_OAUTH_CLIENT_ID}'
+        clientSecret: '${GITHUB_PR_OAUTH_CLIENT_SECRET}'
+      # optional: the server token for users who have not connected
+      allowedRepositories: ['my-org/*']
+```
+
+| キー | デフォルト | 範囲 | 説明 |
+| ----------------------- | ------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------- |
+| `clientId`              | 必須 | | 環境変数への参照。値そのものではありません。 |
+| `clientSecret`          | 必須 | | 環境変数への参照。値そのものではありません。 |
+| `scope`                 | GitHubではなし、GitLabでは `read_api`、Bitbucketではコンシューマー自身 | | 要求するスコープ（スペース区切り）。英数字、`_`、`:`、`.`、`-`、およびスペースのみ使用可能。最大256文字。 |
+| `flowTimeoutMinutes`    | 10 | 1-60 | ユーザーがプロバイダー側で接続を承認するまでの制限時間（分）。 |
+| `requestTimeoutSeconds` | 10 | 1-60 | コード交換やトークン更新にかかる制限時間（秒）。 |
+| `retentionDays`         | 180 | 1-3650 | 接続が使用されずに保持される日数。使用されるたびに期間が延長されます。 |
+
+いずれかの参照が解決されない場合、ユーザーは接続できず、サーバーのトークンのみが使用されます。接続フローには `JWT_SECRET` も必要であり、これはすべての LibreChat デプロイメントで設定されています。
+
+このコールバックURLをアプリに登録してください。ここで `DOMAIN_SERVER` は、お使いのサーバーのパブリックURLです：
+
+```
+<DOMAIN_SERVER>/api/pull-requests/oauth/callback
+```
+
+### アプリを登録する [#register-the-app]
+
+<Tabs items={["GitHub", "GitLab", "Bitbucket"]}>
+<Tabs.Tab>
+
+GitHub Appの使用が推奨されます。そのユーザートークンはスコープを必要とせず、アプリがインストールされているリポジトリにのみアクセス可能です。
+
+<Steps>
+<Step>
+
+アカウントまたは組織の **Settings > Developer settings > GitHub Apps > New GitHub App** を開きます。GitHub Enterprise Server または `*.ghe.com` を使用している場合は、そのホスト上の同じページを使用してください。
+
+</Step>
+<Step>
+
+**Callback URL** を `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` に設定します。**Webhook** の下にある **Active** のチェックを外します。
+
+</Step>
+<Step>
+
+**Repository permissions** の下で、**Pull requests**、**Checks**、および **Contents** を **Read-only** に設定します。
+
+</Step>
+<Step>
+
+アプリを作成し、**Client ID**をコピーして**client secret**を生成します。それらを環境変数に保存し、`oauth.clientId`および`oauth.clientSecret`から参照します。
+
+</Step>
+<Step>
+
+ユーザーがリポジトリを閲覧できるようにしたいアカウントまたは組織にアプリをインストールします。
+
+</Step>
+</Steps>
+
+従来のOAuth Appも機能しますが、`scope: 'repo'` のようなスコープが必要であり、これは読み取り権限以上のアクセス権を付与します。
+
+</Tabs.Tab>
+<Tabs.Tab>
+
+<Steps>
+<Step>
+
+`host` に設定されたGitLabホスト上で、**Edit profile > Applications**（またはグループやインスタンスの **Applications** ページ）を開きます。
+
+</Step>
+<Step>
+
+**Redirect URI** を `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` に設定し、**Confidential** にチェックを入れたまま、`read_api` スコープを選択します。
+
+</Step>
+<Step>
+
+保存してから、**Application ID** と **Secret** をコピーし、`oauth.clientId` および `oauth.clientSecret` で参照される環境変数に設定します。`provider: 'gitlab'` を設定し、セルフホスト型のGitLabの場合は `host` を設定してください。
+
+</Step>
+</Steps>
+
+</Tabs.Tab>
+<Tabs.Tab>
+
+<Steps>
+<Step>
+
+Bitbucket Cloudで **Workspace settings > OAuth consumers > Add consumer** を開きます。
+
+</Step>
+<Step>
+
+**Callback URL** を `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` に設定し、**Pull requests: Read** および **Repositories: Read** の権限を付与してください。LibreChat は Bitbucket に対してスコープを要求しないため、コンシューマーの権限はユーザーが付与したものとなります。
+
+</Step>
+<Step>
+
+保存した後、コンシューマーの **Key** と **Secret** をコピーし、`oauth.clientId` および `oauth.clientSecret` で参照される環境変数に設定します。`provider: 'bitbucket'` を設定してください。
+
+</Step>
+</Steps>
+
+</Tabs.Tab>
+</Tabs>
+
+## レプリカによるスケーリング [#scaling-with-replicas]
+
+<Callout type="important" title="保留中：未リリース">
+  `sharedCache` は LibreChat-AI/LibreChat#16988 の一部です。
+</Callout>
+
+各レプリカは結果をメモリ内にキャッシュします。複数のレプリカを使用する場合は、`sharedCache: true` を設定することで、Redis を介して検索されたプルリクエストやレート制限のクールダウンを共有し、各レプリカが同じ回答に対してトークンを消費しないようにします。
+
+- これは、デプロイメントがRedis (`USE_REDIS`) で実行されている場合にのみ有効になります。デフォルト: `false`。
+- いずれの場合も、各レプリカは共有キャッシュの前に、独自のインメモリキャッシュを保持します。
+- `sharedCacheTimeoutMs` (10-5000、デフォルト 250) は、各共有キャッシュの読み取りまたは書き込みの制限時間を設定します。Redis の応答が遅い場合はスキップされ、それを使用せずにルックアップが続行されます。
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      allowedRepositories: ['my-org/*']
+      sharedCache: true
+      sharedCacheTimeoutMs: 250
+```
+
+## チューニング [#tuning]
+
+ほとんどのデプロイメントでは、デフォルト設定で問題ありません。
+
+| Key                        | Range     | Default | Description                                                                                                         |
+| -------------------------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
+| `cacheTtlSeconds`          | 5-3600    | 30      | プロバイダーに再問い合わせを行う前に結果を再利用する秒数。失敗したリクエストは最大10秒間記憶されます。      |
+| `cacheMaxEntries`          | 10-100000 | 500     | 認証情報ごとにキャッシュされる結果の数。これを超えると最も古いものから削除されます。                                                         |
+| `cacheMaxCredentials`      | 1-10000   | 256     | デプロイ全体で一度にキャッシュされる認証情報の数。これを超えると最も長く使用されていないものが削除されます。                               |
+| `maxConcurrentLookups`     | 1-16      | 4       | 1つのサイドバーリクエストで同時に実行されるルックアップ数。リクエスト全体で認証情報ごとにカウントされます。                                   |
+| `batchTimeoutSeconds`      | 1-120     | 20      | 1つのサイドバーリクエストが維持される最長時間。                                                                             |
+| `requestTimeoutSeconds`    | 1-60      | 10      | 1つのプロバイダーリクエストにかかる最長時間。低速なプロキシの背後に配置する場合は値を大きくしてください。                                                |
+| `lookupTimeoutSeconds`     | 1-120     | 30      | すべてのリクエストを含めた、ルックアップ全体にかかる最長時間。                                                           |
+| `maxCheckRunPages`         | 1-50      | 10      | チェックが実行中として報告される前に読み込まれる、チェック実行（GitHub）またはコミットステータス（Bitbucket）のページ数。            |
+| `maxCandidatePullRequests` | 1-100     | 10      | 再利用されたブランチ名と一致する際に、状態ごとにリストされるプルリクエストの数。                                                  |
+| `maxCandidatePages`        | 1-10      | 1       | 状態ごとに読み込まれる候補のページ数。各ページは1リクエストとしてカウントされます。                                                 |
+| `maxHeadComparisons`       | 0-20      | 3       | 検索を諦めるまでに、チャットが最後に実行されたコミットと比較される候補の数。各比較は1リクエストとしてカウントされます。           |
 
 ## ユーザーの表示画面 [#what-users-see]
 
@@ -136,10 +343,10 @@ endpoints:
 
 ### カード [#the-card]
 
-カードには `PR #number`、緑色で `+additions`、赤色で `-deletions`、GitHubでプルリクエストを開くリンク、プルリクエストのタイトル、そして2つのバッジが表示されます：
+カードには `PR #number`（GitLabの場合は `MR !number`）、緑色で `+additions`、赤色で `-deletions`、**Open in GitHub**、**Open in GitLab**、または **Open in Bitbucket** へのリンク、タイトル、そして2つのバッジが表示されます。
 
 - **State**: Open（オープン）、Draft（ドラフト）、Merged（マージ済み）、または Closed（クローズ）。
-- **Checks**: Passing（成功）, Failing（失敗）, Running（実行中）, または none（なし）。
+- **Checks**: Passing（成功）、Failing（失敗）、Running（実行中）、またはなし。GitLabでは、これはヘッドパイプラインであり、現在のヘッドコミットに対して実行された場合にのみカウントされます。Bitbucketでは、これはコミットステータスです。
 
 {/* TODO(docs): add the screenshots from LibreChat PRs #16794 and #16815. */}
 
@@ -158,19 +365,21 @@ CIドットの色：緑は成功、赤は失敗、琥珀色は実行中を示し
 ## プルリクエストがどのようにマッチングされるか [#how-a-pull-request-is-matched]
 
 1. ワーカーは、チャットが最後に実行されたリポジトリ、ブランチ、およびコミット（ヘッド）を報告します。
-2. LibreChatは、そのブランチのオープンなプルリクエストを最初にリストアップするため、再利用されたブランチ名で過去の履歴が閉じられていても、オープンなものが隠されることはありません。次に、フォークからのオープンなプルリクエスト（コミットを通じて検出）、その後にクローズされたプルリクエストを確認します。
-3. コミットが記録されている場合、プルリクエストは、そのヘッドが当該コミットであるか、またはそのコミットをベースに構築されている場合にのみカウントされます。これにより、削除および再利用されたブランチ名が古いプルリクエストを表示してしまうことを防ぎます。
-4. まだコミットがないブランチ（新規の空のブランチ）は、何も一致しません。
-5. 結果は、認証情報、リポジトリ、ブランチ、およびコミットごとにキャッシュされます。
-6. チェックランは、プルリクエストの現在のヘッドに対して読み取られます。フォークからのプルリクエストの場合、チェックはそのフォークのリポジトリがスコープ内にある（リストされている、または `allowAllRepositories` が設定されている）場合にのみ、フォークから読み取られます。それ以外の場合はベースリポジトリが読み取られ、トークンがリストにないフォークへ渡されることはありません。
+2. チャット自体のコマンド出力が、設定されたホスト上のそのリポジトリのプルリクエストにリンクしている場合（例えば `gh pr create` が出力するリンクなど）、そのプルリクエストのヘッドがチャットのブランチであれば、そのプルリクエストが直接読み込まれます。他のリポジトリや他のホストへのリンクは無視されます。
+3. それ以外の場合、LibreChatはそのブランチのオープンなプルリクエストを最初にリストアップするため、再利用されたブランチ名でクローズされた履歴がオープンなものを隠すことはありません。次に、フォークからのオープンなプルリクエストを確認し、その後にクローズされたものを確認します。
+4. 記録されたコミットがある場合、プルリクエストは、そのヘッドが当該コミットであるか、またはそのコミットに基づいている場合にのみカウントされます。これにより、削除および再利用されたブランチ名によって古いプルリクエストが表示されることを防ぎます。フォークからのプルリクエストは、誰でも同じ名前のフォークブランチを開くことができるため、記録されたコミットが含まれている場合にのみカウントされます。
+5. まだコミットがないブランチ（新規の空のブランチ）は、何も一致しません。
+6. 結果は、認証情報、リポジトリ、ブランチ、およびコミットごとにキャッシュされます。
+7. GitHubでは、チェックランはプルリクエストの現在のヘッドに対して読み取られます。フォークからのプルリクエストの場合、チェックはそのフォークのリポジトリがスコープ内にある（リストされている、または `allowAllRepositories` が設定されている）場合にのみ、そのフォークから読み取られます。それ以外の場合はベースリポジトリが読み取られ、トークンがリスト外のフォークに渡されることはありません。
 
 ## 動作 [#behavior]
 
 ### レート制限 [#rate-limits]
 
-- その認証情報にはGitHubのレート制限が適用されるため、そのトークン配下のすべてのブランチに対するルックアップが一時停止されます。
-- 最小待機時間は10秒です。待機時間が指定されていない二次制限は60秒待機します。GitHubが指定する待機時間は尊重されますが、最大1時間までとなります。
+- レート制限は1つのプロバイダーホスト上の認証情報に適用されるため、そのトークン配下のすべてのブランチに対する検索が一時停止されます。ユーザーごとのアカウントでは、各ユーザーの制限は個別のものとなります。
+- 最小待機時間は10秒で、プロバイダーが指定する待機時間が適用されます（上限は1時間）。GitHubでは、待機時間が指定されていない場合の二次的な制限として60秒の待機が発生します。
 - 一時停止中、ルックアップは `RATE_LIMITED` を返し、行には再試行の状態が表示されます。
+- `sharedCache` を使用すると、1つのレプリカで開始された一時停止がすべてのレプリカに適用されます。
 
 ### ローリングアップデート [#rolling-upgrades]
 
@@ -179,29 +388,36 @@ CIドットの色：緑は成功、赤は失敗、琥珀色は実行中を示し
 
 ### 設定されていない場合のデフォルト値 [#defaults-when-unset]
 
-- トークンやリポジトリのスコープが設定されていない場合、この機能は休止状態となります。起動時の設定で通知されることはなく、記録も行われず、何も表示されません。
+- トークンやリポジトリのスコープがなく、`oauth` アプリもない場合、この機能は休止状態となります。起動時の設定で何も通知されず、何も記録されず、何も表示されません。
 - 設定でこの機能をオフにすると、既存のチャットは変更されず、クライアントは新しいルートを呼び出すことはありません。
 
 ## セキュリティモデル [#security-model]
 
-- トークンはサーバー上に存在します。ブラウザに送信されることは決してなく、エラーレスポンスにGitHubのレスポンステキスト、トークン、またはスタックトレースが含まれることもありません。
-- トークンはスコープ内のリポジトリに対してのみ使用されます。スコープ外のフォークには決して送信されません。
-- 2つの `/api/convos` ルックアップルートは、認証済みユーザーを必要とし、所有者スコープで制限されています。存在しない、期限切れである、または他のユーザーに属する会話は、プルリクエストがない会話と同じように扱われます。
-- 表示を許可するリポジトリに限定された、読み取り専用のきめ細かなトークンを使用してください。
+- トークンはサーバー上に保持されます。ブラウザに送信されることは決してなく、エラーレスポンスにプロバイダーのレスポンステキスト、トークン、またはスタックトレースが含まれることもありません。
+- サーバーのトークンは、スコープ内のリポジトリに対してのみ、かつ設定されたホスト上でのみ使用されます。スコープ外のフォークに送信されることは決してありません。
+- `provider`、`host`、および `oauth` は `librechat.yaml` からのみ取得されるため、ロール、グループ、ユーザー、またはテナントのオーバーライドによって別のサービスにトークンを送信したり、アプリユーザーがアクセスを許可する対象を切り替えたりすることはできません。
+- `/api/convos` ルックアップルートは、認証されたユーザーを必要とし、所有者スコープで制限されています。存在しない、期限切れである、または他のユーザーに属する会話は、プルリクエストがない会話と同じように扱われます。
+- 公開しても問題のないリポジトリに限定した、読み取り専用のトークンを使用してください。
 
 ## トラブルシューティング [#troubleshooting]
 
 | 症状 | 考えられる原因 | 修正方法 |
-| :--- | :--- | :--- |
-| チップが表示されず、サイドバーにもマークがない | トークンがない、リポジトリのスコープ外、または `enabled: false` になっている | [Setup](#setup) を確認してください。サインインした状態で `/api/config` を開き、`pullRequestsEnabled: true` となっているか確認してください。 |
-| ヘッダーのチップは機能するが、サイドバーの行に何も表示されない | `/api/config` に `pullRequestsBatchVersion` が欠落している（古いビルド、または古いタブ） | サーバーの再ビルドまたはアップグレードを行い、再起動してハードリロードしてください。`pullRequestsBatchVersion: 1` であることを確認してください。 |
-| 一部のチャットにのみチップが表示される | ブランチが報告されている接続済みコードワークスペースのチャットのみにレーンが表示されます | Code API で `CODEAPI_BRIDGE_LANE_GIT=true` が設定されていること、および code-interpreter PR #311 以降でビルドされたワーカーであることを確認してください。 |
-| 再試行を促す警告アイコンが表示される | ルックアップの失敗（レート制限、GitHub エラー、または `NOT_CONFIGURED`） | 再試行してください。頻発する場合は、トークンとその権限を確認してください。 |
-| `NOT_CONFIGURED` | `token` は設定されているが、その変数が空か欠落している | 変数を設定してください。**保留:** または `token` を削除してフォールバック変数を使用してください。 |
-| プルリクエストは読み込まれるが、チェックの結果が正しくない、または失敗する | トークンに Checks または Contents の権限が不足している | 読み取り専用の Checks および Contents 権限を付与してください。 |
-| フォークからのプルリクエストでチェックが表示されない | フォークがスコープ外であるため、チェックはベースリポジトリから読み込まれます | フォークの所有者を `allowedRepositories` に追加してください。**保留:** または `allowAllRepositories: true` を設定してください。 |
-| 何度も再利用されているブランチ名でプルリクエストが表示されない | `maxCandidatePullRequests`、`maxCandidatePages`、または `maxHeadComparisons` が名前の再利用頻度に対して低すぎるため、一致するプルリクエストに到達する前に検索が停止している | これらの値を上げてください。 |
-| プロキシ環境下でルックアップが遅い、またはタイムアウトする | `requestTimeoutSeconds` が低すぎる | 値を上げてください。`HTTPS_PROXY` および `NO_PROXY` を確認してください。 |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| チップが表示されず、サイドバーにもマークがない | トークンがない、リポジトリのスコープ外、または `enabled: false` | [Setup](#setup) を確認してください。サインインした状態で `/api/config` を開き、`pullRequestsEnabled: true` となっているか確認してください。 |
+| 添付されたワークスペースのチャットにチップが表示されない | リポジトリが `allowedRepositories` に含まれていない | リポジトリを追加するか、所有者を `owner/*` として追加してください。スコープ外のリポジトリは、プルリクエストがないものと同じように見えます。 |
+| 一部のチャットにのみチップが表示される | ブランチが報告されている添付コードワークスペース上のチャットにのみレーンが表示されます | Code API で `CODEAPI_BRIDGE_LANE_GIT=true` が設定されていること、および code-interpreter PR #311 以降でビルドされたワーカーであることを確認してください。 |
+| ヘッダーのチップは機能するが、サイドバーの行に何も表示されない | `/api/config` に `pullRequestsBatchVersion` が存在しない（古いビルド、または古いタブ） | サーバーを再ビルドまたはアップグレードし、再起動してハードリロードしてください。`pullRequestsBatchVersion: 1` であることを確認してください。 |
+| 再試行を促す警告アイコンが表示される | ルックアップの失敗（レート制限、プロバイダーエラー、または `NOT_CONFIGURED`） | 再試行してください。頻発する場合は、トークンとその権限を確認してください。 |
+| `NOT_CONFIGURED` | `token` は設定されているが、その変数が空か存在しない | 変数を設定するか、`token` を削除してフォールバック変数を使用してください。 |
+| すべての GitHub プルリクエストの読み込みに失敗する | トークンに Checks 権限がない | 読み取り専用の Checks 権限を付与してください。 |
+| ブランチが移動した後にのみ失敗する | トークンに Contents 権限がないため、コミットの比較ができない | 読み取り専用の Contents 権限を付与してください。 |
+| 頻繁に `RATE_LIMITED` が発生する | 多くのユーザーがサーバーのトークンを共有しているか、各レプリカがプロバイダーに問い合わせている | `cacheTtlSeconds` を上げる、`maxConcurrentLookups` を下げる、Redis で `sharedCache: true` を設定する、またはユーザー自身のアカウントを接続させてください。 |
+| フォークからのプルリクエストにチェックが表示されない | フォークがスコープ外であるため、チェックはベースリポジトリから読み取られる | フォークの所有者を `allowedRepositories` に追加するか、`allowAllRepositories: true` を設定してください。 |
+| GitLab または Bitbucket で何も表示されない | `provider` が設定されていない、または `host` がプロジェクトの場所と一致していない | `provider` を設定してください。セルフホスト型の GitLab の場合は、`host` をそのホスト名に設定してください。Bitbucket はデフォルトの `bitbucket.org` ホストでのみ動作します。 |
+| `gh pr create` で出力されたリンクが認識されない | リンクがレーンのものとは別のホストやリポジトリを指している | `host` を確認してください。設定されたホストおよびレーンのリポジトリ上のリンクのみがカウントされます。 |
+| 接続済みユーザーに「unavailable」と表示される | プロバイダーまたはキーストアがトークンを更新できなかった | 後で再試行してください。接続済みユーザーの場合、ルックアップはサーバーのトークンにフォールバックしません。 |
+| 何度も再利用されたブランチ名でプルリクエストが表示されない | `maxCandidatePullRequests`、`maxCandidatePages`、または `maxHeadComparisons` が名前の再利用頻度に対して低すぎるため、一致するプルリクエストに到達する前に検索が停止している | これらの値を上げてください。 |
+| プロキシの背後でルックアップが遅い、またはタイムアウトする | `requestTimeoutSeconds` が低すぎる | 値を上げてください。`HTTPS_PROXY` および `NO_PROXY` を確認してください。 |
 
 ## API reference [#api-reference]
 
@@ -224,6 +440,15 @@ CIドットの色：緑は成功、赤は失敗、琥珀色は実行中を示し
 - **200**: `{ "results": [ { "conversationId", "pullRequest" } | { "conversationId", "error": { "code" } } ] }`。リクエストされた順序で返されます。1つの検索が失敗しても、他の検索結果が隠されることはありません。
 - トークンが不足している場合、それを必要とするエントリのみが失敗します。
 
+### アカウント接続 (**Pending**) [#account-connection-pending]
+
+これらのルートは `JWT_SECRET` が設定されている場合にのみ存在します。コールバックを除くすべてにおいて、認証されたユーザーが必要です。
+
+- `GET /api/pull-requests/oauth/connect`: 接続を開始し、開くべきプロバイダーのページである `{ "url" }` を返します。
+- `GET /api/pull-requests/oauth/callback`: プロバイダーがユーザーをリダイレクトして戻す場所。
+- `GET /api/pull-requests/oauth/status`: ユーザーが接続されているかどうか。
+- `DELETE /api/pull-requests/oauth`: ユーザーの接続を解除します。
+
 ### Startup config [#startup-config]
 
 `GET /api/config` にはこれらのフィールドが含まれます。これらはサーバーによって設定されるものであり、ユーザー設定ではありません。
@@ -231,5 +456,6 @@ CIドットの色：緑は成功、赤は失敗、琥珀色は実行中を示し
 - `pullRequestsEnabled` (boolean)
 - `pullRequestsBatchVersion` (`1`、機能が有効な場合にのみ存在)
 - `pullRequestsMaxConcurrentLookups` (数値、機能が有効な場合のみ存在)
+- `pullRequestsConnect` (`github`、`gitlab` または `bitbucket`、ユーザーが自身のアカウントを接続できる場合にのみ存在; **保留中**)
 
 上記のリストにあるエラーコードのみが安定しています。

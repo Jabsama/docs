@@ -2,102 +2,131 @@
 title: Yêu cầu kéo hội thoại
 icon: GitPullRequest
 description: >-
-  Hiển thị pull request trên GitHub, kích thước và trạng thái CI cho các cuộc
-  trò chuyện chạy mã trong một workspace được đính kèm.
+  Hiển thị pull request hoặc merge request, kích thước và trạng thái CI cho các
+  cuộc trò chuyện chạy mã trong một workspace đính kèm, trên GitHub, GitLab hoặc
+  Bitbucket Cloud.
 ---
 
 {/*
-  PUBLISHING GATE. Do not merge this page until LibreChat-AI/LibreChat#16876 (default-on, token
-  fallback, allowAllRepositories) is merged to dev. Until then, only the blocks marked
-  "Pending" are unreleased. After it merges: re-check the schema in
-  packages/data-provider/src/config.ts, delete the "Older versions" blocks and every Pending marker.
+  Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988), per-user
+  accounts through `oauth` (#16989) and the "Pull request account" setting (#16990). Delete the
+  Pending markers once each merges to dev, and re-check the schema in
+  packages/data-provider/src/config.ts.
   TODO(maintainer): first release version for each part (do not guess).
   TODO(maintainer): requirement 4 (where an admin sets the workspace environment's repository).
-  Add it to "Requirements" once confirmed. Do not publish without it.
+  Add it to "Requirements" once confirmed.
 */}
 
-Khi một cuộc trò chuyện chạy mã trong một workspace được đính kèm, worker sẽ báo cáo nhánh git và commit mà nó đang thực hiện. LibreChat sử dụng nhánh đó để tìm pull request GitHub tương ứng, với một token được lưu giữ trên máy chủ, và hiển thị nó ở hai nơi:
+Khi một cuộc trò chuyện chạy mã trong một workspace được đính kèm, worker sẽ báo cáo nhánh git và commit mà nó đang sử dụng. LibreChat sử dụng nhánh đó để tìm pull request tương ứng (hoặc merge request trên GitLab), với một token được lưu trữ trên máy chủ hoặc tài khoản đã kết nối của người dùng, và hiển thị nó ở hai nơi:
 
 - **Tiêu đề trò chuyện (Chat header)**: một thẻ (chip) với biểu tượng pull request và một dấu chấm CI. Khi di chuột hoặc tập trung vào đó sẽ mở ra một thẻ thông tin.
 - **Danh sách hội thoại trên thanh bên**: cùng biểu tượng và dấu chấm CI ở cuối hàng. Hàng này vẫn giữ tiêu đề riêng của cuộc hội thoại; tiêu đề của pull request chỉ xuất hiện trong thẻ.
+
+Các pull request có thể đến từ GitHub (mặc định), GitLab hoặc Bitbucket Cloud (**Đang chờ xử lý**). Một bản triển khai sử dụng một nhà cung cấp.
 
 ## Yêu cầu [#requirements]
 
 Tất cả các điều kiện sau đây phải đúng để một cuộc trò chuyện hiển thị pull request:
 
-1. LibreChat có một GitHub token và một phạm vi repository. Xem [Setup](#setup).
+1. LibreChat có phạm vi token và repository (`allowedRepositories` hoặc `allowAllRepositories`), hoặc người dùng kết nối tài khoản của riêng họ. Xem [Setup](#setup) và [Per-user accounts](#per-user-accounts).
 2. Cuộc trò chuyện sử dụng một **không gian làm việc mã nguồn đính kèm** (code worker), không phải là một cuộc trò chuyện thông thường.
 3. Worker báo cáo nhánh của nó. Điều này yêu cầu một worker được xây dựng từ `LibreChat-AI/code-interpreter` PR #311 trở lên, và `CODEAPI_BRIDGE_LANE_GIT=true` được thiết lập trên Code API. Xem [Code Interpreter](/docs/features/code_interpreter#attached-environments-and-pairing).
 
-Nếu một yêu cầu bị thiếu, các cuộc trò chuyện sẽ đơn giản là không hiển thị pull request nào và không có lỗi nào được hiển thị cho người dùng. Ngoại lệ là một `token` đã được thiết lập nhưng biến môi trường của nó bị trống hoặc bị thiếu: các tra cứu sau đó sẽ thất bại với `NOT_CONFIGURED`, và các hàng trên thanh bên sẽ hiển thị biểu tượng cảnh báo cùng với nút thử lại.
+Tính năng này được bật theo mặc định. Nếu không có token hoặc phạm vi repository, tính năng này sẽ ở trạng thái không hoạt động và mọi cuộc trò chuyện sẽ chỉ hiển thị là không có pull request nào mà không kèm theo lỗi. `enabled: false` sẽ tắt tính năng này bất kể các thiết lập khác như thế nào.
+
+Ngoại lệ là một `token` đã được thiết lập nhưng biến môi trường của nó bị trống hoặc thiếu: các tra cứu sau đó sẽ thất bại với `NOT_CONFIGURED` và các hàng trong thanh bên sẽ hiển thị biểu tượng cảnh báo kèm theo nút thử lại.
 
 ## Thiết lập [#setup]
 
-### 1. Tạo một token [#1-create-a-token]
+### 1. Chọn nhà cung cấp và máy chủ [#1-choose-the-provider-and-host]
 
-Sử dụng một fine-grained GitHub token được giới hạn trong các kho lưu trữ mà bạn muốn hiển thị, với quyền **read-only**:
+`provider` chọn nơi lưu trữ các pull request:
+
+| `provider`         | Dịch vụ                                                                                                   | `host` mặc định |
+| ------------------ | --------------------------------------------------------------------------------------------------------- | --------------- |
+| `github` (mặc định) | GitHub.com, GitHub Enterprise Server, hoặc một tenant lưu trữ dữ liệu GitHub Enterprise Cloud (`*.ghe.com`)     | `github.com`    |
+| `gitlab`           | Merge requests trên gitlab.com hoặc GitLab tự quản lý                                                     | `gitlab.com`    |
+| `bitbucket`        | Chỉ Bitbucket Cloud (**Đang chờ xử lý**)                                                                        | `bitbucket.org` |
+
+Chỉ thiết lập `host` cho GitHub Enterprise Server, một tenant `*.ghe.com`, hoặc GitLab tự quản lý:
+
+- Đây là một tên máy chủ (host name), không bao giờ là một URL: không có lược đồ (scheme) và không có đường dẫn (path), ví dụ `github.example.com`.
+- Một cổng cụ thể được cho phép, từ 1 đến 65535, ví dụ `git.example.com:8443`. `:443` sẽ bị lược bỏ vì đây là cổng mặc định cho https.
+- Trên GitHub, LibreChat gọi `api.github.com` cho `github.com`, `api.<host>` cho một tenant `*.ghe.com`, và `https://<host>/api/v3` cho Enterprise Server. Trên GitLab, nó gọi `https://<host>/api/v4` và `https://<host>/api/graphql`.
+- Bitbucket không chấp nhận bất kỳ máy chủ nào khác. Bất kỳ `host` nào khác ngoài `bitbucket.org` sẽ tắt tính năng này thay vì gửi token đi nơi khác.
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      provider: 'gitlab'
+      host: 'gitlab.example.com'
+      allowedRepositories:
+        - 'platform/backend/api'
+        - 'platform/frontend/*'
+```
+
+<Callout type="info" title="Chỉ đọc từ librechat.yaml">
+  `provider`, `host` và `oauth` chỉ được đọc từ `librechat.yaml`. Các cấu hình ghi đè (override) của các khóa này cho vai trò (role), nhóm (group), người dùng (user) và đối tượng thuê (tenant) sẽ bị bỏ qua, vì chúng quyết định nơi gửi token và ứng dụng nào mà người dùng cấp quyền truy cập. Việc ghi đè không thể chuyển hướng token sang một dịch vụ khác. Các khóa khác, chẳng hạn như `token` và `allowedRepositories`, vẫn có thể khác nhau tùy theo từng chủ thể (principal).
+</Callout>
+
+### 2. Tạo một token [#2-create-a-token]
+
+Token máy chủ được sử dụng cho mọi người dùng chưa kết nối tài khoản riêng của họ.
+
+**GitHub**: sử dụng một fine-grained token được giới hạn trong các kho lưu trữ mà bạn muốn hiển thị, với quyền **read-only**:
 
 - Pull requests
 - Kiểm tra
 - Mục lục
 
 <Callout type="warning" title="Các chế độ lỗi quyền truy cập">
-  Nếu không có **Checks**, mọi pull request khớp đều không thể tải. Nếu không có **Contents**, một cuộc trò chuyện có nhánh đã thay đổi kể từ lệnh cuối cùng của nó sẽ không thể tải.
+  Nếu không có **Checks**, mọi pull request khớp đều không thể tải. Nếu không có **Contents**, một cuộc trò chuyện có nhánh đã thay đổi kể từ lệnh cuối cùng sẽ không thể tải, vì LibreChat so sánh các commit để xác nhận sự khớp lệnh.
 </Callout>
 
-### 2. Cung cấp token cho LibreChat [#2-give-librechat-the-token]
+**GitLab**: một mã truy cập cá nhân, nhóm hoặc dự án với phạm vi `read_api`.
 
-<Callout type="important" title="Đang chờ xử lý: chưa được phát hành">
-  Cơ chế dự phòng biến môi trường (environment variable fallback) là một phần của thay đổi mặc định được bật (LibreChat-AI/LibreChat#16876).
-</Callout>
+**Bitbucket Cloud** (**Đang chờ xử lý**): một token truy cập kho lưu trữ, dự án hoặc không gian làm việc, được gửi dưới dạng bearer token. LibreChat đọc các pull request, diffstat, trạng thái commit và merge base của chúng, vì vậy hãy cấp quyền đọc cho các pull request và kho lưu trữ.
+
+### 3. Cung cấp token cho LibreChat [#3-give-librechat-the-token]
 
 LibreChat tìm kiếm token theo thứ tự sau:
 
-1. `token: "${MY_VAR}"` trong `librechat.yaml`. Đây là một **tham chiếu** biến môi trường; tệp YAML không bao giờ lưu trữ chính token đó.
-2. Nếu `token` không được thiết lập, biến môi trường đầu tiên trong số các biến sau sẽ được sử dụng: `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`.
-3. Không có token ở bất kỳ đâu: tính năng này sẽ ở trạng thái không hoạt động.
+1. `token: "${MY_VAR}"` trong `librechat.yaml`. Đây là một **tham chiếu** biến môi trường; tệp YAML không bao giờ chứa chính token đó và một token theo nghĩa đen sẽ bị lược đồ từ chối.
+2. Nếu `token` không được thiết lập, biến môi trường đầu tiên trong số các biến sau đây được thiết lập sẽ được sử dụng:
 
-Một `token` đã được thiết lập nhưng không phân giải được (biến bị trống hoặc thiếu) sẽ dẫn đến lỗi `NOT_CONFIGURED`. Nó sẽ **không** tự động chuyển sang sử dụng ba biến ở trên.
+| Nhà cung cấp | Các biến dự phòng, theo thứ tự |
+| --------- | --------------------------------------------------------- |
+| GitHub    | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`   |
+| GitLab    | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN`               |
+| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` (**Đang chờ xử lý**)              |
 
-<Callout type="info" title="GITHUB_TOKEN là một tên gọi phổ biến">
-  Nếu quá trình triển khai của bạn đã sử dụng `GITHUB_TOKEN` cho mục đích khác, hành vi mặc định sẽ bắt đầu sử dụng nó tại đây ngay khi phạm vi kho lưu trữ (repository scope) được thiết lập. Hãy đặt `token` một cách rõ ràng, hoặc sử dụng `GITHUB_PULL_REQUEST_TOKEN`, để tránh việc chia sẻ nó.
+3. Không có token ở bất kỳ đâu: tính năng này sẽ ở trạng thái không hoạt động, trừ khi người dùng có thể kết nối tài khoản của riêng họ.
+
+Một `token` đã được thiết lập nhưng không phân giải được (biến bị trống hoặc thiếu) sẽ dẫn đến lỗi `NOT_CONFIGURED`. Nó sẽ **không** tự động quay lui (fall back) về các biến ở trên.
+
+<Callout type="info" title="GITHUB_TOKEN và GITLAB_TOKEN là các tên gọi phổ biến">
+  Nếu quá trình triển khai của bạn đã sử dụng một trong các tùy chọn này cho mục đích khác, nó sẽ được nhận diện tại đây ngay khi phạm vi repository được thiết lập. Hãy đặt `token` một cách rõ ràng, hoặc sử dụng biến `*_PULL_REQUEST_TOKEN`, để tránh việc chia sẻ nó.
 </Callout>
 
-**Các phiên bản cũ hơn:** `token` là bắt buộc khi tính năng này được bật và phải là một tham chiếu `${NAME}` như `"${GITHUB_PULL_REQUEST_TOKEN}"`. Không có cơ chế dự phòng cho biến môi trường.
+### 4. Chọn các kho lưu trữ mà nó có thể tra cứu [#4-choose-which-repositories-it-may-look-up]
 
-### 3. Chọn các kho lưu trữ mà nó có thể tra cứu [#3-choose-which-repositories-it-may-look-up]
+Worker tự báo cáo repository của chính nó, vì vậy server phải quyết định những repository nào mà token của nó có thể được sử dụng. Nếu không có phạm vi (scope), tính năng này sẽ không hoạt động. Có hai cách thực hiện:
 
-Worker tự báo cáo repository của chính nó, vì vậy server phải quyết định những repository nào mà token có thể được sử dụng. Nếu không có phạm vi (scope), tính năng này sẽ không hoạt động. Có hai cách:
-
-- `allowedRepositories`: một danh sách các mục `owner/name` hoặc `owner/*` (tối đa 256 mục). Việc so khớp không phân biệt chữ hoa chữ thường. Các mục như `*/*`, `*`, `owner`, hoặc các mục chứa `..` sẽ bị lược đồ từ chối.
-- `allowAllRepositories: true` (**Đang chờ xử lý**): tra cứu bất kỳ kho lưu trữ nào mà token có thể đọc. Mặc định là `false`.
+- `allowedRepositories`: một danh sách các mục `owner/name` hoặc `owner/*` (tối đa 256 mục). Việc so khớp không phân biệt chữ hoa chữ thường. Trên GitLab, các mục có thể là đường dẫn nhóm lồng nhau như `group/sub/name` hoặc `group/sub/*`. `*` đại diện cho chính xác một phân đoạn, vì vậy `group/*` sẽ không khớp với `group/sub/name`. Các mục như `*/*`, `*`, `owner`, hoặc các mục chứa phân đoạn `.` hoặc `..` sẽ bị lược đồ từ chối.
+- `allowAllRepositories: true`: tra cứu bất kỳ kho lưu trữ nào mà token có thể đọc. Mặc định là `false`.
 
 <Callout type="warning" title="Bảo mật: allowAllRepositories">
-  Khi bật tính năng này, bất kỳ người dùng nào có thể chạy mã đều có thể trỏ token của máy chủ vào bất kỳ kho lưu trữ nào mà token đó có quyền đọc, đồng thời xem tiêu đề, kích thước và trạng thái kiểm tra của pull request. Hãy sử dụng token chỉ đọc (read-only) được giới hạn phạm vi cho các kho lưu trữ mà bạn sẵn sàng hiển thị.
+  Tính năng này mặc định bị tắt vì kho lưu trữ đến từ worker chứ không phải từ server. Khi bật tính năng này, bất kỳ người dùng nào có thể chạy mã đều có thể trỏ token của server vào bất kỳ kho lưu trữ nào mà token đó có quyền đọc, đồng thời xem được tiêu đề, kích thước và trạng thái kiểm tra của pull request. Hãy sử dụng token chỉ đọc (read-only) được giới hạn phạm vi cho các kho lưu trữ mà bạn sẵn sàng hiển thị.
 </Callout>
 
-### 4. Bật tính năng này [#4-turn-it-on]
+### 5. Bật tính năng này [#5-turn-it-on]
 
-<Callout type="important" title="Đang chờ xử lý: chưa được phát hành">
-  Hành vi mặc định bật là một phần của LibreChat-AI/LibreChat#16876.
-</Callout>
-
-Tính năng này sẽ được bật ngay khi có token và phạm vi repository. Không có công tắc `enabled` nào để thiết lập. `enabled: false` sẽ tắt tính năng này, bất kể các thiết lập khác là gì.
-
-**Các phiên bản cũ hơn:** `enabled: true` là bắt buộc, và schema sẽ từ chối `enabled: true` nếu thiếu cả `token` và `allowedRepositories` không trống.
+Không có công tắc nào cần thiết lập. Tính năng này sẽ tự động bật ngay khi có token và phạm vi repository, hoặc một ứng dụng `oauth` đang hoạt động. `enabled: false` sẽ tắt tính năng này, bất kể các thiết lập khác như thế nào.
 
 ### Các ví dụ tối giản [#minimal-examples]
 
-Biểu mẫu mặc định bật (**Đang chờ xử lý**), với `GITHUB_TOKEN` được thiết lập trong môi trường máy chủ:
-
-```yaml filename="librechat.yaml"
-endpoints:
-  agents:
-    pullRequests:
-      allowAllRepositories: true
-```
-
-Giới hạn ở các kho lưu trữ cụ thể (**Đang chờ xử lý**, dự phòng cùng token):
+GitHub, với `GITHUB_PULL_REQUEST_TOKEN` được thiết lập trong môi trường máy chủ:
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -108,18 +137,195 @@ endpoints:
         - 'my-org/*'
 ```
 
-Biểu mẫu hoạt động trên các phiên bản cũ hơn:
+GitHub Enterprise Server, với một tham chiếu token rõ ràng:
 
 ```yaml filename="librechat.yaml"
 endpoints:
   agents:
     pullRequests:
-      enabled: true
-      token: '${GITHUB_PULL_REQUEST_TOKEN}'
-      allowedRepositories: ['LibreChat-AI/LibreChat']
+      host: 'github.example.com'
+      token: '${GHES_PULL_REQUEST_TOKEN}'
+      allowedRepositories: ['platform/*']
 ```
 
-Xem tài liệu tham khảo [`pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests) để biết mọi khóa, bao gồm cả các tùy chọn tinh chỉnh.
+Bitbucket Cloud (**Đang chờ xử lý**), với `BITBUCKET_PULL_REQUEST_TOKEN` được thiết lập:
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      provider: 'bitbucket'
+      allowedRepositories: ['my-workspace/*']
+```
+
+Xem [`pullRequests` reference](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests) để biết mọi khóa.
+
+## Tài khoản theo người dùng [#per-user-accounts]
+
+<Callout type="important" title="Đang chờ xử lý: chưa được phát hành">
+  Các tài khoản theo người dùng là một phần của LibreChat-AI/LibreChat#16989 và #16990.
+</Callout>
+
+Với `oauth` được thiết lập, mỗi người dùng có thể kết nối tài khoản GitHub, GitLab hoặc Bitbucket của riêng họ trong **Settings > Account**, tại mục **Pull request account**. Các truy vấn của họ sau đó sẽ chạy bằng token, giới hạn tốc độ (rate limit) và quyền truy cập kho lưu trữ của chính họ thay vì của máy chủ.
+
+- Token của người dùng đã kết nối chỉ thấy những gì mà người dùng đó có thể thấy, vì vậy nó không bị ràng buộc bởi `allowedRepositories`.
+- Những người dùng chưa kết nối vẫn sử dụng token máy chủ, trong phạm vi repository của nó. Nếu không có token máy chủ, họ sẽ không thấy các pull request cho đến khi họ thực hiện kết nối.
+- Với một ứng dụng `oauth` đang hoạt động, tính năng này sẽ được bật ngay cả khi không có server token hoặc phạm vi repository.
+- **Disconnect** sẽ xóa quyền đã lưu. Người dùng có thể kết nối lại bất kỳ lúc nào.
+- Nếu token của người dùng đã kết nối không thể làm mới do nhà cung cấp hoặc kho lưu trữ khóa bị lỗi, các tra cứu của họ sẽ báo cáo pull request là không khả dụng. Họ sẽ **không** quay lại sử dụng token của máy chủ, vốn có thể có quyền hạn hạn chế hơn so với token của chính người dùng.
+- Nếu nhà cung cấp từ chối làm mới (quyền truy cập đã bị thu hồi), kết nối sẽ bị xóa. Người dùng sau đó sẽ được hiển thị là chưa kết nối và được xử lý giống như bất kỳ người dùng nào chưa thực hiện kết nối.
+- Các khoản cấp quyền (grants) được lưu trữ dưới dạng mã hóa, mỗi người dùng và mỗi máy chủ nhà cung cấp có một khoản. Việc thay đổi `clientId` sang một ứng dụng khác sẽ khiến các kết nối hiện tại bị coi là chưa kết nối, do đó người dùng sẽ phải kết nối lại.
+
+### Cấu hình ứng dụng [#configure-the-app]
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      oauth:
+        clientId: '${GITHUB_PR_OAUTH_CLIENT_ID}'
+        clientSecret: '${GITHUB_PR_OAUTH_CLIENT_SECRET}'
+      # optional: the server token for users who have not connected
+      allowedRepositories: ['my-org/*']
+```
+
+| Khóa | Mặc định | Phạm vi | Mô tả |
+| ----------------------- | ------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------- |
+| `clientId`              | bắt buộc                                                      |         | Tham chiếu biến môi trường, không bao giờ là giá trị trực tiếp.                                                                  |
+| `clientSecret`          | bắt buộc                                                      |         | Tham chiếu biến môi trường, không bao giờ là giá trị trực tiếp.                                                                  |
+| `scope`                 | không có trên GitHub, `read_api` trên GitLab, mặc định của người dùng trên Bitbucket |         | Các phạm vi được phân tách bằng dấu cách để yêu cầu. Chỉ bao gồm chữ cái, chữ số, `_`, `:`, `.`, `-` và dấu cách, tối đa 256 ký tự.     |
+| `flowTimeoutMinutes`    | 10                                                            | 1-60    | Số phút người dùng có thể thực hiện để phê duyệt kết nối tại nhà cung cấp.                                                |
+| `requestTimeoutSeconds` | 10                                                            | 1-60    | Số giây cho phép trao đổi mã hoặc làm mới token.                                                                |
+| `retentionDays`         | 180                                                           | 1-3650  | Số ngày một kết nối được lưu giữ mà không cần sử dụng. Mỗi lần sử dụng sẽ gia hạn thời gian này.                                                |
+
+Nếu một trong hai tham chiếu không được giải quyết, người dùng sẽ không thể kết nối và chỉ token máy chủ được sử dụng. Luồng kết nối cũng cần `JWT_SECRET`, thứ mà mọi triển khai LibreChat đều thiết lập.
+
+Đăng ký URL callback này với ứng dụng, trong đó `DOMAIN_SERVER` là URL công khai của máy chủ của bạn:
+
+```
+<DOMAIN_SERVER>/api/pull-requests/oauth/callback
+```
+
+### Đăng ký ứng dụng [#register-the-app]
+
+<Tabs items={["GitHub", "GitLab", "Bitbucket"]}>
+<Tabs.Tab>
+
+Khuyên dùng GitHub App: các token người dùng của nó không cần phạm vi (scope) và chỉ có thể truy cập vào các kho lưu trữ nơi ứng dụng được cài đặt.
+
+<Steps>
+<Step>
+
+Mở **Settings > Developer settings > GitHub Apps > New GitHub App** cho tài khoản hoặc tổ chức của bạn. Trên GitHub Enterprise Server hoặc `*.ghe.com`, hãy sử dụng cùng trang đó trên máy chủ đó.
+
+</Step>
+<Step>
+
+Đặt **Callback URL** thành `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. Trong phần **Webhook**, bỏ chọn **Active**.
+
+</Step>
+<Step>
+
+Trong phần **Repository permissions**, hãy đặt **Pull requests**, **Checks** và **Contents** thành **Read-only**.
+
+</Step>
+<Step>
+
+Tạo ứng dụng, sau đó sao chép **Client ID** và tạo **client secret**. Lưu chúng vào các biến môi trường và tham chiếu chúng từ `oauth.clientId` và `oauth.clientSecret`.
+
+</Step>
+<Step>
+
+Cài đặt ứng dụng trên các tài khoản hoặc tổ chức mà người dùng cần xem kho lưu trữ của họ.
+
+</Step>
+</Steps>
+
+Một OAuth App cổ điển cũng hoạt động, nhưng cần một scope như `scope: 'repo'`, cấp quyền nhiều hơn là chỉ quyền đọc.
+
+</Tabs.Tab>
+<Tabs.Tab>
+
+<Steps>
+<Step>
+
+Mở **Edit profile > Applications** (hoặc trang **Applications** của một nhóm hoặc của instance) trên host GitLab được thiết lập trong `host`.
+
+</Step>
+<Step>
+
+Đặt **Redirect URI** thành `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`, giữ nguyên tùy chọn **Confidential** đã được chọn, và chọn scope `read_api`.
+
+</Step>
+<Step>
+
+Lưu lại, sau đó sao chép **Application ID** và **Secret** vào các biến môi trường được tham chiếu bởi `oauth.clientId` và `oauth.clientSecret`. Thiết lập `provider: 'gitlab'`, và `host` cho GitLab tự quản lý (self-managed).
+
+</Step>
+</Steps>
+
+</Tabs.Tab>
+<Tabs.Tab>
+
+<Steps>
+<Step>
+
+Mở **Workspace settings > OAuth consumers > Add consumer** trong Bitbucket Cloud.
+
+</Step>
+<Step>
+
+Đặt **Callback URL** thành `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`, và cấp quyền **Pull requests: Read** và **Repositories: Read**. LibreChat không yêu cầu phạm vi (scope) trên Bitbucket, vì vậy quyền của người tiêu dùng là những gì người dùng cấp.
+
+</Step>
+<Step>
+
+Lưu lại, sau đó sao chép **Key** và **Secret** của người tiêu dùng vào các biến môi trường được tham chiếu bởi `oauth.clientId` và `oauth.clientSecret`. Thiết lập `provider: 'bitbucket'`.
+
+</Step>
+</Steps>
+
+</Tabs.Tab>
+</Tabs>
+
+## Mở rộng quy mô với các bản sao (replicas) [#scaling-with-replicas]
+
+<Callout type="important" title="Đang chờ xử lý: chưa được phát hành">
+  `sharedCache` là một phần của LibreChat-AI/LibreChat#16988.
+</Callout>
+
+Mỗi bản sao (replica) lưu trữ kết quả trong bộ nhớ. Với nhiều bản sao, hãy đặt `sharedCache: true` để chúng chia sẻ các yêu cầu truy vấn và thời gian chờ giới hạn tốc độ (rate limit cooldowns) thông qua Redis, đồng thời tránh việc mỗi bản sao đều tiêu tốn token cho cùng một câu trả lời.
+
+- Nó chỉ có hiệu lực khi quá trình triển khai chạy với Redis (`USE_REDIS`). Mặc định: `false`.
+- Mỗi bản sao (replica) đều giữ bộ nhớ đệm trong bộ nhớ (in-memory cache) riêng của nó, nằm trước bộ nhớ đệm dùng chung.
+- `sharedCacheTimeoutMs` (10-5000, mặc định 250) giới hạn thời gian cho mỗi lần đọc hoặc ghi bộ nhớ đệm chia sẻ. Nếu Redis phản hồi chậm, nó sẽ bị bỏ qua và quá trình tra cứu vẫn tiếp tục mà không cần đến nó.
+
+```yaml filename="librechat.yaml"
+endpoints:
+  agents:
+    pullRequests:
+      allowedRepositories: ['my-org/*']
+      sharedCache: true
+      sharedCacheTimeoutMs: 250
+```
+
+## Tinh chỉnh [#tuning]
+
+Các thiết lập mặc định là phù hợp cho hầu hết các triển khai.
+
+| Khóa | Phạm vi | Mặc định | Mô tả |
+| -------------------------- | --------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
+| `cacheTtlSeconds`          | 5-3600    | 30      | Số giây một kết quả được tái sử dụng trước khi nhà cung cấp được truy vấn lại. Các lỗi được ghi nhớ tối đa 10 giây. |
+| `cacheMaxEntries`          | 10-100000 | 500     | Số kết quả được lưu vào bộ nhớ đệm trên mỗi thông tin xác thực trước khi kết quả cũ nhất bị xóa. |
+| `cacheMaxCredentials`      | 1-10000   | 256     | Số thông tin xác thực được lưu vào bộ nhớ đệm cùng lúc, trên toàn bộ quá trình triển khai. Thông tin không hoạt động lâu nhất sẽ bị loại bỏ khi vượt quá giới hạn này. |
+| `maxConcurrentLookups`     | 1-16      | 4       | Số lượng tra cứu mà một yêu cầu thanh bên thực hiện cùng lúc, được tính trên mỗi thông tin xác thực cho các yêu cầu. |
+| `batchTimeoutSeconds`      | 1-120     | 20      | Thời gian lâu nhất một yêu cầu thanh bên duy trì trạng thái mở. |
+| `requestTimeoutSeconds`    | 1-60      | 10      | Thời gian lâu nhất một yêu cầu của nhà cung cấp có thể thực hiện. Hãy tăng giá trị này nếu nằm sau một proxy chậm. |
+| `lookupTimeoutSeconds`     | 1-120     | 30      | Thời gian lâu nhất cho toàn bộ quá trình tra cứu, bao gồm tất cả các yêu cầu, có thể thực hiện. |
+| `maxCheckRunPages`         | 1-50      | 10      | Số trang của các lần kiểm tra (GitHub) hoặc trạng thái commit (Bitbucket) được đọc trước khi các kiểm tra được báo cáo là đang chạy. |
+| `maxCandidatePullRequests` | 1-100     | 10      | Số lượng pull request được liệt kê theo trạng thái khi khớp với tên nhánh được tái sử dụng. |
+| `maxCandidatePages`        | 1-10      | 1       | Số trang của các ứng viên đó được đọc theo trạng thái. Mỗi trang là một yêu cầu. |
+| `maxHeadComparisons`       | 0-20      | 3       | Số ứng viên được so sánh với commit mà phiên trò chuyện đã chạy lần cuối trước khi quá trình tìm kiếm dừng lại. Mỗi lần so sánh là một yêu cầu. |
 
 ## Những gì người dùng thấy [#what-users-see]
 
@@ -138,10 +344,10 @@ Xem tài liệu tham khảo [`pullRequests`](/docs/configuration/librechat_yaml/
 
 ### Thẻ [#the-card]
 
-Thẻ này hiển thị `PR #number`, `+additions` bằng màu xanh lục, `-deletions` bằng màu đỏ, một liên kết mở pull request trên GitHub, tiêu đề của pull request và hai huy hiệu:
+Thẻ này hiển thị `PR #number` (`MR !number` trên GitLab), `+additions` màu xanh lá, `-deletions` màu đỏ, một liên kết **Open in GitHub**, **Open in GitLab** hoặc **Open in Bitbucket**, tiêu đề và hai huy hiệu:
 
 - **Trạng thái**: Open (Mở), Draft (Bản nháp), Merged (Đã hợp nhất) hoặc Closed (Đã đóng).
-- **Checks**: Đang vượt qua (Passing), Đang thất bại (Failing), Đang chạy (Running), hoặc không có (none).
+- **Checks**: Đang vượt qua (Passing), Đang thất bại (Failing), Đang chạy (Running), hoặc không có trạng thái nào. Trên GitLab, đây là pipeline chính, chỉ được tính khi nó chạy cho commit chính hiện tại. Trên Bitbucket, đây là các trạng thái commit.
 
 {/* TODO(docs): add the screenshots from LibreChat PRs #16794 and #16815. */}
 
@@ -160,19 +366,21 @@ Màu sắc của các dấu chấm CI: màu xanh lá cây cho trạng thái đ�
 ## Cách một pull request được khớp [#how-a-pull-request-is-matched]
 
 1. Worker báo cáo kho lưu trữ, nhánh và commit (head) mà cuộc trò chuyện đã chạy lần cuối.
-2. LibreChat liệt kê các pull request đang mở cho nhánh đó trước, vì vậy lịch sử đã đóng trên một tên nhánh được sử dụng lại không thể ẩn đi một pull request đang mở. Sau đó, nó kiểm tra các pull request đang mở từ các fork (được tìm thấy thông qua commit), rồi đến các pull request đã đóng.
-3. Với một commit đã được ghi lại, một pull request chỉ được tính nếu head của nó là commit đó hoặc được xây dựng dựa trên commit đó. Điều này giúp ngăn chặn việc tên nhánh bị xóa và tái sử dụng hiển thị một pull request cũ.
-4. Một nhánh chưa có commit nào (một nhánh mới, trống) sẽ không khớp với bất kỳ thứ gì.
-5. Kết quả được lưu vào bộ nhớ đệm theo thông tin xác thực, kho lưu trữ, nhánh và commit.
-6. Các lượt kiểm tra (check runs) được đọc cho head hiện tại của pull request. Đối với một pull request từ một fork, các kiểm tra chỉ được đọc từ fork đó khi kho lưu trữ của fork đó nằm trong phạm vi (được liệt kê, hoặc `allowAllRepositories`). Nếu không, kho lưu trữ cơ sở sẽ được đọc và token sẽ không bao giờ được gửi đến một fork không được liệt kê.
+2. Nếu đầu ra lệnh của chính cuộc trò chuyện liên kết đến một pull request của kho lưu trữ đó trên máy chủ đã định cấu hình (ví dụ: liên kết mà `gh pr create` in ra), thì pull request đó sẽ được đọc trực tiếp, với điều kiện head của nó là nhánh của cuộc trò chuyện. Các liên kết đến các kho lưu trữ khác hoặc các máy chủ khác sẽ bị bỏ qua.
+3. Nếu không, LibreChat sẽ liệt kê các pull request đang mở cho nhánh đó trước, vì vậy lịch sử đã đóng trên một tên nhánh được sử dụng lại không thể che khuất một pull request đang mở. Sau đó, nó sẽ kiểm tra các pull request đang mở từ các fork, rồi đến các pull request đã đóng.
+4. Với một commit đã được ghi lại, một pull request chỉ được tính nếu head của nó là commit đó hoặc được xây dựng dựa trên nó. Điều này giúp ngăn chặn việc tên nhánh đã bị xóa và tái sử dụng hiển thị một pull request cũ. Một pull request từ một fork chỉ được tính khi nó chứa commit đã được ghi lại, vì bất kỳ ai cũng có thể mở một nhánh fork với cùng tên.
+5. Một nhánh chưa có commit nào (một nhánh mới, trống) sẽ không khớp với bất kỳ thứ gì.
+6. Kết quả được lưu vào bộ nhớ đệm theo thông tin xác thực, kho lưu trữ, nhánh và commit.
+7. Trên GitHub, các lần chạy kiểm tra (check runs) được đọc cho head hiện tại của pull request. Đối với một pull request từ một fork, các kiểm tra chỉ được đọc từ fork đó khi kho lưu trữ của fork đó nằm trong phạm vi (được liệt kê, hoặc `allowAllRepositories`). Nếu không, kho lưu trữ cơ sở sẽ được đọc và token sẽ không bao giờ được gửi đến một fork không được liệt kê.
 
 ## Hành vi [#behavior]
 
 ### Giới hạn tốc độ (Rate limits) [#rate-limits]
 
-- Giới hạn tốc độ của GitHub được áp dụng cho thông tin xác thực, vì vậy nó sẽ tạm dừng việc tra cứu cho mọi nhánh (branch) dưới token đó.
-- Thời gian tạm dừng tối thiểu là 10 giây. Giới hạn thứ cấp không có thời gian chờ được chỉ định sẽ chờ 60 giây. Thời gian chờ do GitHub đặt tên sẽ được tôn trọng, với mức tối đa là 1 giờ.
+- Giới hạn tốc độ áp dụng cho thông tin xác thực trên một máy chủ nhà cung cấp, vì vậy nó sẽ tạm dừng việc tra cứu cho mọi nhánh thuộc token đó. Với các tài khoản theo từng người dùng, giới hạn của mỗi người dùng là riêng biệt.
+- Thời gian tạm dừng tối thiểu là 10 giây và thời gian chờ do nhà cung cấp chỉ định sẽ được tuân thủ, với giới hạn tối đa là 1 giờ. Trên GitHub, một giới hạn phụ không có thời gian chờ được chỉ định sẽ tạm dừng trong 60 giây.
 - Trong thời gian tạm dừng, các tra cứu sẽ trả về `RATE_LIMITED` và các hàng sẽ hiển thị trạng thái thử lại.
+- Với `sharedCache`, một lệnh tạm dừng được bắt đầu trên một bản sao (replica) sẽ áp dụng cho mọi bản sao khác.
 
 ### Nâng cấp luân phiên [#rolling-upgrades]
 
@@ -181,27 +389,34 @@ Màu sắc của các dấu chấm CI: màu xanh lá cây cho trạng thái đ�
 
 ### Các giá trị mặc định khi không được thiết lập [#defaults-when-unset]
 
-- Nếu không có token hoặc phạm vi repository, tính năng này sẽ ở trạng thái không hoạt động: không có gì được quảng bá trong cấu hình khởi động, không có gì được ghi lại và không có gì được hiển thị.
+- Nếu không có token hoặc phạm vi repository, và không có ứng dụng `oauth`, tính năng này sẽ ở trạng thái không hoạt động: không có gì được quảng bá trong cấu hình khởi động, không có gì được ghi lại và không có gì được hiển thị.
 - Khi tính năng này bị tắt trong cấu hình, các cuộc trò chuyện hiện có sẽ không thay đổi và client sẽ không bao giờ gọi các route mới.
 
 ## Mô hình bảo mật [#security-model]
 
-- Token nằm trên máy chủ. Nó không bao giờ được gửi đến trình duyệt và các phản hồi lỗi không bao giờ bao gồm văn bản phản hồi của GitHub, token hoặc dấu vết ngăn xếp (stack traces).
-- Token này chỉ được sử dụng cho các kho lưu trữ nằm trong phạm vi. Nó không bao giờ được gửi đến một fork không nằm trong phạm vi.
-- Hai tuyến tra cứu `/api/convos` yêu cầu người dùng đã xác thực và được giới hạn quyền sở hữu. Một cuộc trò chuyện bị thiếu, hết hạn hoặc thuộc về người dùng khác sẽ hiển thị giống như một cuộc trò chuyện không có yêu cầu kéo (pull request).
-- Sử dụng một token chỉ đọc, có phạm vi hạn chế (fine-grained) giới hạn trong các kho lưu trữ mà bạn sẵn sàng hiển thị.
+- Các token nằm trên máy chủ. Chúng không bao giờ được gửi đến trình duyệt và các phản hồi lỗi không bao giờ bao gồm văn bản phản hồi của nhà cung cấp, token hoặc dấu vết ngăn xếp (stack traces).
+- Token máy chủ chỉ được sử dụng cho các kho lưu trữ nằm trong phạm vi và chỉ trên máy chủ đã được cấu hình. Nó không bao giờ được gửi đến một fork không nằm trong phạm vi.
+- `provider`, `host` và `oauth` chỉ đến từ `librechat.yaml`, vì vậy việc ghi đè vai trò, nhóm, người dùng hoặc đối tượng thuê (tenant) không thể gửi token đến một dịch vụ khác hoặc thay đổi quyền truy cập của người dùng ứng dụng.
+- Các tuyến đường tra cứu `/api/convos` yêu cầu người dùng đã xác thực và được giới hạn quyền sở hữu (owner-scoped). Một cuộc trò chuyện bị thiếu, hết hạn hoặc thuộc về người dùng khác sẽ hiển thị giống như một cuộc trò chuyện không có pull request.
+- Sử dụng một token chỉ đọc (read-only) được giới hạn cho các kho lưu trữ mà bạn sẵn sàng hiển thị.
 
 ## Khắc phục sự cố [#troubleshooting]
 
 | Triệu chứng | Nguyên nhân có khả năng | Khắc phục |
 | :--- | :--- | :--- |
-| Không có chip và không có dấu hiệu thanh bên ở bất kỳ đâu | Thiếu token, thiếu phạm vi kho lưu trữ (repository scope), hoặc `enabled: false` | Kiểm tra [Setup](#setup). Mở `/api/config` khi đã đăng nhập và tìm `pullRequestsEnabled: true`. |
-| Chip tiêu đề hoạt động, các hàng thanh bên không hiển thị gì | Thiếu `pullRequestsBatchVersion` trong `/api/config` (bản dựng cũ hoặc tab cũ) | Xây dựng lại hoặc nâng cấp máy chủ, khởi động lại và tải lại trang (hard reload). Xác nhận `pullRequestsBatchVersion: 1`. |
-| Chip chỉ xuất hiện cho một số cuộc trò chuyện | Chỉ các cuộc trò chuyện trên không gian làm việc mã nguồn (code workspace) đã báo cáo nhánh mới có làn (lane) | Xác nhận `CODEAPI_BRIDGE_LANE_GIT=true` trên Code API và worker được xây dựng từ code-interpreter PR #311 trở lên. |
-| Biểu tượng cảnh báo với nút thử lại | Tra cứu thất bại (giới hạn tốc độ, lỗi GitHub, hoặc `NOT_CONFIGURED`) | Thử lại. Nếu lỗi liên tục, hãy kiểm tra token và quyền của nó. |
-| `NOT_CONFIGURED` | `token` đã được đặt nhưng biến của nó bị trống hoặc thiếu | Đặt biến. **Đang chờ:** hoặc xóa `token` để sử dụng các biến dự phòng. |
-| Pull request tải được nhưng các kiểm tra (checks) trông sai hoặc thất bại | Token thiếu quyền Checks hoặc Contents | Cấp quyền đọc Checks và Contents. |
-| Pull request từ một fork không hiển thị kiểm tra | Fork không nằm trong phạm vi, vì vậy các kiểm tra được đọc từ kho lưu trữ cơ sở | Thêm chủ sở hữu fork vào `allowedRepositories`. **Đang chờ:** hoặc đặt `allowAllRepositories: true`. |
+| Không có chip và không có dấu hiệu thanh bên ở bất kỳ đâu | Không có token, không có phạm vi repository, hoặc `enabled: false` | Kiểm tra [Setup](#setup). Mở `/api/config` khi đã đăng nhập và tìm `pullRequestsEnabled: true`. |
+| Không có chip cho cuộc trò chuyện trong workspace đính kèm | Repository không nằm trong `allowedRepositories` | Thêm nó hoặc chủ sở hữu của nó dưới dạng `owner/*`. Một repository nằm ngoài phạm vi trông giống như một repository không có pull request. |
+| Chip chỉ xuất hiện cho một số cuộc trò chuyện | Chỉ các cuộc trò chuyện trên workspace mã nguồn đính kèm đã báo cáo nhánh mới có làn (lane) | Xác nhận `CODEAPI_BRIDGE_LANE_GIT=true` trên Code API và worker được xây dựng từ code-interpreter PR #311 trở lên. |
+| Chip tiêu đề hoạt động, các hàng thanh bên không hiển thị gì | Thiếu `pullRequestsBatchVersion` trong `/api/config` (bản dựng cũ hoặc tab cũ) | Xây dựng lại hoặc nâng cấp server, khởi động lại và tải lại trang (hard reload). Xác nhận `pullRequestsBatchVersion: 1`. |
+| Biểu tượng cảnh báo với tùy chọn thử lại | Tra cứu thất bại (giới hạn tốc độ, lỗi nhà cung cấp hoặc `NOT_CONFIGURED`) | Thử lại. Nếu lỗi liên tục, hãy kiểm tra token và quyền của nó. |
+| `NOT_CONFIGURED` | `token` đã được đặt nhưng biến của nó trống hoặc bị thiếu | Đặt biến hoặc xóa `token` để sử dụng các biến dự phòng. |
+| Mọi GitHub pull request đều không tải được | Token thiếu quyền Checks | Cấp quyền đọc Checks (read-only). |
+| Chỉ thất bại sau khi nhánh đã di chuyển | Token thiếu quyền Contents, nên không thể so sánh các commit | Cấp quyền đọc Contents (read-only). |
+| `RATE_LIMITED` thường xuyên | Nhiều người dùng chia sẻ token server hoặc các bản sao (replica) đều yêu cầu nhà cung cấp | Tăng `cacheTtlSeconds`, giảm `maxConcurrentLookups`, đặt `sharedCache: true` với Redis hoặc để người dùng kết nối tài khoản riêng của họ. |
+| Pull request từ fork không hiển thị kiểm tra | Fork không nằm trong phạm vi, nên các kiểm tra được đọc từ repository cơ sở | Thêm chủ sở hữu fork vào `allowedRepositories` hoặc đặt `allowAllRepositories: true`. |
+| GitLab hoặc Bitbucket không hiển thị gì | `provider` chưa được đặt hoặc `host` không khớp với nơi dự án tồn tại | Đặt `provider`. Đối với GitLab tự quản lý, hãy đặt `host` thành tên host của nó. Bitbucket chỉ hoạt động với host mặc định `bitbucket.org`. |
+| Liên kết được in bởi `gh pr create` không được nhận diện | Liên kết trỏ đến host hoặc repository khác với làn (lane) | Kiểm tra `host`. Chỉ các liên kết trên host đã cấu hình và repository của làn mới được tính. |
+| Người dùng đã kết nối thấy "unavailable" | Nhà cung cấp hoặc kho khóa không thể làm mới token của họ | Thử lại sau. Việc tra cứu không quay lại sử dụng token server cho người dùng đã kết nối. |
 | Không có pull request cho tên nhánh đã được sử dụng lại nhiều lần | `maxCandidatePullRequests`, `maxCandidatePages` hoặc `maxHeadComparisons` quá thấp so với tần suất tên được sử dụng lại, khiến tìm kiếm dừng trước khi đến được pull request khớp | Tăng các giá trị này. |
 | Tra cứu chậm hoặc hết thời gian chờ sau proxy | `requestTimeoutSeconds` quá thấp | Tăng giá trị này. Kiểm tra `HTTPS_PROXY` và `NO_PROXY`. |
 
@@ -226,6 +441,15 @@ Cả hai tuyến `/api/convos` bên dưới đều yêu cầu người dùng đ�
 - **200**: `{ "results": [ { "conversationId", "pullRequest" } | { "conversationId", "error": { "code" } } ] }`, theo thứ tự được yêu cầu. Một tra cứu thất bại không làm ẩn đi các kết quả khác.
 - Một token bị thiếu chỉ làm thất bại các mục cần đến nó.
 
+### Kết nối tài khoản (**Đang chờ xử lý**) [#account-connection-pending]
+
+Các route này chỉ tồn tại khi `JWT_SECRET` được thiết lập. Tất cả các route, ngoại trừ callback, đều yêu cầu người dùng đã xác thực.
+
+- `GET /api/pull-requests/oauth/connect`: bắt đầu kết nối và trả về `{ "url" }`, trang của nhà cung cấp cần mở.
+- `GET /api/pull-requests/oauth/callback`: nơi nhà cung cấp gửi người dùng quay lại.
+- `GET /api/pull-requests/oauth/status`: trạng thái kết nối của người dùng.
+- `DELETE /api/pull-requests/oauth`: ngắt kết nối người dùng.
+
 ### Cấu hình khởi động [#startup-config]
 
 `GET /api/config` bao gồm các trường này. Máy chủ thiết lập chúng; chúng không phải là các cài đặt.
@@ -233,5 +457,6 @@ Cả hai tuyến `/api/convos` bên dưới đều yêu cầu người dùng đ�
 - `pullRequestsEnabled` (boolean)
 - `pullRequestsBatchVersion` (`1`, chỉ xuất hiện khi tính năng này được bật)
 - `pullRequestsMaxConcurrentLookups` (số, chỉ xuất hiện khi tính năng này được bật)
+- `pullRequestsConnect` (`github`, `gitlab` hoặc `bitbucket`, chỉ xuất hiện khi người dùng có thể kết nối tài khoản của riêng họ; **Đang chờ xử lý**)
 
 Chỉ các mã lỗi được liệt kê ở trên mới ổn định.

@@ -550,14 +550,14 @@ Event Actor detached Action completion は、組み込みの生成ストアか�
 
 ## pullRequests
 
-{/* Pending items (LibreChat-AI/LibreChat#16876): delete the "Older versions" notes and Pending markers once it merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
+{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
 
-チャットヘッダーとサイドバーに、会話に添付されたコードワークスペースのGitHubプルリクエストを表示します。設定、動作、トラブルシューティングについては、[Conversation Pull Requests](/docs/features/pull_requests) を参照してください。すべてのキーはオプションです。
+チャットヘッダーおよびサイドバーに、会話に添付されたコードワークスペースのプルリクエスト（GitLabではマージリクエスト）を表示します。設定、動作、トラブルシューティングについては、[Conversation Pull Requests](/docs/features/pull_requests) を参照してください。すべてのキーは任意です。
 
-ほとんどの管理者は、トークン、リポジトリスコープ、そして場合によっては `enabled: false` のみを設定します。残りのキーは調整用であり、デフォルト値のままで問題ありません。
+この機能は、サーバーがトークンとリポジトリスコープを持つとすぐに有効になります。あるいは、ユーザーが `oauth` を通じて自身のアカウントを接続することも可能です。ほとんどの管理者は、リポジトリスコープとトークンのみを設定し、github.com 以外を使用する場合は `provider` と `host` を追加で設定します。チューニングキーのデフォルト値はそのままで問題ありません。
 
-<Callout type="important" title="保留中：未リリース">
-  デフォルトでオンになる動作、環境変数のトークンフォールバック、および `allowAllRepositories` は、LibreChat-AI/LibreChat#16876 の一部です。古いバージョンでは `enabled` はデフォルトで `false` であり、`token` が必須となります。
+<Callout type="info" title="librechat.yaml からのみ読み込む">
+  `provider`、`host`、および `oauth` は `librechat.yaml` からのみ読み込まれます。これらのキーに対するロール、グループ、ユーザー、およびテナントの設定オーバーライドは無視されるため、オーバーライドを使用してトークンを別のサービスにリダイレクトすることはできません。
 </Callout>
 
 <OptionTable
@@ -565,31 +565,49 @@ Event Actor detached Action completion は、組み込みの生成ストアか�
     [
       'enabled',
       'Boolean',
-      '機能をオフにするには `false` を設定してください。保留中: トークンとリポジトリスコープが存在するとオンになります。古いバージョン: デフォルトは `false` で、`true` にするには `token` と空ではない `allowedRepositories` が必要です。',
+      '機能をオフにするには `false` を設定してください。それ以外の場合、トークンとリポジトリのスコープが存在するか、`oauth` アプリが解決されると機能がオンになります。',
       'enabled: false',
+    ],
+    [
+      'provider',
+      'String',
+      '`github`（デフォルト）、`gitlab`（gitlab.comまたはセルフホスト型GitLabでのマージリクエスト用）、または`bitbucket`（Bitbucket Cloud用、保留中）。YAMLからのみ読み取ります。',
+      'provider: "gitlab"',
+    ],
+    [
+      'host',
+      'String',
+      'トークンが属するホスト名（スキームやパスは含めない）：GitHub Enterprise Serverホスト、`*.ghe.com`テナント、またはセルフホスト版GitLabホスト。1から65535までのポート番号を指定可能で、`:443`は削除されます。デフォルトはプロバイダーに応じて`github.com`、`gitlab.com`、または`bitbucket.org`となります。Bitbucketは他のホストを受け付けません。YAMLからのみ読み込まれます。',
+      'host: "github.example.com"',
     ],
     [
       'token',
       'String',
-      '読み取り専用のGitHubトークンを保持する環境変数への参照（`${NAME}`形式）。トークンそのものは指定しないでください。保留中：未設定の場合、サーバーは`GITHUB_PULL_REQUEST_TOKEN`、`GITHUB_TOKEN`、`GH_TOKEN`のうち最初に設定されているものを使用します。解決できない`token`は`NOT_CONFIGURED`となり、フォールバックは行われません。古いバージョン：必須。',
+      '読み取り専用トークンを保持する環境変数への参照（`${NAME}`形式）。トークン自体は決して指定しないでください。設定されていない場合、設定されている最初のフォールバック変数が使用されます。GitHubの場合は `GITHUB_PULL_REQUEST_TOKEN`、`GITHUB_TOKEN`、`GH_TOKEN`。GitLabの場合は `GITLAB_PULL_REQUEST_TOKEN`、`GITLAB_TOKEN`。Bitbucketの場合は `BITBUCKET_PULL_REQUEST_TOKEN` です。解決できない `token` は `NOT_CONFIGURED` となり、フォールバックは行われません。',
       'token: "${GITHUB_PULL_REQUEST_TOKEN}"',
+    ],
+    [
+      'oauth',
+      'Object',
+      '保留中。各ユーザーが自分のアカウントを接続できるようにし、ルックアップでそのユーザーのトークン、レート制限、リポジトリアクセスを使用するようにします。YAMLからのみ読み取ります。以下の [oauth](#pullrequestsoauth) を参照してください。',
+      'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
       'allowedRepositories',
       'Array of Strings',
-      'トークンが使用可能なリポジトリ（`owner/name` または `owner/*` 形式、最大256エントリ、大文字小文字を区別しない）。`*/*`、`*`、`owner`、および `..` を含むエントリは拒否されます。',
+      'サーバーのトークンを使用できるリポジトリ（`owner/name` または `owner/*` 形式、最大256エントリ、大文字小文字を区別しない）。GitLabでは、`group/sub/name` や `group/sub/*` といったネストされたグループパスが許可されており、`*` は1つのセグメントに一致します。`*/*`、`*`、`owner`、および `.` や `..` セグメントを含むエントリは拒否されます。',
       'allowedRepositories: ["LibreChat-AI/LibreChat", "my-org/*"]',
     ],
     [
       'allowAllRepositories',
       'Boolean',
-      '保留中。トークンが読み取り可能なリポジトリを検索します。デフォルト: `false`。以下の警告を参照してください。',
+      'サーバーのトークンが読み取れるリポジトリを検索します。デフォルト: `false`。以下の警告を参照してください。',
       'allowAllRepositories: false',
     ],
     [
       'cacheTtlSeconds',
       'Number',
-      'GitHubに再問い合わせを行うまでに結果を再利用する秒数（5〜3600）。失敗は最大10秒間記憶されます。デフォルト：30。',
+      'プロバイダーに再問い合わせを行うまでに結果を再利用する秒数（5〜3600）。失敗は最大10秒間記憶されます。デフォルト: 30。',
       'cacheTtlSeconds: 30',
     ],
     [
@@ -601,13 +619,13 @@ Event Actor detached Action completion は、組み込みの生成ストアか�
     [
       'cacheMaxCredentials',
       'Number',
-      'デプロイ全体で一度にキャッシュされる認証情報（1〜10000）。最も長くアイドル状態だったものが上限を超えると破棄されます。プリンシパルが異なる値を設定した場合、最大値が適用されます。多くのテナントがそれぞれ独自のトークンを使用する場合は、この値を増やしてください。デフォルト: 256。',
+      'デプロイ全体で一度にキャッシュされる認証情報（1〜10000）。最も長くアイドル状態だったものが上限を超えると破棄されます。プリンシパルが異なる値を設定した場合、最大値が適用されます。多くのテナントがそれぞれ独自のトークンを使用する場合や、多くのユーザーが自分のアカウントを接続する場合は、この値を増やしてください。デフォルト：256。',
       'cacheMaxCredentials: 256',
     ],
     [
       'maxConcurrentLookups',
       'Number',
-      '一度に実行されるサイドバーリクエストのルックアップ数（1〜16）。リクエスト全体で認証情報ごとにカウントされます。各ルックアップは数件のGitHubリクエストを消費します。デフォルト値: 4。',
+      'ルックアップは一度に1つのサイドバーリクエストを実行します（1〜16）。リクエスト全体で認証情報ごとにカウントされます。各ルックアップはいくつかのプロバイダーリクエストで構成されます。デフォルト：4。',
       'maxConcurrentLookups: 4',
     ],
     [
@@ -619,7 +637,7 @@ Event Actor detached Action completion は、組み込みの生成ストアか�
     [
       'requestTimeoutSeconds',
       'Number',
-      'GitHubリクエストの最長待機時間（1〜60秒）。低速なプロキシの背後にある場合は値を上げてください。デフォルト: 10。',
+      '1つのプロバイダーリクエストにかかる最長時間（1〜60）。低速なプロキシの背後で使用する場合は値を大きくしてください。デフォルト: 10。',
       'requestTimeoutSeconds: 10',
     ],
     [
@@ -631,7 +649,7 @@ Event Actor detached Action completion は、組み込みの生成ストアか�
     [
       'maxCheckRunPages',
       'Number',
-      'ロールアップが実行中として報告される前に読み込まれる100件のチェック実行のページ数（1〜50）。デフォルト：10。',
+      'チェックが実行中として報告される前に読み込まれるチェックラン（GitHub）またはコミットステータス（Bitbucket）のページ数（1〜50）。GitLabは代わりにヘッドパイプラインを読み込みます。デフォルト: 10。',
       'maxCheckRunPages: 10',
     ],
     [
@@ -652,11 +670,23 @@ Event Actor detached Action completion は、組み込みの生成ストアか�
       '検索を断念する前にチャットが最後に実行されたコミットと比較される候補数（0〜20）。各比較は1リクエストとしてカウントされます。`0`は比較を無効にします。デフォルト: 3。',
       'maxHeadComparisons: 3',
     ],
+    [
+      'sharedCache',
+      'Boolean',
+      '保留中。Redisを介してレプリカ間で検索されたプルリクエストとレート制限のクールダウンを共有します。`USE_REDIS` が有効な場合のみ機能します。いずれの場合も、各レプリカは独自のインメモリキャッシュを保持します。デフォルト: `false`。',
+      'sharedCache: true',
+    ],
+    [
+      'sharedCacheTimeoutMs',
+      'Number',
+      '保留中。共有キャッシュの読み取りまたは書き込みが完了するまで待機する最長時間をミリ秒単位で指定します（10〜5000）。これを超えると、そのキャッシュを待たずにルックアップが続行されます。デフォルト：250。',
+      'sharedCacheTimeoutMs: 250',
+    ],
   ]}
 />
 
 <Callout type="warning" title="セキュリティ: allowAllRepositories">
-  これを有効にすると、コードを実行できるユーザーは誰でも、サーバーのトークンをそのトークンが読み取り可能な任意のレポジトリに向け、プルリクエストのタイトル、サイズ、およびチェックステータスを確認できるようになります。表示しても問題のないレポジトリにスコープを限定した、読み取り専用のトークンを使用してください。
+  workerは自身のレポジトリを報告するため、この設定を有効にすると、コードを実行できるユーザーであれば誰でも、サーバーのトークンをそのトークンが読み取り可能な任意のレポジトリに向け、プルリクエストのタイトル、サイズ、およびチェックステータスを確認できるようになります。表示しても問題のないレポジトリのみにスコープを絞った、読み取り専用のトークンを使用してください。
 </Callout>
 
 ```yaml filename="endpoints / agents / pullRequests"
@@ -671,7 +701,62 @@ endpoints:
       maxConcurrentLookups: 4
 ```
 
-古いバージョンでは、`enabled: true` を追加してください。
+### pullRequests.oauth
+
+保留中。各ユーザーが **Settings > Account > Pull request account** から自身のアカウントを接続できるようにします。接続されたユーザーのルックアップは自身のトークンを使用し、`allowedRepositories` の制限を受けません。接続していないユーザーは引き続きサーバーのトークンを使用します。アプリのコールバックURLとして `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` を登録してください。GitHubでは、Pull requests、Checks、Contentsに対する読み取り専用権限を持つGitHub Appの使用を推奨します。[Per-user accounts](/docs/features/pull_requests#per-user-accounts) を参照してください。
+
+<OptionTable
+  options={[
+    [
+      'clientId',
+      'String',
+      '必須。アプリのクライアントIDへの環境変数参照（`${NAME}`形式）。',
+      'clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}"',
+    ],
+    [
+      'clientSecret',
+      'String',
+      '必須。アプリのクライアントシークレットへの環境変数参照（`${NAME}` 形式）。',
+      'clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}"',
+    ],
+    [
+      'scope',
+      'String',
+      '要求するスコープ（スペース区切り、最大256文字）。デフォルト：GitHubはなし、GitLabは `read_api`、Bitbucketはコンシューマー自身の権限。クラシックなGitHub OAuth Appの場合のみ設定してください。',
+      'scope: "repo"',
+    ],
+    [
+      'flowTimeoutMinutes',
+      'Number',
+      'ユーザーがプロバイダー側で接続を承認するためにかかる時間（分）（1〜60）。デフォルト：10。',
+      'flowTimeoutMinutes: 10',
+    ],
+    [
+      'requestTimeoutSeconds',
+      'Number',
+      'コード交換またはトークン更新にかかる秒数（1〜60）。デフォルト：10。',
+      'requestTimeoutSeconds: 10',
+    ],
+    [
+      'retentionDays',
+      'Number',
+      '接続が使用されずに維持される日数（1〜3650）。使用するたびに延長されます。デフォルト：180。',
+      'retentionDays: 180',
+    ],
+  ]}
+/>
+
+いずれかの参照が解決されない場合、ユーザーは接続できず、サーバーのトークンのみが使用されます。
+
+```yaml filename="endpoints / agents / pullRequests / oauth"
+endpoints:
+  agents:
+    pullRequests:
+      oauth:
+        clientId: '${GITHUB_PR_OAUTH_CLIENT_ID}'
+        clientSecret: '${GITHUB_PR_OAUTH_CLIENT_SECRET}'
+        retentionDays: 180
+```
 
 ## backgroundTasks
 

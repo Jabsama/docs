@@ -550,14 +550,14 @@ Event Actor detached Action completion wordt automatisch geselecteerd uit de ing
 
 ## pullRequests
 
-{/* Pending items (LibreChat-AI/LibreChat#16876): delete the "Older versions" notes and Pending markers once it merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
+{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
 
-Toont de GitHub pull request voor de gekoppelde codewerkruimte van een gesprek in de chatkoptekst en zijbalk. Zie [Conversation Pull Requests](/docs/features/pull_requests) voor installatie, gedrag en probleemoplossing. Elke sleutel is optioneel.
+Toont de pull request (een merge request op GitLab) voor de gekoppelde code-workspace van een conversatie in de chat-header en zijbalk. Zie [Conversation Pull Requests](/docs/features/pull_requests) voor installatie, werking en probleemoplossing. Elke sleutel is optioneel.
 
-De meeste beheerders stellen alleen een token, een repository scope en eventueel `enabled: false` in. De overige keys zijn bedoeld voor finetuning en de standaardwaarden daarvan volstaan.
+De functie is ingeschakeld zodra de server een token en een repository-scope heeft, of gebruikers kunnen hun eigen accounts koppelen via `oauth`. De meeste beheerders stellen alleen een repository-scope en een token in, plus `provider` en `host` wanneer ze niet op github.com zitten. De standaardwaarden van de tuning-keys zijn in orde.
 
-<Callout type="important" title="In afwachting: nog niet uitgebracht">
-  Standaard ingeschakeld gedrag, de omgevingsvariabele token fallback en `allowAllRepositories` maken deel uit van LibreChat-AI/LibreChat#16876. In oudere versies is `enabled` standaard `false` en is `token` vereist.
+<Callout type="info" title="Alleen lezen vanuit librechat.yaml">
+  `provider`, `host` en `oauth` worden uitsluitend gelezen vanuit `librechat.yaml`. Configuratie-overschrijvingen van deze sleutels voor rollen, groepen, gebruikers en tenants worden genegeerd, waardoor een overschrijving een token niet naar een andere service kan omleiden.
 </Callout>
 
 <OptionTable
@@ -565,31 +565,49 @@ De meeste beheerders stellen alleen een token, een repository scope en eventueel
     [
       'enabled',
       'Boolean',
-      'Stel in op `false` om de functie uit te schakelen. In afwachting: deze is ingeschakeld zodra een token en een repository-scope bestaan. Oudere versies: standaard `false`, en `true` vereist `token` en een niet-lege `allowedRepositories`.',
+      'Stel in op `false` om de functie uit te schakelen. Anders is deze ingeschakeld zodra een token en een repository-scope bestaan, of wanneer een `oauth` app wordt opgelost.',
       'enabled: false',
+    ],
+    [
+      'provider',
+      'String',
+      '`github` (standaard), `gitlab` voor merge requests op gitlab.com of een zelf-beheerde GitLab, of `bitbucket` voor Bitbucket Cloud (in afwachting). Alleen lezen vanuit de YAML.',
+      'provider: "gitlab"',
+    ],
+    [
+      'host',
+      'String',
+      'Hostnaam waar het token bij hoort, zonder schema of pad: een GitHub Enterprise Server-host, een `*.ghe.com`-tenant of een zelfbeheerde GitLab-host. Een poort van 1 tot 65535 is toegestaan en `:443` wordt weggelaten. Standaard ingesteld op `github.com`, `gitlab.com` of `bitbucket.org` voor de provider. Bitbucket accepteert geen andere host. Alleen lezen vanuit de YAML.',
+      'host: "github.example.com"',
     ],
     [
       'token',
       'String',
-      'Verwijzing naar een omgevingsvariabele die een alleen-lezen GitHub-token bevat, in de vorm `${NAME}`. Nooit het token zelf. In afwachting: wanneer niet ingesteld, gebruikt de server de eerste van `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN` die is ingesteld. Een `token` dat niet wordt omgezet, mislukt met `NOT_CONFIGURED` en valt niet terug op een andere waarde. Oudere versies: vereist.',
+      'Verwijzing naar een omgevingsvariabele die een alleen-lezen token bevat, in de vorm `${NAME}`. Nooit het token zelf. Wanneer deze niet is ingesteld, wordt de eerste fallback-variabele die wel is ingesteld gebruikt: `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN` op GitHub; `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN` op GitLab; `BITBUCKET_PULL_REQUEST_TOKEN` op Bitbucket. Een `token` dat niet kan worden opgelost, faalt met `NOT_CONFIGURED` en heeft geen fallback.',
       'token: "${GITHUB_PULL_REQUEST_TOKEN}"',
+    ],
+    [
+      'oauth',
+      'Object',
+      'In afwachting. Hiermee kan elke gebruiker zijn eigen account koppelen, zodat opzoekingen gebruikmaken van het token, de rate limit en de repository-toegang van die gebruiker. Alleen lezen vanuit de YAML. Zie [oauth](#pullrequestsoauth) hieronder.',
+      'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
       'allowedRepositories',
       'Array of Strings',
-      'Repositories waarvoor het token mag worden gebruikt, als `owner/name` of `owner/*` (maximaal 256 items, hoofdletterongevoelig). `*/*`, `*`, `owner` en items die `..` bevatten worden geweigerd.',
+      'Repositories waarvoor het servertoken mag worden gebruikt, als `owner/name` of `owner/*` (maximaal 256 items, hoofdletterongevoelig). Op GitLab zijn geneste groepspaden zoals `group/sub/name` of `group/sub/*` toegestaan; `*` komt overeen met één segment. `*/*`, `*`, `owner` en items met `.` of `..` segmenten worden geweigerd.',
       'allowedRepositories: ["LibreChat-AI/LibreChat", "my-org/*"]',
     ],
     [
       'allowAllRepositories',
       'Boolean',
-      'In afwachting. Zoek elke repository op die het token kan lezen. Standaard: `false`. Zie de waarschuwing hieronder.',
+      'Zoek in elke repository die het servertoken kan lezen. Standaard: `false`. Zie de waarschuwing hieronder.',
       'allowAllRepositories: false',
     ],
     [
       'cacheTtlSeconds',
       'Number',
-      'Seconden dat een resultaat wordt hergebruikt voordat GitHub opnieuw wordt geraadpleegd (5-3600). Fouten worden maximaal 10 seconden onthouden. Standaard: 30.',
+      'Seconden dat een resultaat wordt hergebruikt voordat de provider opnieuw wordt gevraagd (5-3600). Fouten worden maximaal 10 seconden onthouden. Standaard: 30.',
       'cacheTtlSeconds: 30',
     ],
     [
@@ -601,13 +619,13 @@ De meeste beheerders stellen alleen een token, een repository scope en eventueel
     [
       'cacheMaxCredentials',
       'Number',
-      'Referenties worden in één keer in de cache opgeslagen, over de gehele deployment (1-10000). De referentie die het langst inactief is, wordt na dit aantal verwijderd. Wanneer principals verschillende waarden instellen, geldt de grootste waarde. Verhoog dit aantal wanneer veel tenants elk hun eigen token gebruiken. Standaard: 256.',
+      'Referenties worden in één keer in de cache opgeslagen, voor de gehele implementatie (1-10000). De referentie die het langst inactief is, wordt verwijderd zodra dit aantal wordt overschreden. Wanneer principals verschillende waarden instellen, geldt de grootste waarde. Verhoog deze waarde wanneer veel tenants elk hun eigen token gebruiken, of wanneer veel gebruikers hun eigen accounts koppelen. Standaard: 256.',
       'cacheMaxCredentials: 256',
     ],
     [
       'maxConcurrentLookups',
       'Number',
-      'Lookups één zijbalkverzoek tegelijk (1-16), geteld per inloggegevens over verzoeken heen. Elke lookup bestaat uit een paar GitHub-verzoeken. Standaard: 4.',
+      'Lookups één zijbalkverzoek tegelijk (1-16), geteld per credential over verzoeken heen. Elke lookup bestaat uit enkele providerverzoeken. Standaard: 4.',
       'maxConcurrentLookups: 4',
     ],
     [
@@ -619,7 +637,7 @@ De meeste beheerders stellen alleen een token, een repository scope en eventueel
     [
       'requestTimeoutSeconds',
       'Number',
-      'Langste tijd die één GitHub-verzoek in beslag mag nemen (1-60). Verhoog dit achter een trage proxy. Standaard: 10.',
+      'De langste tijd die een verzoek aan één provider in beslag mag nemen (1-60). Verhoog dit achter een trage proxy. Standaard: 10.',
       'requestTimeoutSeconds: 10',
     ],
     [
@@ -631,7 +649,7 @@ De meeste beheerders stellen alleen een token, een repository scope en eventueel
     [
       'maxCheckRunPages',
       'Number',
-      'Pagina\'s van 100 check runs gelezen voordat de rollup als nog lopend wordt gerapporteerd (1-50). Standaard: 10.',
+      'Pagina\'s met check runs (GitHub) of commit-statussen (Bitbucket) die worden gelezen voordat checks als nog in uitvoering worden gerapporteerd (1-50). GitLab leest in plaats daarvan de head pipeline. Standaard: 10.',
       'maxCheckRunPages: 10',
     ],
     [
@@ -652,11 +670,23 @@ De meeste beheerders stellen alleen een token, een repository scope en eventueel
       'Kandidaten vergeleken met de commit waarop de chat voor het laatst draaide voordat de zoekopdracht wordt opgegeven (0-20). Elke vergelijking is één verzoek. `0` schakelt vergelijken uit. Standaard: 3.',
       'maxHeadComparisons: 3',
     ],
+    [
+      'sharedCache',
+      'Boolean',
+      'In afwachting. Deel opgezochte pull requests en rate limit cooldowns tussen replica\'s via Redis. Alleen van kracht bij `USE_REDIS`; elke replica behoudt hoe dan ook zijn eigen in-memory cache. Standaard: `false`.',
+      'sharedCache: true',
+    ],
+    [
+      'sharedCacheTimeoutMs',
+      'Number',
+      'In afwachting. De langste tijd in milliseconden die een gedeelde cache-lees- of schrijfactie mag duren voordat de opzoeking zonder deze actie doorgaat (10-5000). Standaard: 250.',
+      'sharedCacheTimeoutMs: 250',
+    ],
   ]}
 />
 
 <Callout type="warning" title="Beveiliging: allowAllRepositories">
-  Wanneer dit is ingeschakeld, kan elke gebruiker die code kan uitvoeren het token van de server richten op elke repository die dat token kan lezen, en de titel, grootte en controlestatus van pull requests inzien. Gebruik een alleen-lezen token dat beperkt is tot de repositories die je wilt tonen.
+  De worker rapporteert zijn eigen repository, dus als dit is ingeschakeld, kan elke gebruiker die code kan uitvoeren het token van de server naar elke repository wijzen die dat token kan lezen, en de titel, grootte en controlestatus van de pull request zien. Gebruik een alleen-lezen token dat beperkt is tot de repositories die je wilt tonen.
 </Callout>
 
 ```yaml filename="endpoints / agents / pullRequests"
@@ -671,7 +701,62 @@ endpoints:
       maxConcurrentLookups: 4
 ```
 
-Voeg op oudere versies `enabled: true` toe.
+### pullRequests.oauth
+
+In afwachting. Hiermee kan elke gebruiker zijn eigen account koppelen onder **Settings > Account > Pull request account**. De opzoekingen van een gekoppelde gebruiker gebruiken hun eigen token en zijn niet gebonden aan `allowedRepositories`; gebruikers die geen account hebben gekoppeld, blijven het server-token gebruiken. Registreer `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` als de callback-URL van de app. Op GitHub wordt een GitHub App met alleen-lezen machtigingen voor Pull requests, Checks en Contents aanbevolen. Zie [Per-user accounts](/docs/features/pull_requests#per-user-accounts).
+
+<OptionTable
+  options={[
+    [
+      'clientId',
+      'String',
+      'Verplicht. Omgevingsvariabele-referentie naar de client-ID van de app, in de vorm `${NAME}`.',
+      'clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}"',
+    ],
+    [
+      'clientSecret',
+      'String',
+      'Vereist. Omgevingsvariabele-referentie naar het client secret van de app, in de vorm `${NAME}`.',
+      'clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}"',
+    ],
+    [
+      'scope',
+      'String',
+      'Door spaties gescheiden scopes om aan te vragen, tot 256 tekens. Standaard: geen op GitHub, `read_api` op GitLab, en de eigen rechten van de consument op Bitbucket. Stel dit alleen in voor een klassieke GitHub OAuth App.',
+      'scope: "repo"',
+    ],
+    [
+      'flowTimeoutMinutes',
+      'Number',
+      'Minuten die een gebruiker heeft om de verbinding bij de provider goed te keuren (1-60). Standaard: 10.',
+      'flowTimeoutMinutes: 10',
+    ],
+    [
+      'requestTimeoutSeconds',
+      'Number',
+      'Seconden die een code-uitwisseling of token-vernieuwing in beslag kan nemen (1-60). Standaard: 10.',
+      'requestTimeoutSeconds: 10',
+    ],
+    [
+      'retentionDays',
+      'Number',
+      'Aantal dagen dat een verbinding behouden blijft zonder gebruik (1-3650). Elk gebruik verlengt deze periode. Standaard: 180.',
+      'retentionDays: 180',
+    ],
+  ]}
+/>
+
+Als een van beide referenties niet wordt opgelost, kunnen gebruikers geen verbinding maken en wordt alleen het servertoken gebruikt.
+
+```yaml filename="endpoints / agents / pullRequests / oauth"
+endpoints:
+  agents:
+    pullRequests:
+      oauth:
+        clientId: '${GITHUB_PR_OAUTH_CLIENT_ID}'
+        clientSecret: '${GITHUB_PR_OAUTH_CLIENT_SECRET}'
+        retentionDays: 180
+```
 
 ## backgroundTasks
 

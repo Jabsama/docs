@@ -1578,37 +1578,53 @@ Benannte angehängte Umgebungen können auch eine Self-Service-Pairing-Steuerung
 
 ## Pull Requests für Konversationen [#conversation-pull-requests]
 
-Einstellungen zum Anzeigen der GitHub Pull Requests einer Konversation. Siehe [Conversation Pull Requests](/docs/features/pull_requests) und [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests).
+Einstellungen zum Anzeigen eines Pull Requests einer Konversation von GitHub, GitLab oder Bitbucket Cloud. Siehe [Conversation Pull Requests](/docs/features/pull_requests) und [`endpoints.agents.pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests).
 
-<Callout type="important" title="Ausstehend: noch nicht veröffentlicht">
-  Die drei Fallback-Token-Variablen sind Teil von LibreChat-AI/LibreChat#16876. In älteren Versionen setzen Sie die Variable, auf die sich `token: "${NAME}"` bezieht.
-</Callout>
+Die Fallback-Variablen werden nur verwendet, wenn `pullRequests.token` nicht gesetzt ist, und es werden nur die des konfigurierten `provider` in der aufgeführten Reihenfolge gelesen. Setzen Sie diese auf dem LibreChat-Server.
 
 <OptionTable
   options={[
     [
       'GITHUB_PULL_REQUEST_TOKEN',
       'string',
-      'Ausstehend. Fallback-GitHub-Token mit Lesezugriff, wenn `pullRequests.token` nicht gesetzt ist. Zuerst versucht. Auf dem LibreChat-Server gesetzt.',
+      'Fallback-Token für schreibgeschützten Zugriff auf GitHub. Wird zuerst auf GitHub versucht.',
       '# GITHUB_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'GITHUB_TOKEN',
       'string',
-      'Ausstehend. Fallback-Token, zweiter Versuch. Es ist ein gebräuchlicher Name: Wenn Ihre Bereitstellung ihn bereits für etwas anderes verwendet, beginnt der Fallback hier mit der Verwendung, sobald ein Repository-Bereich festgelegt ist.',
+      'Fallback GitHub-Token, zweiter Versuch. Es ist ein gebräuchlicher Name: Wenn Ihre Bereitstellung ihn bereits für etwas anderes verwendet, beginnt der Fallback hier sofort mit der Verwendung, sobald ein Repository-Bereich festgelegt ist.',
       '# GITHUB_TOKEN=your-read-only-token',
     ],
     [
       'GH_TOKEN',
       'string',
-      'Ausstehend. Fallback-Token, dritter Versuch.',
+      'Fallback GitHub-Token, dritter Versuch.',
       '# GH_TOKEN=your-read-only-token',
+    ],
+    [
+      'GITLAB_PULL_REQUEST_TOKEN',
+      'string',
+      'Fallback GitLab-Token mit dem `read_api`-Scope. Wird zuerst bei GitLab versucht.',
+      '# GITLAB_PULL_REQUEST_TOKEN=your-read-api-token',
+    ],
+    [
+      'GITLAB_TOKEN',
+      'string',
+      'Fallback GitLab-Token, zweiter Versuch. Auch ein gebräuchlicher Name; siehe `GITHUB_TOKEN`.',
+      '# GITLAB_TOKEN=your-read-api-token',
+    ],
+    [
+      'BITBUCKET_PULL_REQUEST_TOKEN',
+      'string',
+      'Ausstehend. Fallback-Zugriffstoken für Bitbucket Cloud-Repository, -Projekt oder -Workspace mit Lesezugriff auf Pull Requests und Repositories.',
+      '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'Die Variable, auf die sich `pullRequests.token: "${NAME}"` bezieht. Auf dem LibreChat-Server festgelegt.',
-      '# MY_GITHUB_TOKEN=your-read-only-token',
+      'Die Variable, auf die sich `pullRequests.token: "${NAME}"` bezieht. Wird auch für `pullRequests.oauth.clientId` und `clientSecret` (ausstehend) verwendet, bei denen es sich ebenfalls um Referenzen handelt.',
+      '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
       'CODEAPI_BRIDGE_LANE_GIT',
@@ -1619,7 +1635,9 @@ Einstellungen zum Anzeigen der GitHub Pull Requests einer Konversation. Siehe [C
   ]}
 />
 
-GitHub-Anfragen verwenden die Proxy-Einstellungen der Bereitstellung (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` sowie deren kleingeschriebene Varianten), wobei `NO_PROXY` berücksichtigt wird. Diese werden mit anderem ausgehenden Datenverkehr von LibreChat geteilt und sind nicht spezifisch für diese Funktion.
+Benutzer, die ihr eigenes Konto verbinden (ausstehend), benötigen `JWT_SECRET`, welches den Verbindungsvorgang signiert, sowie `DOMAIN_SERVER`, das die Callback-URL `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` bildet. `pullRequests.sharedCache` (ausstehend) wird nur wirksam, wenn `USE_REDIS=true` gesetzt ist.
+
+Anbieteranfragen verwenden die Proxy-Einstellungen der Bereitstellung (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` sowie deren kleingeschriebene Varianten), wobei `NO_PROXY` berücksichtigt wird. Diese werden mit anderem ausgehenden Datenverkehr von LibreChat geteilt und sind nicht spezifisch für diese Funktion.
 
 ## Artifacts [#artifacts]
 
