@@ -46,6 +46,7 @@ Pour démarrer toutes les nouvelles discussions en mode temporaire, ouvrez **Set
 - Il est exclu des résultats de recherche.
 - Il ne peut pas être mis en favori.
 - Il ne reçoit pas de titre généré automatiquement.
+- Il n'est pas envoyé à [Langfuse](/docs/configuration/langfuse#temporary-chats) pour le traçage, et l'évaluation de ses réponses n'envoie aucun score de feedback, à moins que votre administrateur n'ait choisi de l'activer.
 - Il est conservé jusqu'à la fin de sa période de rétention, puis supprimé automatiquement. La période par défaut est de 30 jours ; votre administrateur peut en définir une différente.
 
 La rétention s'applique aux conversations, aux messages, aux fichiers et aux liens partagés. Les [Memories](/docs/features/memory) ne sont pas supprimées lorsqu'une discussion temporaire expire.
@@ -124,6 +125,7 @@ La durée de vie des chats temporaires peut également être définie avec `TEMP
     **`ephemeral`.** Chaque discussion est temporaire. Il s'agit du mode « Discussion temporaire toujours activé » pour l'ensemble du déploiement.
 
     - Chaque discussion est masquée de l'historique et de la recherche, ne reçoit aucun titre généré et est supprimée après `temporaryChatRetention` heures. `generalChatRetention` est ignoré.
+    - Aucun chat n'est tracé vers Langfuse à moins que `langfuse.trace.temporaryChats` ne soit défini sur `true`. Voir [Chats temporaires](/docs/configuration/langfuse#temporary-chats) dans le guide Langfuse.
     - Le bouton bascule **Temporary Chat** est verrouillé sur activé pour tout le monde, y compris pour les utilisateurs dont le rôle ne dispose pas de la permission `TEMPORARY_CHAT`. Le raccourci clavier est désactivé.
     - Le serveur l'applique : un client qui envoie `isTemporary: false` est outrepassé.
     - Les fichiers téléchargés et les liens partagés expirent avec leur discussion. Les fichiers de ressources des agents ne sont conservés que si `retainAgentFiles: true` est défini.

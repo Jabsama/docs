@@ -45,6 +45,7 @@ Nút chuyển đổi này chỉ khả dụng trước khi gửi tin nhắn đầ
 - Nó bị loại trừ khỏi kết quả tìm kiếm.
 - Nó không thể được đánh dấu trang.
 - Nó không nhận được tiêu đề được tạo tự động.
+- Nó không được gửi đến [Langfuse](/docs/configuration/langfuse#temporary-chats) để theo dõi, và việc đánh giá các phản hồi của nó cũng không gửi điểm phản hồi, trừ khi quản trị viên của bạn đã chọn tham gia.
 - Nó được lưu giữ cho đến khi hết thời hạn lưu trữ, sau đó sẽ tự động bị xóa. Thời hạn mặc định là 30 ngày; quản trị viên của bạn có thể thiết lập một thời hạn khác.
 
 Thời gian lưu giữ áp dụng cho các cuộc trò chuyện, tin nhắn, tệp và liên kết được chia sẻ. [Memories](/docs/features/memory) sẽ không bị xóa khi một cuộc trò chuyện tạm thời hết hạn.
@@ -123,6 +124,7 @@ Thời gian tồn tại của cuộc trò chuyện tạm thời cũng có thể 
     **`ephemeral`.** Mọi cuộc trò chuyện đều là tạm thời. Đây là chế độ "Luôn bật Trò chuyện tạm thời" cho toàn bộ quá trình triển khai.
 
     - Mỗi cuộc trò chuyện đều bị ẩn khỏi lịch sử và tìm kiếm, không được tạo tiêu đề và sẽ bị xóa sau `temporaryChatRetention` giờ. `generalChatRetention` sẽ bị bỏ qua.
+    - Không có cuộc trò chuyện nào được theo dõi tới Langfuse trừ khi `langfuse.trace.temporaryChats` được đặt là `true`. Xem [Temporary Chats](/docs/configuration/langfuse#temporary-chats) trong hướng dẫn Langfuse.
     - Nút gạt **Temporary Chat** bị khóa ở trạng thái bật đối với tất cả mọi người, bao gồm cả những người dùng có vai trò không có quyền `TEMPORARY_CHAT`. Phím tắt bị vô hiệu hóa.
     - Máy chủ thực thi điều này: một client gửi `isTemporary: false` sẽ bị ghi đè.
     - Các tệp đã tải lên và liên kết được chia sẻ sẽ hết hạn cùng với cuộc trò chuyện của chúng. Các tệp tài nguyên của Agent chỉ được giữ lại khi `retainAgentFiles: true`.

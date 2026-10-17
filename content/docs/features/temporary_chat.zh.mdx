@@ -42,6 +42,7 @@ description: 通过临时聊天功能，让个人对话不出现在历史记录�
 - 它已从搜索结果中排除。
 - 它无法被收藏。
 - 它不会获得自动生成的标题。
+- 除非您的管理员已选择加入，否则它不会被发送到 [Langfuse](/docs/configuration/langfuse#temporary-chats) 进行追踪，且对其回复进行评分也不会发送任何反馈分数。
 - 它会被保留至保留期结束，然后自动删除。默认期限为 30 天；您的管理员可能会设置不同的期限。
 
 保留策略适用于对话、消息、文件和共享链接。[Memories](/docs/features/memory) 不会在临时聊天过期时被删除。
@@ -120,6 +121,7 @@ interface:
     **`ephemeral`。** 每次聊天都是临时的。这相当于为整个部署开启了“始终启用临时聊天”。
 
     - 每个聊天记录都会从历史记录和搜索中隐藏，不会生成标题，并在 `temporaryChatRetention` 小时后被删除。`generalChatRetention` 将被忽略。
+    - 除非 `langfuse.trace.temporaryChats` 设置为 `true`，否则不会追踪任何聊天记录到 Langfuse。请参阅 Langfuse 指南中的 [Temporary Chats](/docs/configuration/langfuse#temporary-chats)。
     - **Temporary Chat** 开关对所有人强制开启，包括那些角色权限中缺少 `TEMPORARY_CHAT` 权限的用户。键盘快捷键已被禁用。
     - 服务器会强制执行此规则：客户端发送的 `isTemporary: false` 将会被覆盖。
     - 上传的文件和共享链接会随其聊天记录一起过期。代理资源文件仅在设置 `retainAgentFiles: true` 时才会保留。

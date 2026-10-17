@@ -45,6 +45,7 @@ Um alle neuen Chats als temporär zu starten, öffnen Sie **Settings > Chat** un
 - Es ist von den Suchergebnissen ausgeschlossen.
 - Es kann nicht mit einem Lesezeichen versehen werden.
 - Es erhält keinen automatisch generierten Titel.
+- Es wird nicht zur Nachverfolgung an [Langfuse](/docs/configuration/langfuse#temporary-chats) gesendet, und die Bewertung seiner Antworten sendet kein Feedback-Ergebnis, es sei denn, Ihr Administrator hat dem zugestimmt.
 - Es wird bis zum Ende seines Aufbewahrungszeitraums gespeichert und dann automatisch gelöscht. Der Standardzeitraum beträgt 30 Tage; Ihr Administrator kann einen anderen Zeitraum festlegen.
 
 Die Aufbewahrungsfrist gilt für Unterhaltungen, Nachrichten, Dateien und geteilte Links. [Memories](/docs/features/memory) werden nicht gelöscht, wenn ein temporärer Chat abläuft.
@@ -123,6 +124,7 @@ Die Lebensdauer temporärer Chats kann auch mit `TEMP_CHAT_RETENTION_HOURS` fest
     **`ephemeral`.** Jeder Chat ist temporär. Dies entspricht „Temporary Chat always on“ für die gesamte Bereitstellung.
 
     - Jeder Chat wird aus dem Verlauf und der Suche ausgeblendet, erhält keinen generierten Titel und wird nach `temporaryChatRetention` Stunden gelöscht. `generalChatRetention` wird ignoriert.
+    - Kein Chat wird an Langfuse übermittelt, es sei denn, `langfuse.trace.temporaryChats` ist auf `true` gesetzt. Siehe [Temporary Chats](/docs/configuration/langfuse#temporary-chats) im Langfuse-Leitfaden.
     - Der **Temporary Chat**-Umschalter ist für alle dauerhaft aktiviert, einschließlich Benutzern, deren Rolle nicht über die `TEMPORARY_CHAT`-Berechtigung verfügt. Das Tastenkürzel ist deaktiviert.
     - Der Server erzwingt dies: Ein Client, der `isTemporary: false` sendet, wird überschrieben.
     - Hochgeladene Dateien und geteilte Links laufen mit ihrem Chat ab. Agent-Ressourcendateien werden nur bei `retainAgentFiles: true` beibehalten.

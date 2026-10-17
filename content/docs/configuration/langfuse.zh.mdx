@@ -128,6 +128,20 @@ langfuse:
 
 这三个字段均为可选，且不会仅仅因为用户或请求中存在某个元数据字段就将其导出。请将电子邮件、用户名、提供商身份、对话 ID 和模型选择视为潜在的敏感遥测数据；仅允许列出您的 Langfuse 保留和访问策略所允许的字段。
 
+### 临时对话 [#temporary-chats]
+
+[Temporary chats](/docs/features/temporary_chat) 不会被追踪。它们的提示词和回复不会到达任何 Langfuse 目的地（无论是中央还是租户），且对回复进行评分也不会发送任何反馈分数。LibreChat 会在保留期结束后删除 temporary chat，但一旦 Langfuse 获取了追踪记录，LibreChat 就无法将其删除，因此 temporary chats 默认不参与追踪。
+
+在 `interface.retentionMode: "ephemeral"` 下，每个聊天都是临时的，因此除非选择加入，否则部署不会发送任何追踪信息。要追踪临时聊天，请设置 `temporaryChats`：
+
+```yaml filename="librechat.yaml"
+langfuse:
+  trace:
+    temporaryChats: true
+```
+
+默认值为 `false`。只有显式设置为 `true` 才会启用。
+
 ## 租户扇出 (可选) [#tenant-fanout-optional]
 
 Langfuse fanout 允许一个多租户的 LibreChat 部署将每个符合条件的追踪（trace）及其媒体导出到中央 Langfuse 项目以及租户特定的项目中。该功能为可选配置，并增加了一个网关和一个内部 OpenTelemetry 收集器；当未部署 fanout 时，上述常规的单项目追踪功能保持不变。

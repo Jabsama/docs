@@ -41,6 +41,7 @@ description: >-
 - 検索結果から除外されます。
 - ブックマークすることはできません。
 - 自動生成されたタイトルは付きません。
+- 管理者がオプトインしていない限り、トレースのために [Langfuse](/docs/configuration/langfuse#temporary-chats) へ送信されることはなく、その回答を評価してもフィードバックスコアは送信されません。
 - 保持期間が終了するまで保持され、その後自動的に削除されます。デフォルトの期間は30日間ですが、管理者が別の期間を設定している場合があります。
 
 保持期間は、会話、メッセージ、ファイル、および共有リンクに適用されます。一時的なチャットの期限が切れても、[Memories](/docs/features/memory) は削除されません。
@@ -119,6 +120,7 @@ interface:
     **`ephemeral`。** すべてのチャットが一時的なものになります。これは、デプロイ全体に対して「一時的なチャットを常に有効にする」設定です。
 
     - すべてのチャットは履歴や検索から非表示になり、タイトルは生成されず、`temporaryChatRetention` 時間後に削除されます。`generalChatRetention` は無視されます。
+    - `langfuse.trace.temporaryChats` が `true` に設定されていない限り、チャットが Langfuse にトレースされることはありません。Langfuse ガイドの [Temporary Chats](/docs/configuration/langfuse#temporary-chats) を参照してください。
     - **Temporary Chat** トグルは、`TEMPORARY_CHAT` 権限を持たないユーザーを含む全員に対して強制的にオンの状態に固定されています。キーボードショートカットは無効化されています。
     - サーバーがこれを強制します：`isTemporary: false` を送信するクライアントは上書きされます。
     - アップロードされたファイルと共有リンクは、チャットとともに期限切れになります。エージェントのリソースファイルは、`retainAgentFiles: true` が設定されている場合にのみ保持されます。

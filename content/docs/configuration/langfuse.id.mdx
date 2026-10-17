@@ -132,6 +132,20 @@ langfuse:
 
 Ketiga kolom tersebut bersifat opsional dan tidak ada kolom metadata yang diekspor hanya karena kolom tersebut ada pada pengguna atau permintaan. Anggap email, nama pengguna, identitas penyedia, ID percakapan, dan pilihan model sebagai telemetri yang berpotensi sensitif; masukkan ke dalam allowlist hanya kolom yang diizinkan oleh kebijakan retensi dan akses Langfuse Anda.
 
+### Obrolan Sementara [#temporary-chats]
+
+[Temporary chats](/docs/features/temporary_chat) tidak dilacak. Prompt dan responsnya tidak mencapai tujuan Langfuse mana pun, baik pusat maupun penyewa, dan memberikan penilaian pada salah satu balasannya tidak mengirimkan skor umpan balik. LibreChat menghapus temporary chat saat periode retensinya berakhir, tetapi tidak dapat menghapus jejak setelah Langfuse memilikinya, sehingga temporary chats dikecualikan secara default.
+
+Di bawah `interface.retentionMode: "ephemeral"`, setiap obrolan bersifat sementara, sehingga deployment tidak mengirimkan jejak sama sekali kecuali jika diaktifkan. Untuk melacak obrolan sementara, atur `temporaryChats`:
+
+```yaml filename="librechat.yaml"
+langfuse:
+  trace:
+    temporaryChats: true
+```
+
+Defaultnya adalah `false`. Hanya `true` eksplisit yang akan mengaktifkannya.
+
 ## Tenant Fanout (Opsional) [#tenant-fanout-optional]
 
 Langfuse fanout memungkinkan deployment LibreChat multi-tenant untuk mengekspor setiap trace yang memenuhi syarat beserta medianya ke proyek Langfuse pusat dan proyek khusus tenant. Fitur ini bersifat opsional (opt-in) dan menambahkan gateway serta kolektor OpenTelemetry internal; pelacakan satu proyek (single-project tracing) standar di atas tidak akan berubah jika fanout tidak di-deploy.

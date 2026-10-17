@@ -132,6 +132,20 @@ langfuse:
 
 Alle drie de velden zijn optioneel en geen enkel metadataveld wordt geëxporteerd enkel omdat het bestaat op een gebruiker of verzoek. Behandel e-mail, gebruikersnamen, provider-identiteiten, conversation IDs en modelselecties als potentieel gevoelige telemetrie; voeg alleen velden toe aan de allowlist die zijn toegestaan door je Langfuse-retentie- en toegangsbeleid.
 
+### Tijdelijke chats [#temporary-chats]
+
+[Temporary chats](/docs/features/temporary_chat) worden niet getraceerd. Hun prompts en antwoorden bereiken geen Langfuse-bestemming, noch centraal noch per tenant, en het beoordelen van een van hun antwoorden verstuurt geen feedbackscore. LibreChat verwijdert een temporary chat wanneer de bewaartermijn is verstreken, maar het kan een trace niet verwijderen zodra Langfuse deze heeft, dus temporary chats blijven standaard buiten beschouwing.
+
+Onder `interface.retentionMode: "ephemeral"` is elke chat tijdelijk, dus de deployment verstuurt helemaal geen traces tenzij dit expliciet wordt ingeschakeld. Om tijdelijke chats te traceren, stel `temporaryChats` in:
+
+```yaml filename="librechat.yaml"
+langfuse:
+  trace:
+    temporaryChats: true
+```
+
+De standaardwaarde is `false`. Alleen een expliciete `true` kiest voor deelname.
+
 ## Tenant Fanout (Optioneel) [#tenant-fanout-optional]
 
 Langfuse fanout stelt een multi-tenant LibreChat-implementatie in staat om elke in aanmerking komende trace en de bijbehorende media te exporteren naar zowel een centraal Langfuse-project als een tenant-specifiek project. De functie is opt-in en voegt een gateway plus een interne OpenTelemetry-collector toe; de normale single-project tracing zoals hierboven beschreven blijft ongewijzigd wanneer fanout niet is geïmplementeerd.

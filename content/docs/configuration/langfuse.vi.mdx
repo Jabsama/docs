@@ -131,6 +131,20 @@ langfuse:
 
 Cả ba trường này đều là tùy chọn và không có trường siêu dữ liệu nào được xuất chỉ vì nó tồn tại trên người dùng hoặc yêu cầu. Hãy coi email, tên người dùng, danh tính nhà cung cấp, ID cuộc trò chuyện và lựa chọn mô hình là dữ liệu đo lường từ xa có khả năng nhạy cảm; chỉ cho phép (allowlist) các trường mà chính sách lưu giữ và truy cập Langfuse của bạn cho phép.
 
+### Trò chuyện tạm thời [#temporary-chats]
+
+[Temporary chats](/docs/features/temporary_chat) không được theo dõi. Các prompt và phản hồi của chúng không gửi đến bất kỳ đích Langfuse nào, dù là trung tâm hay tenant, và việc đánh giá một trong các phản hồi của chúng cũng không gửi điểm phản hồi. LibreChat sẽ xóa một temporary chat khi thời hạn lưu giữ kết thúc, nhưng nó không thể xóa một trace sau khi Langfuse đã nhận được, vì vậy các temporary chat mặc định sẽ không được theo dõi.
+
+Dưới `interface.retentionMode: "ephemeral"`, mọi cuộc trò chuyện đều là tạm thời, vì vậy quá trình triển khai sẽ không gửi bất kỳ dấu vết nào trừ khi được chọn tham gia (opt-in). Để theo dõi các cuộc trò chuyện tạm thời, hãy đặt `temporaryChats`:
+
+```yaml filename="librechat.yaml"
+langfuse:
+  trace:
+    temporaryChats: true
+```
+
+Mặc định là `false`. Chỉ khi đặt rõ ràng là `true` thì mới chọn tham gia.
+
 ## Tenant Fanout (Tùy chọn) [#tenant-fanout-optional]
 
 Tính năng fanout của Langfuse cho phép một triển khai LibreChat đa người thuê (multi-tenant) xuất từng trace đủ điều kiện cùng với phương tiện của nó đến cả dự án Langfuse trung tâm và dự án dành riêng cho từng người thuê. Tính năng này là tùy chọn và bổ sung thêm một gateway cùng với một bộ thu OpenTelemetry nội bộ; tính năng tracing đơn dự án thông thường ở trên vẫn không thay đổi khi fanout không được triển khai.

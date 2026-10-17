@@ -45,6 +45,7 @@ Aby rozpocząć wszystkie nowe czaty jako tymczasowe, otwórz **Settings > Chat*
 - Jest wykluczony z wyników wyszukiwania.
 - Nie można dodać do zakładek.
 - Nie otrzymuje automatycznie wygenerowanego tytułu.
+- Nie jest on wysyłany do [Langfuse](/docs/configuration/langfuse#temporary-chats) w celu śledzenia, a ocenianie jego odpowiedzi nie wysyła żadnego wyniku opinii, chyba że administrator wyraził na to zgodę.
 - Jest przechowywany do momentu zakończenia okresu retencji, a następnie automatycznie usuwany. Domyślny okres wynosi 30 dni; administrator może ustawić inny.
 
 Retencja dotyczy konwersacji, wiadomości, plików oraz udostępnionych linków. [Memories](/docs/features/memory) nie są usuwane po wygaśnięciu tymczasowego czatu.
@@ -123,6 +124,7 @@ Czas życia tymczasowego czatu można również ustawić za pomocą `TEMP_CHAT_R
     **`ephemeral`.** Każdy czat jest tymczasowy. Jest to funkcja „Temporary Chat always on” (Czat tymczasowy zawsze włączony) dla całego wdrożenia.
 
     - Każdy czat jest ukryty przed historią i wyszukiwaniem, nie otrzymuje wygenerowanego tytułu i jest usuwany po upływie `temporaryChatRetention` godzin. `generalChatRetention` jest ignorowane.
+    - Żaden czat nie jest śledzony w Langfuse, chyba że `langfuse.trace.temporaryChats` ma wartość `true`. Zobacz [Temporary Chats](/docs/configuration/langfuse#temporary-chats) w przewodniku Langfuse.
     - Przełącznik **Temporary Chat** jest zablokowany w pozycji włączonej dla wszystkich, w tym dla użytkowników, których rola nie posiada uprawnienia `TEMPORARY_CHAT`. Skrót klawiszowy jest wyłączony.
     - Serwer wymusza to: klient, który wysyła `isTemporary: false`, zostaje nadpisany.
     - Przesłane pliki i udostępnione linki wygasają wraz z czatem. Pliki zasobów agenta są przechowywane tylko przy ustawieniu `retainAgentFiles: true`.

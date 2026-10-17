@@ -45,6 +45,7 @@ Per avviare tutte le nuove chat come temporanee, apri **Settings > Chat** e atti
 - È escluso dai risultati di ricerca.
 - Non può essere aggiunto ai segnalibri.
 - Non riceve un titolo generato automaticamente.
+- Non viene inviato a [Langfuse](/docs/configuration/langfuse#temporary-chats) per il tracciamento e la valutazione delle sue risposte non invia alcun punteggio di feedback, a meno che l'amministratore non abbia dato il proprio consenso.
 - Viene conservato fino al termine del suo periodo di conservazione, dopodiché viene eliminato automaticamente. Il periodo predefinito è di 30 giorni; l'amministratore potrebbe averne impostato uno diverso.
 
 La conservazione si applica a conversazioni, messaggi, file e link condivisi. I [Memories](/docs/features/memory) non vengono eliminati quando una chat temporanea scade.
@@ -123,6 +124,7 @@ La durata della chat temporanea può anche essere impostata con `TEMP_CHAT_RETEN
     **`ephemeral`.** Ogni chat è temporanea. Questa è la modalità "Chat temporanea sempre attiva" per l'intera distribuzione.
 
     - Ogni chat è nascosta dalla cronologia e dalla ricerca, non riceve alcun titolo generato e viene eliminata dopo `temporaryChatRetention` ore. `generalChatRetention` viene ignorato.
+    - Nessuna chat viene tracciata su Langfuse a meno che `langfuse.trace.temporaryChats` non sia impostato su `true`. Consulta [Chat temporanee](/docs/configuration/langfuse#temporary-chats) nella guida di Langfuse.
     - L'interruttore **Temporary Chat** è bloccato su attivo per tutti, inclusi gli utenti il cui ruolo non dispone dell'autorizzazione `TEMPORARY_CHAT`. La scorciatoia da tastiera è disabilitata.
     - Il server lo impone: un client che invia `isTemporary: false` viene sovrascritto.
     - I file caricati e i link condivisi scadono insieme alla loro chat. I file delle risorse degli Agent vengono conservati solo con `retainAgentFiles: true`.

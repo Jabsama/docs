@@ -45,6 +45,7 @@ Om alle nieuwe chats als tijdelijk te starten, open **Settings > Chat** en schak
 - Het is uitgesloten van zoekresultaten.
 - Het kan niet worden toegevoegd aan bladwijzers.
 - Het krijgt geen automatisch gegenereerde titel.
+- Het wordt niet naar [Langfuse](/docs/configuration/langfuse#temporary-chats) verzonden voor tracering, en het beoordelen van de antwoorden verstuurt geen feedbackscore, tenzij uw beheerder hiervoor heeft gekozen.
 - Het wordt bewaard tot de bewaartermijn is verstreken en daarna automatisch verwijderd. De standaardperiode is 30 dagen; uw beheerder kan een andere periode instellen.
 
 Retentie is van toepassing op gesprekken, berichten, bestanden en gedeelde links. [Memories](/docs/features/memory) worden niet verwijderd wanneer een tijdelijke chat verloopt.
@@ -123,6 +124,7 @@ De levensduur van een tijdelijke chat kan ook worden ingesteld met `TEMP_CHAT_RE
     **`ephemeral`.** Elke chat is tijdelijk. Dit is "Temporary Chat always on" voor de gehele implementatie.
 
     - Elke chat is verborgen voor de geschiedenis en zoekopdrachten, krijgt geen gegenereerde titel en wordt na `temporaryChatRetention` uur verwijderd. `generalChatRetention` wordt genegeerd.
+    - Geen enkele chat wordt getraceerd naar Langfuse tenzij `langfuse.trace.temporaryChats` op `true` is ingesteld. Zie [Temporary Chats](/docs/configuration/langfuse#temporary-chats) in de Langfuse-handleiding.
     - De **Temporary Chat**-schakelaar staat voor iedereen vast op aan, inclusief gebruikers wiens rol de `TEMPORARY_CHAT`-toestemming mist. De sneltoets is uitgeschakeld.
     - De server dwingt dit af: een client die `isTemporary: false` verstuurt, wordt overschreven.
     - Geüploade bestanden en gedeelde links verlopen samen met hun chat. Agent-resourcebestanden worden alleen bewaard met `retainAgentFiles: true`.

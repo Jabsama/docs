@@ -128,6 +128,20 @@ langfuse:
 
 これら3つのフィールドはすべてオプションであり、ユーザーやリクエストに存在するからといってメタデータフィールドが自動的にエクスポートされることはありません。メールアドレス、ユーザー名、プロバイダーID、会話ID、およびモデルの選択は、機密性の高いテレメトリとして扱う必要があります。Langfuseの保持ポリシーおよびアクセス権限ポリシーで許可されているフィールドのみを許可リスト（allowlist）に登録してください。
 
+### 一時的なチャット [#temporary-chats]
+
+[Temporary chats](/docs/features/temporary_chat) は追跡されません。そのプロンプトや応答は、中央またはテナントを問わず、いかなる Langfuse の送信先にも到達せず、返信を評価してもフィードバックスコアは送信されません。LibreChat は保持期間が終了すると temporary chat を削除しますが、Langfuse が一度トレースを取得するとそれを削除することはできないため、temporary chat はデフォルトで対象外となります。
+
+`interface.retentionMode: "ephemeral"` の下ではすべてのチャットが一時的なものとなるため、オプトインしない限り、デプロイメントはトレースを一切送信しません。一時的なチャットをトレースするには、`temporaryChats` を設定してください：
+
+```yaml filename="librechat.yaml"
+langfuse:
+  trace:
+    temporaryChats: true
+```
+
+デフォルトは `false` です。明示的に `true` を設定した場合のみ有効になります。
+
 ## テナントファンアウト (オプション) [#tenant-fanout-optional]
 
 Langfuse fanoutを使用すると、マルチテナントのLibreChatデプロイメントにおいて、各対象のトレースとそのメディアを、中央のLangfuseプロジェクトとテナント固有のプロジェクトの両方にエクスポートできます。この機能はオプトイン形式であり、ゲートウェイと内部のOpenTelemetryコレクターを追加します。fanoutがデプロイされていない場合、上記の通常の単一プロジェクトトレースは変更されません。

@@ -45,6 +45,7 @@ Tüm yeni sohbetleri geçici olarak başlatmak için **Settings > Chat** kısmı
 - Arama sonuçlarından hariç tutulmuştur.
 - Yer imlerine eklenemez.
 - Otomatik olarak oluşturulmuş bir başlık almaz.
+- Yöneticiniz özellikle tercih etmediği sürece, izleme için [Langfuse](/docs/configuration/langfuse#temporary-chats) adresine gönderilmez ve yanıtlarının puanlanması herhangi bir geri bildirim puanı iletmez.
 - Saklama süresi dolana kadar tutulur ve ardından otomatik olarak silinir. Varsayılan süre 30 gündür; yöneticiniz farklı bir süre belirlemiş olabilir.
 
 Saklama süresi; konuşmalar, mesajlar, dosyalar ve paylaşılan bağlantılar için geçerlidir. [Memories](/docs/features/memory), geçici bir sohbetin süresi dolduğunda silinmez.
@@ -123,6 +124,7 @@ Geçici sohbet ömrü `TEMP_CHAT_RETENTION_HOURS` ile de ayarlanabilir. Her ikis
     **`ephemeral`.** Her sohbet geçicidir. Bu, tüm dağıtım için "Geçici Sohbet her zaman açık" anlamına gelir.
 
     - Her sohbet geçmişten ve aramadan gizlenir, başlık oluşturulmaz ve `temporaryChatRetention` saat sonra silinir. `generalChatRetention` göz ardı edilir.
+    - `langfuse.trace.temporaryChats` değeri `true` olmadığı sürece hiçbir sohbet Langfuse üzerinde izlenmez. Langfuse rehberindeki [Temporary Chats](/docs/configuration/langfuse#temporary-chats) bölümüne bakın.
     - **Temporary Chat** geçişi, `TEMPORARY_CHAT` iznine sahip olmayan kullanıcılar da dahil olmak üzere herkes için açık olarak kilitlenmiştir. Klavye kısayolu devre dışı bırakılmıştır.
     - Sunucu bunu zorunlu kılar: `isTemporary: false` gönderen bir istemci geçersiz kılınır.
     - Yüklenen dosyalar ve paylaşılan bağlantılar, sohbetleriyle birlikte sona erer. Temsilci kaynak dosyaları yalnızca `retainAgentFiles: true` ayarıyla tutulur.

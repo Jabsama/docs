@@ -45,6 +45,7 @@ Untuk memulai semua obrolan baru sebagai sementara, buka **Settings > Chat** dan
 - Ini dikecualikan dari hasil pencarian.
 - Ini tidak dapat ditandai (bookmark).
 - Ini tidak mendapatkan judul yang dibuat secara otomatis.
+- Ini tidak dikirim ke [Langfuse](/docs/configuration/langfuse#temporary-chats) untuk pelacakan, dan memberikan penilaian pada balasannya tidak mengirimkan skor umpan balik, kecuali administrator Anda telah memilih untuk mengaktifkannya.
 - Data tersebut disimpan hingga periode retensinya berakhir, kemudian dihapus secara otomatis. Periode default-nya adalah 30 hari; administrator Anda mungkin menetapkan periode yang berbeda.
 
 Retensi berlaku untuk percakapan, pesan, file, dan tautan yang dibagikan. [Memories](/docs/features/memory) tidak akan dihapus saat obrolan sementara kedaluwarsa.
@@ -123,6 +124,7 @@ Masa pakai obrolan sementara juga dapat diatur dengan `TEMP_CHAT_RETENTION_HOURS
     **`ephemeral`.** Setiap obrolan bersifat sementara. Ini adalah "Obrolan Sementara selalu aktif" untuk seluruh deployment.
 
     - Setiap obrolan disembunyikan dari riwayat dan pencarian, tidak mendapatkan judul yang dibuat secara otomatis, dan akan dihapus setelah `temporaryChatRetention` jam. `generalChatRetention` akan diabaikan.
+    - Tidak ada obrolan yang dilacak ke Langfuse kecuali `langfuse.trace.temporaryChats` bernilai `true`. Lihat [Temporary Chats](/docs/configuration/langfuse#temporary-chats) di panduan Langfuse.
     - Tombol **Temporary Chat** terkunci dalam posisi aktif untuk semua orang, termasuk pengguna yang perannya tidak memiliki izin `TEMPORARY_CHAT`. Pintasan papan tik dinonaktifkan.
     - Server memberlakukannya: klien yang mengirim `isTemporary: false` akan ditimpa.
     - File yang diunggah dan tautan yang dibagikan akan kedaluwarsa bersama obrolannya. File sumber daya Agent hanya disimpan jika `retainAgentFiles: true`.

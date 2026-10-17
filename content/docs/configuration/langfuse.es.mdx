@@ -130,6 +130,20 @@ langfuse:
 
 Los tres campos son opcionales y ningún campo de metadatos se exporta simplemente porque exista en un usuario o solicitud. Trate el correo electrónico, los nombres de usuario, las identidades de proveedor, los ID de conversación y las selecciones de modelo como telemetría potencialmente sensible; incluya en la lista de permitidos solo los campos que sus políticas de retención y acceso de Langfuse permitan.
 
+### Chats temporales [#temporary-chats]
+
+Los [Temporary chats](/docs/features/temporary_chat) no se rastrean. Sus prompts y respuestas no llegan a ningún destino de Langfuse, ya sea central o de inquilino, y calificar una de sus respuestas no envía ninguna puntuación de retroalimentación. LibreChat elimina un chat temporal cuando finaliza su período de retención, pero no puede eliminar un rastro una vez que Langfuse lo tiene, por lo que los chats temporales quedan fuera de forma predeterminada.
+
+Bajo `interface.retentionMode: "ephemeral"` cada chat es temporal, por lo que el despliegue no envía ningún rastro a menos que se opte por ello. Para rastrear chats temporales, configure `temporaryChats`:
+
+```yaml filename="librechat.yaml"
+langfuse:
+  trace:
+    temporaryChats: true
+```
+
+El valor predeterminado es `false`. Solo un `true` explícito lo habilita.
+
 ## Tenant Fanout (Opcional) [#tenant-fanout-optional]
 
 El fanout de Langfuse permite que un despliegue multi-inquilino de LibreChat exporte cada traza elegible y sus medios tanto a un proyecto central de Langfuse como a un proyecto específico del inquilino. Esta función es opcional y añade una pasarela además de un recolector interno de OpenTelemetry; el rastreo normal de proyecto único mencionado anteriormente permanece sin cambios cuando el fanout no está desplegado.

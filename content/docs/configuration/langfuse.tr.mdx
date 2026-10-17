@@ -130,6 +130,20 @@ langfuse:
 
 Bu üç alanın tümü isteğe bağlıdır ve hiçbir meta veri alanı, yalnızca bir kullanıcı veya istek üzerinde bulunduğu için dışa aktarılmaz. E-posta, kullanıcı adları, sağlayıcı kimlikleri, konuşma kimlikleri ve model seçimlerini potansiyel olarak hassas telemetri verileri olarak değerlendirin; yalnızca Langfuse saklama ve erişim politikalarınızın izin verdiği alanları izin verilenler listesine (allowlist) ekleyin.
 
+### Geçici Sohbetler [#temporary-chats]
+
+[Temporary chats](/docs/features/temporary_chat) izlenmez. İstemi ve yanıtları hiçbir Langfuse hedefine, merkezi veya kiracıya ulaşmaz ve yanıtlarından birini puanlamak hiçbir geri bildirim puanı göndermez. LibreChat, saklama süresi dolduğunda bir temporary chat'i siler, ancak Langfuse'da bir kez iz oluşturulduğunda onu silemez, bu nedenle temporary chats varsayılan olarak izleme dışında tutulur.
+
+`interface.retentionMode: "ephemeral"` altında her sohbet geçicidir, bu nedenle dağıtım, açıkça tercih edilmediği sürece hiçbir iz göndermez. Geçici sohbetleri izlemek için `temporaryChats` ayarını yapın:
+
+```yaml filename="librechat.yaml"
+langfuse:
+  trace:
+    temporaryChats: true
+```
+
+Varsayılan değer `false` şeklindedir. Yalnızca açık bir `true` ifadesi katılımı sağlar.
+
 ## Tenant Fanout (İsteğe bağlı) [#tenant-fanout-optional]
 
 Langfuse fanout, çok kiracılı bir LibreChat dağıtımının her uygun izlemeyi (trace) ve medyasını hem merkezi bir Langfuse projesine hem de kiracıya özel bir projeye aktarmasına olanak tanır. Bu özellik isteğe bağlıdır ve bir ağ geçidi ile dahili bir OpenTelemetry toplayıcısı ekler; fanout dağıtılmadığında yukarıdaki normal tek projeli izleme değişmeden kalır.
