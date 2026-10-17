@@ -18,6 +18,7 @@ description: LibreChatでユーザー認証にAuthentikを使用するための�
 - `OAuth2/OIDC` プロバイダーを選択し、次へをクリックします。
 - 認証および認可フローを選択します。
 - 下にスクロールして、`Client ID` と `Client Secret` を控えておいてください。これらは後で必要になります。
+- 「Redirect URIs」の下に、LibreChatのコールバックURLを追加します。これは、公開されているLibreChatのURLの後に `/oauth/openid/callback` を続けたものです（例: `https://librechat.example.com/oauth/openid/callback`）。これは、次のステップで設定する `DOMAIN_SERVER` + `OPENID_CALLBACK_URL` と一致している必要があります。
 - 「Advanced protocol settings」で、Subject mode を `Based on the User's Email` に変更します。
 - 「Submit」をクリックします。
 - 作成した新しいアプリケーションをOutpostに追加します。
@@ -31,11 +32,17 @@ description: LibreChatでユーザー認証にAuthentikを使用するための�
   - `OpenID Configuration URL`
     > これらはすべて、作成したプロバイダーをクリックすることで確認できます。
 
-3. **LibreChat を設定する:**
+4. **LibreChat を設定する:**
 
 - `.env` ファイルを開き、以下の変数を追加してください：
 
 ```bash filename=".env"
+# The public URL of your LibreChat instance, without a trailing slash
+DOMAIN_CLIENT=https://librechat.example.com
+DOMAIN_SERVER=https://librechat.example.com
+# Required to show the OpenID login button
+ALLOW_SOCIAL_LOGIN=true
+
 OPENID_ISSUER=https://authentik.example.com/application/o/librechat/.well-known/openid-configuration
 OPENID_CLIENT_ID=[YourClientID]
 OPENID_CLIENT_SECRET=[YourClientSecret]
@@ -54,9 +61,12 @@ OPENID_USE_END_SESSION_ENDPOINT=true
 # OPENID_MAX_LOGOUT_URL_LENGTH=2000
 ```
 
-> 注: .env 内の値を引用符で囲まないようにし、ソーシャルログインが有効になっていることを確認してください。
+> 注意: .env 内のいかなる値も引用符で囲まれていないことを確認してください。
 
-4. **設定の確認:**
+- `ALLOW_SOCIAL_LOGIN=true` が必要です。これがないと、`Login with Authentik` ボタンは表示されません。
+- `DOMAIN_SERVER` はログインボタンがユーザーを送信する先（`DOMAIN_SERVER/oauth/openid`）であり、`OPENID_CALLBACK_URL` と組み合わさることで、Authentik がリダイレクトするコールバック URL を形成します。デフォルトは `http://localhost:3080` です。そのため、ボタンを押して `localhost` に飛ばされる場合は、`DOMAIN_SERVER` を公開されている LibreChat の URL に設定してください。`DOMAIN_CLIENT` はログイン後にユーザーが遷移する先です。[Application Domains](/docs/configuration/dotenv#application-domains) を参照してください。
+
+5. **設定の確認:**
 
 - LibreChatを再起動して変更を適用してください。
 - シークレットウィンドウを開き、LibreChatインスタンスにアクセスしてください。

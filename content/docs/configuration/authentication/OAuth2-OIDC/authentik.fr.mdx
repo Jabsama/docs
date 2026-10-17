@@ -20,6 +20,7 @@ description: >-
 - Choisissez le fournisseur `OAuth2/OIDC` et cliquez sur suivant.
 - Choisissez vos flux d'authentification et d'autorisation.
 - Faites défiler vers le bas et notez le `Client ID` et le `Client Secret`. Vous en aurez besoin plus tard.
+- Sous Redirect URIs, ajoutez votre URL de rappel LibreChat : votre URL publique LibreChat suivie de `/oauth/openid/callback`, par exemple `https://librechat.example.com/oauth/openid/callback`. Celle-ci doit correspondre à `DOMAIN_SERVER` + `OPENID_CALLBACK_URL` de l'étape suivante.
 - Sous Advanced protocol settings, remplacez Subject mode par `Based on the User's Email`.
 - Cliquez sur Submit.
 - Ajoutez la nouvelle application que vous avez créée à un Outpost.
@@ -33,11 +34,17 @@ description: >-
   - `OpenID Configuration URL`
     > Vous pouvez trouver tout cela en cliquant sur le fournisseur que vous venez de créer.
 
-3. **Configurer LibreChat :**
+4. **Configurer LibreChat :**
 
 - Ouvrez le fichier `.env` et ajoutez les variables suivantes :
 
 ```bash filename=".env"
+# The public URL of your LibreChat instance, without a trailing slash
+DOMAIN_CLIENT=https://librechat.example.com
+DOMAIN_SERVER=https://librechat.example.com
+# Required to show the OpenID login button
+ALLOW_SOCIAL_LOGIN=true
+
 OPENID_ISSUER=https://authentik.example.com/application/o/librechat/.well-known/openid-configuration
 OPENID_CLIENT_ID=[YourClientID]
 OPENID_CLIENT_SECRET=[YourClientSecret]
@@ -56,9 +63,12 @@ OPENID_USE_END_SESSION_ENDPOINT=true
 # OPENID_MAX_LOGOUT_URL_LENGTH=2000
 ```
 
-> Remarque : Assurez-vous que rien n'est entouré de guillemets dans votre .env et que vous avez autorisé la connexion sociale.
+> Remarque : Assurez-vous qu'aucune valeur n'est entourée de guillemets dans votre .env.
 
-4. **Vérifier la configuration :**
+- `ALLOW_SOCIAL_LOGIN=true` est requis. Sans cela, le bouton `Login with Authentik` n'est pas affiché.
+- `DOMAIN_SERVER` est l'endroit où le bouton de connexion envoie les utilisateurs (`DOMAIN_SERVER/oauth/openid`) et, combiné avec `OPENID_CALLBACK_URL`, forme l'URL de rappel vers laquelle Authentik redirige. Il est défini par défaut sur `http://localhost:3080`, donc si le bouton vous envoie vers `localhost`, définissez `DOMAIN_SERVER` sur votre URL LibreChat publique. `DOMAIN_CLIENT` est l'endroit où les utilisateurs atterrissent après s'être connectés. Voir [Domaines d'application](/docs/configuration/dotenv#application-domains).
+
+5. **Vérifier la configuration :**
 
 - Redémarrez LibreChat pour appliquer les changements.
 - Ouvrez une fenêtre de navigation privée et accédez à votre instance LibreChat.

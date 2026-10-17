@@ -20,6 +20,7 @@ description: >-
 - Wählen Sie den `OAuth2/OIDC`-Anbieter aus und klicken Sie auf Weiter.
 - Wählen Sie Ihre Authentifizierungs- und Autorisierungsabläufe.
 - Scrollen Sie nach unten und notieren Sie sich die `Client ID` und das `Client Secret`. Sie werden diese später benötigen.
+- Fügen Sie unter Redirect URIs Ihre LibreChat-Callback-URL hinzu: Ihre öffentliche LibreChat-URL gefolgt von `/oauth/openid/callback`, zum Beispiel `https://librechat.example.com/oauth/openid/callback`. Dies muss mit `DOMAIN_SERVER` + `OPENID_CALLBACK_URL` aus dem nächsten Schritt übereinstimmen.
 - Ändern Sie unter Advanced protocol settings den Subject mode auf `Based on the User's Email`.
 - Klicken Sie auf Submit.
 - Fügen Sie die neue Anwendung, die Sie erstellt haben, einem Outpost hinzu.
@@ -33,11 +34,17 @@ description: >-
   - `OpenID Configuration URL`
     > All diese können gefunden werden, indem Sie auf den Anbieter klicken, den Sie gerade erstellt haben.
 
-3. **LibreChat konfigurieren:**
+4. **LibreChat konfigurieren:**
 
 - Öffnen Sie die `.env` Datei und fügen Sie die folgenden Variablen hinzu:
 
 ```bash filename=".env"
+# The public URL of your LibreChat instance, without a trailing slash
+DOMAIN_CLIENT=https://librechat.example.com
+DOMAIN_SERVER=https://librechat.example.com
+# Required to show the OpenID login button
+ALLOW_SOCIAL_LOGIN=true
+
 OPENID_ISSUER=https://authentik.example.com/application/o/librechat/.well-known/openid-configuration
 OPENID_CLIENT_ID=[YourClientID]
 OPENID_CLIENT_SECRET=[YourClientSecret]
@@ -56,9 +63,12 @@ OPENID_USE_END_SESSION_ENDPOINT=true
 # OPENID_MAX_LOGOUT_URL_LENGTH=2000
 ```
 
-> Hinweis: Stellen Sie sicher, dass in Ihrer .env nichts in Anführungszeichen gesetzt ist und dass Sie Social Login aktiviert haben.
+> Hinweis: Stellen Sie sicher, dass in Ihrer .env nichts in Anführungszeichen gesetzt ist.
 
-4. **Konfiguration überprüfen:**
+- `ALLOW_SOCIAL_LOGIN=true` ist erforderlich. Ohne diese Einstellung wird die Schaltfläche `Login with Authentik` nicht angezeigt.
+- `DOMAIN_SERVER` ist der Ort, an den die Anmeldeschaltfläche Benutzer sendet (`DOMAIN_SERVER/oauth/openid`) und bildet in Kombination mit `OPENID_CALLBACK_URL` die Callback-URL, zu der Authentik zurückleitet. Der Standardwert ist `http://localhost:3080`. Wenn Sie die Schaltfläche also zu `localhost` weiterleitet, setzen Sie `DOMAIN_SERVER` auf Ihre öffentliche LibreChat-URL. `DOMAIN_CLIENT` ist der Ort, an dem Benutzer nach der Anmeldung landen. Siehe [Application Domains](/docs/configuration/dotenv#application-domains).
+
+5. **Konfiguration überprüfen:**
 
 - Starten Sie LibreChat neu, um die Änderungen zu übernehmen.
 - Öffnen Sie ein Inkognito-Fenster und navigieren Sie zu Ihrer LibreChat-Instanz.

@@ -20,6 +20,7 @@ description: >-
 - Kies de `OAuth2/OIDC` provider en klik op volgende.
 - Kies je authenticatie- en autorisatiestromen.
 - Scroll naar beneden en noteer de `Client ID` en `Client Secret`. Deze heb je later nodig.
+- Voeg onder Redirect URIs je LibreChat callback URL toe: je publieke LibreChat URL gevolgd door `/oauth/openid/callback`, bijvoorbeeld `https://librechat.example.com/oauth/openid/callback`. Dit moet overeenkomen met `DOMAIN_SERVER` + `OPENID_CALLBACK_URL` uit de volgende stap.
 - Wijzig onder Advanced protocol settings de Subject mode naar `Based on the User's Email`.
 - Klik op Submit.
 - Voeg de nieuwe applicatie die je hebt aangemaakt toe aan een Outpost.
@@ -33,11 +34,17 @@ description: >-
   - `OpenID Configuration URL`
     > Al deze kunnen worden gevonden door te klikken op de provider die je zojuist hebt aangemaakt.
 
-3. **Configureer LibreChat:**
+4. **Configureer LibreChat:**
 
 - Open het `.env` bestand en voeg de volgende variabelen toe:
 
 ```bash filename=".env"
+# The public URL of your LibreChat instance, without a trailing slash
+DOMAIN_CLIENT=https://librechat.example.com
+DOMAIN_SERVER=https://librechat.example.com
+# Required to show the OpenID login button
+ALLOW_SOCIAL_LOGIN=true
+
 OPENID_ISSUER=https://authentik.example.com/application/o/librechat/.well-known/openid-configuration
 OPENID_CLIENT_ID=[YourClientID]
 OPENID_CLIENT_SECRET=[YourClientSecret]
@@ -56,9 +63,12 @@ OPENID_USE_END_SESSION_ENDPOINT=true
 # OPENID_MAX_LOGOUT_URL_LENGTH=2000
 ```
 
-> Let op: Zorg ervoor dat er niets tussen aanhalingstekens staat in je .env en dat je social login hebt ingeschakeld.
+> Let op: Zorg ervoor dat er niets tussen aanhalingstekens staat in je .env.
 
-4. **Configuratie controleren:**
+- `ALLOW_SOCIAL_LOGIN=true` is vereist. Zonder dit wordt de `Login with Authentik` knop niet getoond.
+- `DOMAIN_SERVER` is waar de inlogknop gebruikers naartoe stuurt (`DOMAIN_SERVER/oauth/openid`) en vormt, in combinatie met `OPENID_CALLBACK_URL`, de callback-URL waar Authentik naar terugverwijst. De standaardwaarde is `http://localhost:3080`, dus als de knop je naar `localhost` stuurt, stel `DOMAIN_SERVER` dan in op je publieke LibreChat-URL. `DOMAIN_CLIENT` is waar gebruikers terechtkomen na het inloggen. Zie [Application Domains](/docs/configuration/dotenv#application-domains).
+
+5. **Configuratie controleren:**
 
 - Herstart LibreChat om de wijzigingen toe te passen.
 - Open een incognitovenster en navigeer naar je LibreChat-instantie.

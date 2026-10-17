@@ -20,6 +20,7 @@ description: >-
 - Wybierz dostawcę `OAuth2/OIDC` i kliknij dalej.
 - Wybierz swoje przepływy uwierzytelniania i autoryzacji.
 - Przewiń w dół i zanotuj `Client ID` oraz `Client Secret`. Będą one potrzebne później.
+- W sekcji Redirect URIs dodaj swój adres URL wywołania zwrotnego LibreChat: swój publiczny adres URL LibreChat, po którym następuje `/oauth/openid/callback`, na przykład `https://librechat.example.com/oauth/openid/callback`. Musi to być zgodne z `DOMAIN_SERVER` + `OPENID_CALLBACK_URL` z następnego kroku.
 - W sekcji Advanced protocol settings zmień Subject mode na `Based on the User's Email`.
 - Kliknij Submit.
 - Dodaj nową aplikację, którą utworzyłeś, do Outpost.
@@ -33,11 +34,17 @@ description: >-
   - `OpenID Configuration URL`
     > Wszystkie z nich można znaleźć, klikając na dostawcę, którego właśnie utworzyłeś.
 
-3. **Konfiguracja LibreChat:**
+4. **Konfiguracja LibreChat:**
 
 - Otwórz plik `.env` i dodaj następujące zmienne:
 
 ```bash filename=".env"
+# The public URL of your LibreChat instance, without a trailing slash
+DOMAIN_CLIENT=https://librechat.example.com
+DOMAIN_SERVER=https://librechat.example.com
+# Required to show the OpenID login button
+ALLOW_SOCIAL_LOGIN=true
+
 OPENID_ISSUER=https://authentik.example.com/application/o/librechat/.well-known/openid-configuration
 OPENID_CLIENT_ID=[YourClientID]
 OPENID_CLIENT_SECRET=[YourClientSecret]
@@ -56,9 +63,12 @@ OPENID_USE_END_SESSION_ENDPOINT=true
 # OPENID_MAX_LOGOUT_URL_LENGTH=2000
 ```
 
-> Uwaga: Upewnij się, że w pliku .env nic nie jest ujęte w cudzysłowy oraz że włączono logowanie społecznościowe.
+> Uwaga: Upewnij się, że w pliku .env nic nie jest ujęte w cudzysłów.
 
-4. **Sprawdź konfigurację:**
+- Wymagane jest `ALLOW_SOCIAL_LOGIN=true`. Bez tego przycisk `Login with Authentik` nie będzie widoczny.
+- `DOMAIN_SERVER` to miejsce, do którego przycisk logowania kieruje użytkowników (`DOMAIN_SERVER/oauth/openid`) i które w połączeniu z `OPENID_CALLBACK_URL` tworzy adres URL wywołania zwrotnego (callback URL), na który przekierowuje Authentik. Domyślnie jest to `http://localhost:3080`, więc jeśli przycisk kieruje Cię na `localhost`, ustaw `DOMAIN_SERVER` na swój publiczny adres URL LibreChat. `DOMAIN_CLIENT` to miejsce, do którego trafiają użytkownicy po zalogowaniu. Zobacz [Application Domains](/docs/configuration/dotenv#application-domains).
+
+5. **Sprawdź konfigurację:**
 
 - Zrestartuj LibreChat, aby zastosować zmiany.
 - Otwórz okno incognito i przejdź do swojej instancji LibreChat.

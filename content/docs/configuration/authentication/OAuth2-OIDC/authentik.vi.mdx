@@ -18,6 +18,7 @@ description: Tìm hiểu cách cấu hình LibreChat để sử dụng Authentik
 - Chọn nhà cung cấp `OAuth2/OIDC` và nhấp vào tiếp theo.
 - Chọn các luồng xác thực và ủy quyền của bạn.
 - Cuộn xuống và ghi lại `Client ID` và `Client Secret`. Bạn sẽ cần chúng sau này.
+- Trong phần Redirect URIs, hãy thêm URL callback LibreChat của bạn: URL LibreChat công khai của bạn theo sau là `/oauth/openid/callback`, ví dụ: `https://librechat.example.com/oauth/openid/callback`. URL này phải khớp với `DOMAIN_SERVER` + `OPENID_CALLBACK_URL` từ bước tiếp theo.
 - Trong phần Advanced protocol settings, hãy thay đổi Subject mode thành `Based on the User's Email`.
 - Nhấp vào Submit.
 - Thêm ứng dụng mới mà bạn đã tạo vào một Outpost.
@@ -31,11 +32,17 @@ description: Tìm hiểu cách cấu hình LibreChat để sử dụng Authentik
   - `OpenID Configuration URL`
     > Tất cả những mục này có thể được tìm thấy bằng cách nhấp vào nhà cung cấp mà bạn vừa tạo.
 
-3. **Cấu hình LibreChat:**
+4. **Cấu hình LibreChat:**
 
 - Mở tệp `.env` và thêm các biến sau:
 
 ```bash filename=".env"
+# The public URL of your LibreChat instance, without a trailing slash
+DOMAIN_CLIENT=https://librechat.example.com
+DOMAIN_SERVER=https://librechat.example.com
+# Required to show the OpenID login button
+ALLOW_SOCIAL_LOGIN=true
+
 OPENID_ISSUER=https://authentik.example.com/application/o/librechat/.well-known/openid-configuration
 OPENID_CLIENT_ID=[YourClientID]
 OPENID_CLIENT_SECRET=[YourClientSecret]
@@ -54,12 +61,15 @@ OPENID_USE_END_SESSION_ENDPOINT=true
 # OPENID_MAX_LOGOUT_URL_LENGTH=2000
 ```
 
-> Lưu ý: Đảm bảo không có nội dung nào được đặt trong dấu ngoặc kép trong tệp .env của bạn và bạn đã cho phép đăng nhập qua mạng xã hội.
+> Lưu ý: Đảm bảo không có nội dung nào được đặt trong dấu ngoặc kép trong tệp .env của bạn.
 
-4. **Kiểm tra cấu hình:**
+- `ALLOW_SOCIAL_LOGIN=true` là bắt buộc. Nếu không có nó, nút `Login with Authentik` sẽ không được hiển thị.
+- `DOMAIN_SERVER` là nơi nút đăng nhập gửi người dùng đến (`DOMAIN_SERVER/oauth/openid`) và khi kết hợp với `OPENID_CALLBACK_URL`, sẽ tạo thành URL callback mà Authentik chuyển hướng quay lại. Giá trị mặc định là `http://localhost:3080`, vì vậy nếu nút này gửi bạn đến `localhost`, hãy đặt `DOMAIN_SERVER` thành URL LibreChat công khai của bạn. `DOMAIN_CLIENT` là nơi người dùng được chuyển đến sau khi đăng nhập. Xem [Application Domains](/docs/configuration/dotenv#application-domains).
+
+5. **Kiểm tra cấu hình:**
 
 - Khởi động lại LibreChat để áp dụng các thay đổi.
-- Mở một cửa sổ ẩn danh và điều hướng đến phiên bản LibreChat của bạn.
+- Mở một cửa sổ ẩn danh và điều hướng đến instance LibreChat của bạn.
 - Bên dưới biểu mẫu đăng nhập sẽ có một nút mới với nội dung `Login with Authentik`.
 - Bạn sẽ được chuyển hướng đến Authentik để đăng nhập.
 - Sau khi đăng nhập, bạn sẽ được chuyển hướng trở lại LibreChat và được đăng nhập thành công.

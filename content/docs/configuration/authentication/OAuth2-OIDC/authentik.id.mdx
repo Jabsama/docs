@@ -20,6 +20,7 @@ description: >-
 - Pilih penyedia `OAuth2/OIDC` dan klik berikutnya.
 - Pilih alur autentikasi dan otorisasi Anda.
 - Gulir ke bawah dan catat `Client ID` serta `Client Secret`. Anda akan membutuhkannya nanti.
+- Di bawah Redirect URIs, tambahkan URL callback LibreChat Anda: URL LibreChat publik Anda diikuti dengan `/oauth/openid/callback`, contohnya `https://librechat.example.com/oauth/openid/callback`. Ini harus sesuai dengan `DOMAIN_SERVER` + `OPENID_CALLBACK_URL` dari langkah berikutnya.
 - Di bawah Advanced protocol settings, ubah Subject mode menjadi `Based on the User's Email`.
 - Klik Submit.
 - Tambahkan aplikasi baru yang telah Anda buat ke Outpost.
@@ -33,11 +34,17 @@ description: >-
   - `OpenID Configuration URL`
     > Semua ini dapat ditemukan dengan mengeklik penyedia yang baru saja Anda buat.
 
-3. **Konfigurasi LibreChat:**
+4. **Konfigurasi LibreChat:**
 
 - Buka file `.env` dan tambahkan variabel berikut:
 
 ```bash filename=".env"
+# The public URL of your LibreChat instance, without a trailing slash
+DOMAIN_CLIENT=https://librechat.example.com
+DOMAIN_SERVER=https://librechat.example.com
+# Required to show the OpenID login button
+ALLOW_SOCIAL_LOGIN=true
+
 OPENID_ISSUER=https://authentik.example.com/application/o/librechat/.well-known/openid-configuration
 OPENID_CLIENT_ID=[YourClientID]
 OPENID_CLIENT_SECRET=[YourClientSecret]
@@ -56,12 +63,15 @@ OPENID_USE_END_SESSION_ENDPOINT=true
 # OPENID_MAX_LOGOUT_URL_LENGTH=2000
 ```
 
-> Catatan: Pastikan tidak ada nilai yang dibungkus dengan tanda kutip di dalam .env Anda dan Anda telah mengizinkan social login.
+> Catatan: Pastikan tidak ada apa pun yang dibungkus dengan tanda kutip di dalam .env Anda.
 
-4. **Periksa Konfigurasi:**
+- `ALLOW_SOCIAL_LOGIN=true` diperlukan. Tanpanya, tombol `Login with Authentik` tidak akan ditampilkan.
+- `DOMAIN_SERVER` adalah tempat tombol masuk mengarahkan pengguna (`DOMAIN_SERVER/oauth/openid`) dan, jika digabungkan dengan `OPENID_CALLBACK_URL`, membentuk URL callback yang menjadi tujuan pengalihan kembali oleh Authentik. Nilai defaultnya adalah `http://localhost:3080`, jadi jika tombol tersebut mengarahkan Anda ke `localhost`, atur `DOMAIN_SERVER` ke URL LibreChat publik Anda. `DOMAIN_CLIENT` adalah tempat pengguna diarahkan setelah berhasil masuk. Lihat [Application Domains](/docs/configuration/dotenv#application-domains).
+
+5. **Periksa Konfigurasi:**
 
 - Mulai ulang LibreChat untuk menerapkan perubahan tersebut.
-- Buka jendela Incognito dan navigasikan ke instance LibreChat Anda.
+- Buka jendela Penyamaran (Incognito) dan navigasikan ke instans LibreChat Anda.
 - Di bawah formulir login seharusnya terdapat tombol baru yang bertuliskan `Login with Authentik`.
 - Anda akan dialihkan ke Authentik untuk masuk.
 - Setelah masuk, Anda akan diarahkan kembali ke LibreChat dan status Anda akan menjadi masuk.

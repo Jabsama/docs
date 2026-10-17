@@ -20,6 +20,7 @@ description: >-
 - `OAuth2/OIDC` sağlayıcısını seçin ve ileriye tıklayın.
 - Kimlik doğrulama ve yetkilendirme akışlarınızı seçin.
 - Aşağı kaydırın ve `Client ID` ile `Client Secret` bilgilerini not edin. Bunlara daha sonra ihtiyacınız olacak.
+- Redirect URIs altında, LibreChat geri çağırma (callback) URL'nizi ekleyin: herkese açık LibreChat URL'nizin sonuna `/oauth/openid/callback` ekleyin, örneğin `https://librechat.example.com/oauth/openid/callback`. Bu, bir sonraki adımdaki `DOMAIN_SERVER` + `OPENID_CALLBACK_URL` ile eşleşmelidir.
 - Gelişmiş protokol ayarları altında Subject mode seçeneğini `Based on the User's Email` olarak değiştirin.
 - Gönder'e (Submit) tıklayın.
 - Oluşturduğunuz yeni uygulamayı bir Outpost'a ekleyin.
@@ -33,11 +34,17 @@ description: >-
   - `OpenID Configuration URL`
     > Bunların hepsine, az önce oluşturduğunuz sağlayıcıya tıklayarak ulaşabilirsiniz.
 
-3. **LibreChat'i yapılandırın:**
+4. **LibreChat'i yapılandırın:**
 
 - `.env` dosyasını açın ve aşağıdaki değişkenleri ekleyin:
 
 ```bash filename=".env"
+# The public URL of your LibreChat instance, without a trailing slash
+DOMAIN_CLIENT=https://librechat.example.com
+DOMAIN_SERVER=https://librechat.example.com
+# Required to show the OpenID login button
+ALLOW_SOCIAL_LOGIN=true
+
 OPENID_ISSUER=https://authentik.example.com/application/o/librechat/.well-known/openid-configuration
 OPENID_CLIENT_ID=[YourClientID]
 OPENID_CLIENT_SECRET=[YourClientSecret]
@@ -56,12 +63,15 @@ OPENID_USE_END_SESSION_ENDPOINT=true
 # OPENID_MAX_LOGOUT_URL_LENGTH=2000
 ```
 
-> Not: .env dosyanızda hiçbir şeyin tırnak içinde olmadığından ve sosyal girişe izin verdiğinizden emin olun.
+> Not: .env dosyanızdaki hiçbir şeyin tırnak içinde olmadığından emin olun.
 
-4. **Yapılandırmayı Kontrol Et:**
+- `ALLOW_SOCIAL_LOGIN=true` gereklidir. Bu olmadan, `Login with Authentik` butonu gösterilmez.
+- `DOMAIN_SERVER`, giriş butonunun kullanıcıları yönlendirdiği yerdir (`DOMAIN_SERVER/oauth/openid`) ve `OPENID_CALLBACK_URL` ile birleşerek Authentik'in geri yönlendirme yaptığı callback URL'ini oluşturur. Varsayılan değeri `http://localhost:3080`'dir, bu nedenle buton sizi `localhost` adresine yönlendiriyorsa, `DOMAIN_SERVER` değerini herkese açık LibreChat URL'niz olarak ayarlayın. `DOMAIN_CLIENT`, kullanıcıların giriş yaptıktan sonra ulaştıkları yerdir. Bkz. [Application Domains](/docs/configuration/dotenv#application-domains).
+
+5. **Yapılandırmayı Kontrol Et:**
 
 - Değişiklikleri uygulamak için LibreChat'i yeniden başlatın.
-- Gizli bir pencere açın ve LibreChat örneğinize gidin.
+- Bir Gizli sekme açın ve LibreChat örneğinize gidin.
 - Form girişinin altında `Login with Authentik` yazan yeni bir buton olmalıdır.
 - Giriş yapmak için Authentik'e yönlendirilmelisiniz.
 - Giriş yaptıktan sonra LibreChat'e yönlendirilmeli ve giriş yapmış olmalısınız.
