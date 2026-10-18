@@ -471,72 +471,9 @@ endpoints:
 
 这与 [OpenAI endpoint](/docs/configuration/pre_configured_ai/openai) 的工作方式相同：无需手动选择视觉模型，系统会在后台自动切换。
 
-### 使用 Azure OpenAI Service 生成图像 (DALL-E) [#generate-images-with-azure-openai-service-dall-e]
+### 使用 Azure OpenAI 服务生成图像 [#generate-images-with-azure-openai-service]
 
-| 模型 ID | 功能可用性 | 最大请求（字符） |
-|----------|----------------------|-------------------------|
-| dalle2   | East US              | 1000                    |
-| dalle3   | Sweden Central       | 4000                    |
-
-- 首先，你需要创建一个托管 DALL-E 的 Azure 资源。
-    - 在撰写本文时，dall-e-3 可在 `SwedenCentral` 区域使用，dall-e-2 可在 `EastUS` 区域使用。
-- 然后，您需要在上述区域之一中部署图像生成模型。
-    - 请阅读 [Azure OpenAI Image Generation Quickstart Guide](https://learn.microsoft.com/en-us/azure/ai-services/openai/dall-e-quickstart) 以获取进一步的帮助。
-- 根据 Azure 凭据配置您的环境变量：
-
-DALL-E 配置选项：
-
-#### DALL-E:
-
-**API Keys:**
-<OptionTable
-  options={[
-    ['DALLE_API_KEY', 'string', '用于 DALL-E 2 和 DALL-E 3 服务的 OpenAI API 密钥。','# DALLE_API_KEY='],
-  ]}
-/>
-
-**API Keys (版本特定):**
-<OptionTable
-  options={[
-    ['DALLE3_API_KEY', 'string', '用于 DALL-E 3 的 OpenAI API 密钥。','# DALLE3_API_KEY='],
-    ['DALLE2_API_KEY', 'string', '用于 DALL-E 2 的 OpenAI API 密钥。','# DALLE2_API_KEY='],
-  ]}
-/>
-
-**系统提示词 (System Prompts):**
-<OptionTable
-  options={[
-    ['DALLE3_SYSTEM_PROMPT', 'string', 'DALL-E 3 的系统提示词','# DALLE3_SYSTEM_PROMPT="Your DALL-E-3 System Prompt here"'],
-    ['DALLE2_SYSTEM_PROMPT', 'string', 'DALL-E 2 的系统提示词。','# DALLE2_SYSTEM_PROMPT="Your DALL-E-2 System Prompt here"'],
-  ]}
-/>
-
-**反向代理设置：**
-<OptionTable
-  options={[
-    ['DALLE_REVERSE_PROXY', 'string', '用于 DALL-E API 请求的反向代理 URL。','# DALLE_REVERSE_PROXY='],
-  ]}
-/>
-
-**Base URLs:**
-<OptionTable
-  options={[
-    ['DALLE3_BASEURL', 'string', 'DALL-E 3 API endpoint 的基础 URL。支持 `.openai.azure.com`（旧版）和 `.cognitiveservices.azure.com`（新版）两种域名格式。','# DALLE3_BASEURL=https://<AZURE_OPENAI_API_INSTANCE_NAME>.openai.azure.com/openai/deployments/<DALLE3_DEPLOYMENT_NAME>/\n# OR\n# DALLE3_BASEURL=https://<AZURE_OPENAI_API_INSTANCE_NAME>.cognitiveservices.azure.com/openai/deployments/<DALLE3_DEPLOYMENT_NAME>/'],
-    ['DALLE2_BASEURL', 'string', 'DALL-E 2 API endpoint 的基础 URL。支持 `.openai.azure.com`（旧版）和 `.cognitiveservices.azure.com`（新版）两种域名格式。','# DALLE2_BASEURL=https://<AZURE_OPENAI_API_INSTANCE_NAME>.openai.azure.com/openai/deployments/<DALLE2_DEPLOYMENT_NAME>/\n# OR\n# DALLE2_BASEURL=https://<AZURE_OPENAI_API_INSTANCE_NAME>.cognitiveservices.azure.com/openai/deployments/<DALLE2_DEPLOYMENT_NAME>/'],
-  ]}
-/>
-
-**Azure OpenAI 集成（可选）：**
-<OptionTable
-  options={[
-    ['DALLE3_AZURE_API_VERSION', 'string', 'Azure OpenAI 服务中 DALL-E 3 的 API 版本。','# DALLE3_AZURE_API_VERSION=the-api-version # e.g.: 2023-12-01-preview'],
-    ['DALLE2_AZURE_API_VERSION', 'string', 'Azure OpenAI 服务中 DALL-E 2 的 API 版本。','# DALLE2_AZURE_API_VERSION=the-api-version # e.g.: 2023-12-01-preview'],
-  ]}
-/>
-
-将占位符文本替换为实际的提示词或指令，如果您选择直接在文件中包含 API 密钥，请提供它们（建议在代码库之外管理敏感密钥）。在软件中嵌入 API 密钥时，请查阅并遵守 OpenAI 的使用政策。
-
-> 注意：如果您设置了 PROXY，它也将用于 DALL-E 调用，这适用于整个应用。
+在 Azure 上部署图像模型,并使用 `IMAGE_GEN_OAI_BASEURL` 和 `IMAGE_GEN_OAI_AZURE_API_VERSION` 将 [OpenAI 图像工具](/docs/features/image_gen#openai-image-tools) 指向该模型;请参阅其[设置说明](/docs/features/image_gen#setup)。
 
 ### Serverless Inference Endpoints [#serverless-inference-endpoints]
 

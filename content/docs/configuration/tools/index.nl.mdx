@@ -61,17 +61,16 @@ Start een chat met die agent en vraag om iets waarvoor de tool nodig is, zoals e
 
 | Tool | Gebruik het voor | Vereiste configuratie | Details |
 |------|------------------|------------------------|---------|
-| OpenAI Image Tools | Afbeeldingen genereren en bewerken met OpenAI-afbeeldingsmodellen | `IMAGE_GEN_OAI_API_KEY`; optioneel `IMAGE_GEN_OAI_MODEL` | [Image Generation](/docs/features/image_gen#1--openai-image-tools-recommended) |
-| Gemini Image Tools | Afbeeldingen genereren en bewerken met afbeeldingscontext via Gemini | `GEMINI_API_KEY`, `GOOGLE_KEY`, of `GOOGLE_SERVICE_KEY_FILE`; optioneel `GEMINI_IMAGE_MODEL` | [Gemini Image Generation](/docs/configuration/tools/gemini_image_gen) |
-| DALL-E-3 | Legacy OpenAI-afbeeldingsgeneratie | `DALLE3_API_KEY` of `DALLE_API_KEY` | [DALL-E](/docs/features/image_gen#3--dalle-legacy) |
-| Flux | Cloud-afbeeldingsgeneratie en fine-tuned afbeeldingsmodellen | `FLUX_API_KEY`; optioneel `FLUX_API_BASE_URL` | [Flux](/docs/configuration/tools/flux) |
-| Stable Diffusion | Lokale of self-hosted afbeeldingsgeneratie via Automatic1111 | `SD_WEBUI_URL` | [Stable Diffusion](/docs/configuration/tools/stable_diffusion) |
+| OpenAI Image Tools | Afbeeldingen genereren en bewerken met OpenAI-beeldmodellen | `IMAGE_GEN_OAI_API_KEY`; optioneel `IMAGE_GEN_OAI_MODEL` | [Afbeeldingsgeneratie](/docs/features/image_gen#openai-image-tools) |
+| Gemini Image Tools | Afbeeldingen genereren en bewerken met afbeeldingscontext via Gemini | `GEMINI_API_KEY`, `GOOGLE_KEY`, of `GOOGLE_SERVICE_KEY_FILE`; optioneel `GEMINI_IMAGE_MODEL` | [Gemini-afbeeldingsgeneratie](/docs/configuration/tools/gemini_image_gen) |
+| Flux | Cloudgebaseerde afbeeldingsgeneratie en fijn afgestelde beeldmodellen | `FLUX_API_KEY`; optioneel `FLUX_API_BASE_URL` | [Flux](/docs/configuration/tools/flux) |
+| Stable Diffusion | Lokale of zelf gehoste afbeeldingsgeneratie via Automatic1111 | `SD_WEBUI_URL` | [Stable Diffusion](/docs/configuration/tools/stable_diffusion) |
 | Google Search | Google Custom Search-resultaten voor een agent | `GOOGLE_SEARCH_API_KEY` en `GOOGLE_CSE_ID` | [Google Search](/docs/configuration/tools/google_search) |
-| Tavily Search | Actuele webresultaten geoptimaliseerd voor agents | `TAVILY_API_KEY` | [Tavily Search](/docs/configuration/tools/tavily) |
-| Traversaal | AI-zoekresultaten met bronvermelding | `TRAVERSAAL_API_KEY` | [Traversaal](/docs/configuration/tools/traversaal) |
-| Azure AI Search | Doorzoek een private Azure AI Search-index | `AZURE_AI_SEARCH_SERVICE_ENDPOINT`, `AZURE_AI_SEARCH_INDEX_NAME`, `AZURE_AI_SEARCH_API_KEY` | [Azure AI Search](/docs/configuration/tools/azure_ai_search) |
-| OpenWeather | Actuele, voorspelde, historische en dagelijkse weergegevens | `OPENWEATHER_API_KEY` | [OpenWeather](/docs/configuration/tools/openweather) |
-| Wolfram\|Alpha | Wiskunde, berekeningen, eenheden, gecureerde kennis en real-time data | `WOLFRAM_APP_ID` | [Wolfram\|Alpha](/docs/configuration/tools/wolfram) |
+| Tavily Search | Actuele webresultaten, geoptimaliseerd voor agents | `TAVILY_API_KEY` | [Tavily Search](/docs/configuration/tools/tavily) |
+| Traversaal | AI-zoekresultaten met bronnen | `TRAVERSAAL_API_KEY` | [Traversaal](/docs/configuration/tools/traversaal) |
+| Azure AI Search | Doorzoeken van een privé Azure AI Search-index | `AZURE_AI_SEARCH_SERVICE_ENDPOINT`, `AZURE_AI_SEARCH_INDEX_NAME`, `AZURE_AI_SEARCH_API_KEY` | [Azure AI Search](/docs/configuration/tools/azure_ai_search) |
+| OpenWeather | Actuele weer-, verwachtings-, historische en dagelijkse weergegevens | `OPENWEATHER_API_KEY` | [OpenWeather](/docs/configuration/tools/openweather) |
+| Wolfram\|Alpha | Wiskunde, berekeningen, eenheden, samengestelde kennis en realtimegegevens | `WOLFRAM_APP_ID` | [Wolfram\|Alpha](/docs/configuration/tools/wolfram) |
 | Calculator | Basis- en complexe berekeningen | Geen | [Calculator](/docs/configuration/tools/calculator) |
 
 ## Aangepaste tools maken [#creating-custom-tools]

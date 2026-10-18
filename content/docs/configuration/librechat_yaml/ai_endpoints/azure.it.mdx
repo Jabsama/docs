@@ -474,72 +474,9 @@ Per utilizzare Vision (analisi delle immagini) con Azure OpenAI, assicurati che 
 
 Funziona esattamente come con l'endpoint [OpenAI endpoint](/docs/configuration/pre_configured_ai/openai): non è necessario selezionare il modello vision, poiché verrà commutato automaticamente in background.
 
-### Generare immagini con Azure OpenAI Service (DALL-E) [#generate-images-with-azure-openai-service-dall-e]
+### Generare immagini con Azure OpenAI Service [#generate-images-with-azure-openai-service]
 
-| Model ID | Disponibilità Funzionalità | Richiesta Max (caratteri) |
-|----------|----------------------------|--------------------------|
-| dalle2   | East US                    | 1000                     |
-| dalle3   | Sweden Central             | 4000                     |
-
-- Per prima cosa devi creare una risorsa Azure che ospiti DALL-E
-    - Al momento della stesura di questo documento, dall-e-3 è disponibile nella regione `SwedenCentral`, mentre dall-e-2 è disponibile nella regione `EastUS`.
-- Successivamente, è necessario distribuire il modello di generazione di immagini in una delle regioni sopra indicate.
-    - Leggi la [Guida rapida alla generazione di immagini con Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/dall-e-quickstart) per ulteriore assistenza
-- Configura le tue variabili d'ambiente in base alle credenziali Azure:
-
-Le opzioni di configurazione di DALL-E:
-
-#### DALL-E:
-
-**Chiavi API:**
-<OptionTable
-  options={[
-    ['DALLE_API_KEY', 'string', 'La chiave API OpenAI per i servizi DALL-E 2 e DALL-E 3.','# DALLE_API_KEY='],
-  ]}
-/>
-
-**Chiavi API (Specifiche per versione):**
-<OptionTable
-  options={[
-    ['DALLE3_API_KEY', 'string', 'La chiave API OpenAI per DALL-E 3.','# DALLE3_API_KEY='],
-    ['DALLE2_API_KEY', 'string', 'La chiave API OpenAI per DALL-E 2.','# DALLE2_API_KEY='],
-  ]}
-/>
-
-**System Prompts:**
-<OptionTable
-  options={[
-    ['DALLE3_SYSTEM_PROMPT', 'string', 'Il prompt di sistema per DALL-E 3.','# DALLE3_SYSTEM_PROMPT="Your DALL-E-3 System Prompt here"'],
-    ['DALLE2_SYSTEM_PROMPT', 'string', 'Il system prompt per DALL-E 2.','# DALLE2_SYSTEM_PROMPT="Your DALL-E-2 System Prompt here"'],
-  ]}
-/>
-
-**Impostazioni del Reverse Proxy:**
-<OptionTable
-  options={[
-    ['DALLE_REVERSE_PROXY', 'string', 'L\'URL del reverse proxy per le richieste API di DALL-E.','# DALLE_REVERSE_PROXY='],
-  ]}
-/>
-
-**URL di base:**
-<OptionTable
-  options={[
-    ['DALLE3_BASEURL', 'string', 'L\'URL di base per gli endpoint dell\'API DALL-E 3. Supporta entrambi i formati di dominio `.openai.azure.com` (legacy) e `.cognitiveservices.azure.com` (nuovo).','# DALLE3_BASEURL=https://<AZURE_OPENAI_API_INSTANCE_NAME>.openai.azure.com/openai/deployments/<DALLE3_DEPLOYMENT_NAME>/\n# OR\n# DALLE3_BASEURL=https://<AZURE_OPENAI_API_INSTANCE_NAME>.cognitiveservices.azure.com/openai/deployments/<DALLE3_DEPLOYMENT_NAME>/'],
-    ['DALLE2_BASEURL', 'string', 'L\'URL di base per gli endpoint dell\'API DALL-E 2. Supporta entrambi i formati di dominio `.openai.azure.com` (legacy) e `.cognitiveservices.azure.com` (nuovo).','# DALLE2_BASEURL=https://<AZURE_OPENAI_API_INSTANCE_NAME>.openai.azure.com/openai/deployments/<DALLE2_DEPLOYMENT_NAME>/\n# OR\n# DALLE2_BASEURL=https://<AZURE_OPENAI_API_INSTANCE_NAME>.cognitiveservices.azure.com/openai/deployments/<DALLE2_DEPLOYMENT_NAME>/'],
-  ]}
-/>
-
-**Integrazione Azure OpenAI (Opzionale):**
-<OptionTable
-  options={[
-    ['DALLE3_AZURE_API_VERSION', 'string', 'La versione API per DALL-E 3 con il servizio Azure OpenAI.','# DALLE3_AZURE_API_VERSION=the-api-version # e.g.: 2023-12-01-preview'],
-    ['DALLE2_AZURE_API_VERSION', 'string', 'La versione API per DALL-E 2 con il servizio Azure OpenAI.','# DALLE2_AZURE_API_VERSION=the-api-version # e.g.: 2023-12-01-preview'],
-  ]}
-/>
-
-Sostituisci il testo segnaposto con prompt o istruzioni reali e fornisci le tue chiavi API se scegli di includerle direttamente nel file (si consiglia di gestire le chiavi sensibili al di fuori della codebase). Esamina e rispetta le politiche di utilizzo di OpenAI quando incorpori chiavi API nel software.
-
-> Nota: se hai impostato PROXY, verrà utilizzato anche per le chiamate DALL-E, il che è universale per l'app.
+Distribuisci un modello di immagini su Azure e indirizza [OpenAI Image Tools](/docs/features/image_gen#openai-image-tools) verso di esso con `IMAGE_GEN_OAI_BASEURL` e `IMAGE_GEN_OAI_AZURE_API_VERSION`; consulta la sua [configurazione](/docs/features/image_gen#setup).
 
 ### Endpoint di inferenza serverless [#serverless-inference-endpoints]
 

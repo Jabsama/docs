@@ -33,8 +33,8 @@ Configure a geração de imagens em poucos minutos com as OpenAI Image Tools.
 
 ```bash filename=".env"
 IMAGE_GEN_OAI_API_KEY=sk-your-openai-api-key
-# Optional; defaults to gpt-image-1
-IMAGE_GEN_OAI_MODEL=gpt-image-1
+# Optional; defaults to gpt-image-2.5-flare
+IMAGE_GEN_OAI_MODEL=gpt-image-2.5-flare
 ```
 
 </Step>
@@ -63,7 +63,7 @@ IMAGE_GEN_OAI_MODEL=gpt-image-1
 - **Geração de Imagens** cria imagens totalmente novas a partir de prompts de texto (não é necessário fazer upload).
 - **Edição de Imagem** edita ou faz remixes de imagens que você enviou: altere cores, adicione objetos, estenda a tela e muito mais.
 
-Ambos usam como padrão o **GPT-Image-1** para seguir instruções, renderização de texto, edição detalhada e conhecimento do mundo real. Use `IMAGE_GEN_OAI_MODEL` para escolher um modelo de imagem diferente da OpenAI quando sua implantação oferecer suporte. Consulte a [documentação de Geração de Imagem](https://platform.openai.com/docs/guides/image-generation?image-generation-model=gpt-image-1) da OpenAI para mais detalhes.
+Ambos usam `gpt-image-2.5-flare` por padrão. Use `IMAGE_GEN_OAI_MODEL` para escolher outro modelo de imagem da OpenAI quando a sua implantação oferecer suporte a ele. A OpenAI desativa o `gpt-image-1` em 23 de outubro de 2026, então remova-o de `IMAGE_GEN_OAI_MODEL` caso você o tenha definido explicitamente. Consulte a [documentação de geração de imagens da OpenAI](https://platform.openai.com/docs/guides/image-generation) para mais detalhes.
 
 ### Geração vs. Edição [#generation-vs-editing]
 
@@ -88,7 +88,7 @@ Ambas as ferramentas estão sempre disponíveis, e o agente escolhe a apropriada
 **Geração de Imagens**
 
 - **prompt**: descrição de texto (obrigatório)
-- **size**: `auto` (padrão), `1024x1024` (quadrado), `1536x1024` (paisagem) ou `1024x1536` (retrato)
+- **size**: `auto` (padrão), `1024x1024` (quadrado), `1536x1024` (paisagem) ou `1024x1536` (retrato); modelos que suportam dimensões personalizadas, como `gpt-image-2.5-flare`, aceitam qualquer `WIDTHxHEIGHT` dentro de seus limites, por exemplo `2048x1152` ou `3840x2160`
 - **quality**: `auto` (padrão), `high`, `medium` ou `low`
 - **background**: `auto` (padrão), `transparent` ou `opaque` (transparent requer formato PNG ou WebP)
 
@@ -96,8 +96,12 @@ Ambas as ferramentas estão sempre disponíveis, e o agente escolhe a apropriada
 
 - **image_ids**: array de IDs de imagem para usar como referência para edição (obrigatório)
 - **prompt**: descrição textual das alterações (obrigatório)
-- **size**: `auto` (padrão), `1024x1024`, `1536x1024`, `1024x1536`, `256x256` ou `512x512`
+- **tamanho**: `auto` (padrão), `1024x1024`, `1536x1024` ou `1024x1536`; modelos que oferecem suporte a dimensões personalizadas aceitam qualquer `WIDTHxHEIGHT` dentro de seus limites, por exemplo `3840x2160`
 - **quality**: `auto` (padrão), `high`, `medium` ou `low`
+
+<Callout type="info" title="Mantendo tamanhos grandes">
+Por padrão, o LibreChat redimensiona as imagens salvas para que o lado menor tenha no máximo 768 pixels, de modo que um resultado de `3840x2160` seja armazenado em 1365x768. Para manter o tamanho solicitado, defina [`fileConfig.imageGeneration`](/docs/configuration/librechat_yaml/object_structure/file_config#imagegeneration) como `percentage: 100`, ou um limite em `px` grande o suficiente para os seus tamanhos.
+</Callout>
 
 ### Configuração [#setup]
 
@@ -106,17 +110,17 @@ Crie ou reutilize uma chave da OpenAI e adicione-a ao `.env`, então adicione "O
 ```bash filename=".env"
 IMAGE_GEN_OAI_API_KEY=sk-...
 # optional extras
-IMAGE_GEN_OAI_MODEL=gpt-image-1
+IMAGE_GEN_OAI_MODEL=gpt-image-2.5-flare
 IMAGE_GEN_OAI_BASEURL=https://...
 ```
 
-Para implantações do Azure OpenAI, primeiro solicite acesso em https://aka.ms/oai/gptimage1access e, em seguida, adicione suas credenciais ao `.env`:
+Para o Azure OpenAI, implante um modelo de imagem no seu recurso do Azure OpenAI e, em seguida, adicione suas credenciais ao `.env`. Defina `IMAGE_GEN_OAI_MODEL` com o nome da implantação:
 
 ```bash filename=".env"
 IMAGE_GEN_OAI_API_KEY=your-api-key
 # optional extras
-IMAGE_GEN_OAI_MODEL=gpt-image-1
-IMAGE_GEN_OAI_BASEURL=https://deploymentname.openai.azure.com/openai/deployments/gpt-image-1/
+IMAGE_GEN_OAI_MODEL=your-deployment-name
+IMAGE_GEN_OAI_BASEURL=https://your-resource-name.openai.azure.com/openai/deployments/your-deployment-name/
 IMAGE_GEN_OAI_AZURE_API_VERSION=2025-04-01-preview
 ```
 
@@ -126,7 +130,7 @@ Personalize as descrições de ferramentas e as orientações de prompt com esta
 
 ```bash filename=".env"
 # Image Model
-IMAGE_GEN_OAI_MODEL=gpt-image-1
+IMAGE_GEN_OAI_MODEL=gpt-image-2.5-flare
 
 # Image Generation Tool Descriptions
 IMAGE_GEN_OAI_DESCRIPTION=...
@@ -139,7 +143,7 @@ IMAGE_EDIT_OAI_PROMPT_DESCRIPTION=...
 
 ### Preços [#pricing]
 
-Consulte a [página de preços do GPT-Image-1](https://platform.openai.com/docs/models/gpt-image-1) e a [documentação de Geração de Imagens](https://platform.openai.com/docs/guides/image-generation?image-generation-model=gpt-image-1#cost-and-latency) para saber os custos de geração de imagens.
+Consulte a [página de preços da API da OpenAI](https://openai.com/api/pricing/) e a [documentação de geração de imagens](https://platform.openai.com/docs/guides/image-generation) para ver os custos de geração de imagens.
 
 ## Ferramentas de Imagem do Gemini [#gemini-image-tools]
 
@@ -193,51 +197,11 @@ GEMINI_IMAGE_IDS_DESCRIPTION=...
 
 Mais detalhes estão no [guia de Geração de Imagem Gemini](/docs/configuration/tools/gemini_image_gen) dedicado.
 
-## DALL·E (legado) [#dalle-legacy]
-
-O DALL·E fornece geração de imagens legada usando o modelo de imagem `dall-e-3` da OpenAI.
-
-### Parâmetros [#parameters-2]
-
-- **prompt**: descrição em texto da imagem desejada (obrigatório, até 4000 caracteres)
-- **style**: `vivid` (hiper-realista, dramático, padrão) ou `natural` (menos hiper-realista)
-- **quality**: `standard` (padrão) ou `hd`
-- **size**: `1024x1024` (padrão, quadrado), `1792x1024` (largo), ou `1024x1792` (alto)
-
-### Configuração [#setup-2]
-
-```bash filename=".env"
-# Required
-DALLE_API_KEY=sk-...  # or DALLE3_API_KEY=sk-...
-
-# Optional
-DALLE_REVERSE_PROXY=https://...  # Alternative endpoint
-DALLE3_BASEURL=https://...  # For Azure or custom endpoints
-DALLE3_AZURE_API_VERSION=2023-12-01-preview  # For Azure deployments
-DALLE3_SYSTEM_PROMPT=...  # Custom system prompt for DALL·E
-```
-
-Habilite a ferramenta **DALL·E** para o agente e comece a enviar prompts.
-
-### Configuração Avançada [#advanced-configuration-2]
-
-Para implantações do Azure OpenAI, configure a URL base e a versão da API:
-
-```bash filename=".env"
-DALLE3_BASEURL=https://your-resource-name.openai.azure.com/openai/deployments/your-deployment-name
-DALLE3_AZURE_API_VERSION=2023-12-01-preview
-DALLE3_API_KEY=your-azure-api-key
-```
-
-### Preços [#pricing-1]
-
-Consulte a [página de preços do DALL-E](https://platform.openai.com/docs/models/dall-e-3) e a [documentação de Geração de Imagens](https://platform.openai.com/docs/guides/image-generation?image-generation-model=dall-e-3) para saber os custos de geração de imagens.
-
 ## Stable Diffusion (local) [#stable-diffusion-local]
 
 Execute imagens inteiramente em sua própria máquina ou servidor. Aponte o LibreChat para qualquer endpoint do Automatic1111 (ou compatível) e pronto.
 
-### Parâmetros [#parameters-3]
+### Parâmetros [#parameters-2]
 
 - **prompt**: palavras-chave detalhadas descrevendo os elementos desejados na imagem (obrigatório)
 - **negative_prompt**: palavras-chave que descrevem elementos a serem excluídos da imagem (obrigatório)
@@ -249,7 +213,7 @@ A implementação do Stable Diffusion usa estes parâmetros padrão fixos, que p
 - width: 1024
 - height: 1024
 
-### Configuração [#setup-3]
+### Configuração [#setup-2]
 
 Nenhuma chave de API é necessária, apenas a URL acessível da sua WebUI do Automatic1111:
 
@@ -268,7 +232,7 @@ Gerador de nuvem com ênfase em velocidade e modelos ajustados opcionais.
 - Múltiplos níveis de qualidade e proporções de tela
 - Modo raw para imagens menos processadas e com aparência mais natural
 
-### Parâmetros [#parameters-4]
+### Parâmetros [#parameters-3]
 
 A ferramenta Flux suporta três ações principais:
 
@@ -278,7 +242,7 @@ A ferramenta Flux suporta três ações principais:
 
 Mais detalhes estão no [guia do Flux](/docs/configuration/tools/flux#parameters) dedicado.
 
-### Configuração [#setup-4]
+### Configuração [#setup-3]
 
 Escolha a ferramenta **Flux** dentro do agente. Os prompts são texto simples, e uma chamada produz uma imagem.
 
@@ -287,7 +251,7 @@ FLUX_API_KEY=flux_live_...
 FLUX_API_BASE_URL=https://api.us1.bfl.ai   # default is fine for most users
 ```
 
-### Preços [#pricing-2]
+### Preços [#pricing-1]
 
 Consulte a [página de preços da Flux](https://docs.bfl.ml/pricing/) para ver os custos de geração de imagem.
 
@@ -373,7 +337,7 @@ Se uma ferramenta encontrar um erro, ela retornará uma mensagem explicando o qu
 
 ## Prompting [#prompting]
 
-Você pode personalizar os prompts para [OpenAI Image Tools](#advanced-configuration) e [DALL·E](#advanced-configuration-2), mas as dicas a seguir informam os prompts padrão que as ferramentas fornecem, o que é útil saber para sua própria escrita:
+Você pode personalizar os prompts das [OpenAI Image Tools](#advanced-configuration), mas as dicas a seguir orientam os prompts padrão que a ferramenta fornece, o que é útil saber para a sua própria escrita:
 
 1. Comece com o **assunto** e o **estilo** (foto, pintura a óleo, etc.).
 2. Adicione **composição** e **câmera/meio** ("plano grande angular de…", "aquarela…").

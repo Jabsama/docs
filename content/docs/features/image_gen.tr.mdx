@@ -33,8 +33,8 @@ OpenAI Image Tools ile birkaç dakika içinde görsel oluşturmayı çalışır 
 
 ```bash filename=".env"
 IMAGE_GEN_OAI_API_KEY=sk-your-openai-api-key
-# Optional; defaults to gpt-image-1
-IMAGE_GEN_OAI_MODEL=gpt-image-1
+# Optional; defaults to gpt-image-2.5-flare
+IMAGE_GEN_OAI_MODEL=gpt-image-2.5-flare
 ```
 
 </Step>
@@ -63,7 +63,7 @@ IMAGE_GEN_OAI_MODEL=gpt-image-1
 - **Görsel Oluşturma (Image Generation)**, metin istemlerinden yepyeni görseller oluşturur (yükleme gerektirmez).
 - **Görüntü Düzenleme (Image Editing)**, yüklediğiniz görüntüleri düzenler veya yeniden oluşturur: renkleri değiştirin, nesneler ekleyin, tuvali genişletin ve daha fazlasını yapın.
 
-Her ikisi de talimat takibi, metin oluşturma, ayrıntılı düzenleme ve gerçek dünya bilgisi için varsayılan olarak **GPT-Image-1** modelini kullanır. Dağıtımınız desteklediğinde farklı bir OpenAI görsel modeli seçmek için `IMAGE_GEN_OAI_MODEL` kullanın. Daha fazla ayrıntı için OpenAI'ın [Image Generation documentation](https://platform.openai.com/docs/guides/image-generation?image-generation-model=gpt-image-1) sayfasına bakın.
+Her ikisi de varsayılan olarak `gpt-image-2.5-flare` modelini kullanır. Dağıtımınız destekliyorsa, farklı bir OpenAI görüntü modeli seçmek için `IMAGE_GEN_OAI_MODEL` değişkenini kullanın. OpenAI, `gpt-image-1` modelini 23 Ekim 2026 tarihinde kullanımdan kaldıracağı için, bu modeli açıkça ayarladıysanız `IMAGE_GEN_OAI_MODEL` değerinden kaldırın. Daha fazla ayrıntı için OpenAI'ın [Görüntü Oluşturma belgelerine](https://platform.openai.com/docs/guides/image-generation) bakın.
 
 ### Oluşturma ve Düzenleme (Generation vs. Editing) [#generation-vs-editing]
 
@@ -88,7 +88,7 @@ Her iki araç da her zaman kullanılabilir durumdadır ve ajan, isteğe bağlı 
 **Görsel Oluşturma**
 
 - **prompt**: metin açıklaması (gerekli)
-- **size**: `auto` (varsayılan), `1024x1024` (kare), `1536x1024` (yatay) veya `1024x1536` (dikey)
+- **size**: `auto` (varsayılan), `1024x1024` (kare), `1536x1024` (yatay), veya `1024x1536` (dikey); `gpt-image-2.5-flare` gibi özel boyutları destekleyen modeller, sınırları dahilinde herhangi bir `WIDTHxHEIGHT` değerini kabul eder, örneğin `2048x1152` veya `3840x2160`
 - **quality**: `auto` (varsayılan), `high`, `medium` veya `low`
 - **background**: `auto` (varsayılan), `transparent` veya `opaque` (transparent için PNG veya WebP formatı gerekir)
 
@@ -96,8 +96,12 @@ Her iki araç da her zaman kullanılabilir durumdadır ve ajan, isteğe bağlı 
 
 - **image_ids**: düzenleme için referans olarak kullanılacak görsel kimliklerinden (ID) oluşan dizi (zorunlu)
 - **prompt**: değişikliklerin metin açıklaması (gerekli)
-- **size**: `auto` (varsayılan), `1024x1024`, `1536x1024`, `1024x1536`, `256x256` veya `512x512`
+- **size**: `auto` (varsayılan), `1024x1024`, `1536x1024` veya `1024x1536`; özel boyutları destekleyen modeller, sınırları dahilinde herhangi bir `WIDTHxHEIGHT` değerini kabul eder, örneğin `3840x2160`
 - **quality**: `auto` (varsayılan), `high`, `medium` veya `low`
+
+<Callout type="info" title="Büyük boyutların korunması">
+Varsayılan olarak LibreChat, kaydedilen görüntüleri kısa kenarı en fazla 768 piksel olacak şekilde yeniden boyutlandırır; bu nedenle `3840x2160` sonucu 1365x768 olarak saklanır. İstenen boyutu korumak için [`fileConfig.imageGeneration`](/docs/configuration/librechat_yaml/object_structure/file_config#imagegeneration) ayarını `percentage: 100` olarak yapılandırın veya boyutlarınız için yeterince büyük bir `px` sınırı belirleyin.
+</Callout>
 
 ### Kurulum [#setup]
 
@@ -106,17 +110,17 @@ Bir OpenAI anahtarı oluşturun veya mevcut olanı yeniden kullanın ve bunu `.e
 ```bash filename=".env"
 IMAGE_GEN_OAI_API_KEY=sk-...
 # optional extras
-IMAGE_GEN_OAI_MODEL=gpt-image-1
+IMAGE_GEN_OAI_MODEL=gpt-image-2.5-flare
 IMAGE_GEN_OAI_BASEURL=https://...
 ```
 
-Azure OpenAI dağıtımları için, önce https://aka.ms/oai/gptimage1access adresinden erişim talebinde bulunun, ardından kimlik bilgilerinizi `.env` dosyasına ekleyin:
+Azure OpenAI için, Azure OpenAI kaynağınızda bir görüntü modeli dağıtın, ardından kimlik bilgilerinizi `.env` dosyasına ekleyin. `IMAGE_GEN_OAI_MODEL` değerini dağıtım adına ayarlayın:
 
 ```bash filename=".env"
 IMAGE_GEN_OAI_API_KEY=your-api-key
 # optional extras
-IMAGE_GEN_OAI_MODEL=gpt-image-1
-IMAGE_GEN_OAI_BASEURL=https://deploymentname.openai.azure.com/openai/deployments/gpt-image-1/
+IMAGE_GEN_OAI_MODEL=your-deployment-name
+IMAGE_GEN_OAI_BASEURL=https://your-resource-name.openai.azure.com/openai/deployments/your-deployment-name/
 IMAGE_GEN_OAI_AZURE_API_VERSION=2025-04-01-preview
 ```
 
@@ -126,7 +130,7 @@ Araç açıklamalarını ve istem rehberliğini şu ortam değişkenleri ile öz
 
 ```bash filename=".env"
 # Image Model
-IMAGE_GEN_OAI_MODEL=gpt-image-1
+IMAGE_GEN_OAI_MODEL=gpt-image-2.5-flare
 
 # Image Generation Tool Descriptions
 IMAGE_GEN_OAI_DESCRIPTION=...
@@ -139,7 +143,7 @@ IMAGE_EDIT_OAI_PROMPT_DESCRIPTION=...
 
 ### Fiyatlandırma [#pricing]
 
-Görüntü oluşturma maliyetleri için [GPT-Image-1 fiyatlandırma sayfasına](https://platform.openai.com/docs/models/gpt-image-1) ve [Görüntü Oluşturma belgelerine](https://platform.openai.com/docs/guides/image-generation?image-generation-model=gpt-image-1#cost-and-latency) bakın.
+OpenAI'ın [API fiyatlandırma sayfasına](https://openai.com/api/pricing/) ve [Görüntü Oluşturma belgelerine](https://platform.openai.com/docs/guides/image-generation) bakarak görüntü oluşturma maliyetlerini inceleyebilirsiniz.
 
 ## Gemini Görüntü Araçları [#gemini-image-tools]
 
@@ -193,51 +197,11 @@ GEMINI_IMAGE_IDS_DESCRIPTION=...
 
 Daha fazla ayrıntı, özel [Gemini Image Gen kılavuzunda](/docs/configuration/tools/gemini_image_gen) mevcuttur.
 
-## DALL·E (eski) [#dalle-legacy]
-
-DALL·E, OpenAI'in `dall-e-3` görüntü modelini kullanarak eski nesil görüntü oluşturma imkanı sağlar.
-
-### Parametreler [#parameters-2]
-
-- **prompt**: istenen görselin metin açıklaması (zorunlu, 4000 karaktere kadar)
-- **style**: `vivid` (hiper-gerçekçi, dramatik, varsayılan) veya `natural` (daha az hiper-gerçekçi)
-- **quality**: `standard` (varsayılan) veya `hd`
-- **size**: `1024x1024` (varsayılan, kare), `1792x1024` (geniş) veya `1024x1792` (dikey)
-
-### Kurulum [#setup-2]
-
-```bash filename=".env"
-# Required
-DALLE_API_KEY=sk-...  # or DALLE3_API_KEY=sk-...
-
-# Optional
-DALLE_REVERSE_PROXY=https://...  # Alternative endpoint
-DALLE3_BASEURL=https://...  # For Azure or custom endpoints
-DALLE3_AZURE_API_VERSION=2023-12-01-preview  # For Azure deployments
-DALLE3_SYSTEM_PROMPT=...  # Custom system prompt for DALL·E
-```
-
-Ajan için **DALL·E** aracını etkinleştirin ve komut istemeye başlayın.
-
-### Gelişmiş Yapılandırma [#advanced-configuration-2]
-
-Azure OpenAI dağıtımları için, temel URL'yi (base URL) ve API sürümünü yapılandırın:
-
-```bash filename=".env"
-DALLE3_BASEURL=https://your-resource-name.openai.azure.com/openai/deployments/your-deployment-name
-DALLE3_AZURE_API_VERSION=2023-12-01-preview
-DALLE3_API_KEY=your-azure-api-key
-```
-
-### Fiyatlandırma [#pricing-1]
-
-Görsel oluşturma maliyetleri için [DALL-E fiyatlandırma sayfasına](https://platform.openai.com/docs/models/dall-e-3) ve [Görsel Oluşturma belgelerine](https://platform.openai.com/docs/guides/image-generation?image-generation-model=dall-e-3) bakın.
-
 ## Stable Diffusion (yerel) [#stable-diffusion-local]
 
 Görüntüleri tamamen kendi makinenizde veya sunucunuzda çalıştırın. LibreChat'i herhangi bir Automatic1111 (veya uyumlu) endpoint noktasına yönlendirmeniz yeterlidir.
 
-### Parametreler [#parameters-3]
+### Parametreler [#parameters-2]
 
 - **prompt**: görüntüde istenen öğeleri tanımlayan ayrıntılı anahtar kelimeler (gerekli)
 - **negative_prompt**: görüntüden hariç tutulacak öğeleri tanımlayan anahtar kelimeler (gerekli)
@@ -249,7 +213,7 @@ Stable Diffusion uygulaması, çoğu kullanım durumu için iyi sonuçlar veren 
 - width: 1024
 - height: 1024
 
-### Kurulum [#setup-3]
+### Kurulum [#setup-2]
 
 Herhangi bir API anahtarı gerekmez, sadece Automatic1111 WebUI'nızın erişilebilir URL'si yeterlidir:
 
@@ -268,7 +232,7 @@ Hız ve isteğe bağlı ince ayarlı modellere odaklanan bulut oluşturucu.
 - Birden fazla kalite seviyesi ve en boy oranı
 - Daha az işlenmiş, daha doğal görünen görseller için Raw modu
 
-### Parametreler [#parameters-4]
+### Parametreler [#parameters-3]
 
 Flux aracı üç ana işlemi destekler:
 
@@ -278,7 +242,7 @@ Flux aracı üç ana işlemi destekler:
 
 Daha fazla ayrıntı, özel [Flux rehberinde](/docs/configuration/tools/flux#parameters) mevcuttur.
 
-### Kurulum [#setup-4]
+### Kurulum [#setup-3]
 
 Ajan içindeki **Flux** aracını seçin. İstemler düz metindir ve tek bir çağrı bir görsel üretir.
 
@@ -287,7 +251,7 @@ FLUX_API_KEY=flux_live_...
 FLUX_API_BASE_URL=https://api.us1.bfl.ai   # default is fine for most users
 ```
 
-### Fiyatlandırma [#pricing-2]
+### Fiyatlandırma [#pricing-1]
 
 Görsel oluşturma maliyetleri için [Flux fiyatlandırma sayfasına](https://docs.bfl.ml/pricing/) bakın.
 
@@ -373,7 +337,7 @@ Bir araç bir hatayla karşılaşırsa, neyin yanlış gittiğini açıklayan bi
 
 ## İstem Oluşturma (Prompting) [#prompting]
 
-[OpenAI Image Tools](#advanced-configuration) ve [DALL·E](#advanced-configuration-2) için istemleri özelleştirebilirsiniz, ancak aşağıdaki ipuçları araçların sağladığı varsayılan istemler hakkında bilgi verir; bu da kendi yazımlarınız için bilmeniz gereken yararlı bilgilerdir:
+Aşağıdaki ipuçları, aracın sağladığı varsayılan istemleri şekillendirir; bu bilgiyi kendi istemlerinizi yazarken bilmek faydalıdır. [OpenAI Image Tools](#advanced-configuration) için istemleri özelleştirebilirsiniz:
 
 1. **Konu** ve **stil** (fotoğraf, yağlı boya vb.) ile başlayın.
 2. **Kompozisyon** ve **kamera/medya** ("...geniş açılı çekim", "suluboya...") ekleyin.

@@ -33,8 +33,8 @@ Aktifkan pembuatan gambar dalam beberapa menit dengan OpenAI Image Tools.
 
 ```bash filename=".env"
 IMAGE_GEN_OAI_API_KEY=sk-your-openai-api-key
-# Optional; defaults to gpt-image-1
-IMAGE_GEN_OAI_MODEL=gpt-image-1
+# Optional; defaults to gpt-image-2.5-flare
+IMAGE_GEN_OAI_MODEL=gpt-image-2.5-flare
 ```
 
 </Step>
@@ -63,7 +63,7 @@ IMAGE_GEN_OAI_MODEL=gpt-image-1
 - **Image Generation** membuat gambar baru dari perintah teks (tidak perlu unggah).
 - **Image Editing** mengedit atau mengubah gambar yang Anda unggah: mengubah warna, menambahkan objek, memperluas kanvas, dan banyak lagi.
 
-Keduanya secara default menggunakan **GPT-Image-1** untuk mengikuti instruksi, rendering teks, pengeditan mendetail, dan pengetahuan dunia nyata. Gunakan `IMAGE_GEN_OAI_MODEL` untuk memilih model gambar OpenAI yang berbeda saat deployment Anda mendukungnya. Lihat [dokumentasi Pembuatan Gambar](https://platform.openai.com/docs/guides/image-generation?image-generation-model=gpt-image-1) OpenAI untuk detail lebih lanjut.
+Keduanya default ke `gpt-image-2.5-flare`. Gunakan `IMAGE_GEN_OAI_MODEL` untuk memilih model gambar OpenAI yang berbeda jika deployment Anda mendukungnya. OpenAI akan menghentikan `gpt-image-1` pada 23 Oktober 2026, jadi hapus dari `IMAGE_GEN_OAI_MODEL` jika Anda mengaturnya secara eksplisit. Lihat [dokumentasi Image Generation](https://platform.openai.com/docs/guides/image-generation) dari OpenAI untuk detail selengkapnya.
 
 ### Generasi vs. Penyuntingan [#generation-vs-editing]
 
@@ -88,7 +88,7 @@ Kedua alat tersebut selalu tersedia, dan agen akan memilih alat yang tepat berda
 **Pembuatan Gambar**
 
 - **prompt**: deskripsi teks (wajib)
-- **size**: `auto` (default), `1024x1024` (persegi), `1536x1024` (lanskap), atau `1024x1536` (potret)
+- **size**: `auto` (default), `1024x1024` (persegi), `1536x1024` (lanskap), atau `1024x1536` (potret); model yang mendukung dimensi kustom, seperti `gpt-image-2.5-flare`, menerima `WIDTHxHEIGHT` apa pun dalam batasnya, misalnya `2048x1152` atau `3840x2160`
 - **quality**: `auto` (default), `high`, `medium`, atau `low`
 - **background**: `auto` (default), `transparent`, atau `opaque` (transparent memerlukan format PNG atau WebP)
 
@@ -96,8 +96,12 @@ Kedua alat tersebut selalu tersedia, dan agen akan memilih alat yang tepat berda
 
 - **image_ids**: array ID gambar yang akan digunakan sebagai referensi untuk penyuntingan (wajib)
 - **prompt**: deskripsi teks mengenai perubahan (wajib)
-- **size**: `auto` (default), `1024x1024`, `1536x1024`, `1024x1536`, `256x256`, atau `512x512`
+- **size**: `auto` (default), `1024x1024`, `1536x1024`, atau `1024x1536`; model yang mendukung dimensi kustom menerima `WIDTHxHEIGHT` apa pun dalam batasnya, misalnya `3840x2160`
 - **quality**: `auto` (default), `high`, `medium`, atau `low`
+
+<Callout type="info" title="Mempertahankan ukuran besar">
+Secara default, LibreChat mengubah ukuran gambar yang disimpan sehingga sisi terpendeknya paling besar 768 piksel, sehingga hasil `3840x2160` disimpan dengan ukuran 1365x768. Untuk mempertahankan ukuran yang diminta, atur [`fileConfig.imageGeneration`](/docs/configuration/librechat_yaml/object_structure/file_config#imagegeneration) ke `percentage: 100`, atau ke batas `px` yang cukup besar untuk ukuran Anda.
+</Callout>
 
 ### Pengaturan [#setup]
 
@@ -106,17 +110,17 @@ Buat atau gunakan kembali kunci OpenAI dan tambahkan ke `.env`, lalu tambahkan "
 ```bash filename=".env"
 IMAGE_GEN_OAI_API_KEY=sk-...
 # optional extras
-IMAGE_GEN_OAI_MODEL=gpt-image-1
+IMAGE_GEN_OAI_MODEL=gpt-image-2.5-flare
 IMAGE_GEN_OAI_BASEURL=https://...
 ```
 
-Untuk deployment Azure OpenAI, pertama-tama ajukan akses di https://aka.ms/oai/gptimage1access, kemudian tambahkan kredensial Anda ke `.env`:
+Untuk Azure OpenAI, deploy model gambar di sumber daya Azure OpenAI Anda, lalu tambahkan kredensial Anda ke `.env`. Atur `IMAGE_GEN_OAI_MODEL` ke nama deployment:
 
 ```bash filename=".env"
 IMAGE_GEN_OAI_API_KEY=your-api-key
 # optional extras
-IMAGE_GEN_OAI_MODEL=gpt-image-1
-IMAGE_GEN_OAI_BASEURL=https://deploymentname.openai.azure.com/openai/deployments/gpt-image-1/
+IMAGE_GEN_OAI_MODEL=your-deployment-name
+IMAGE_GEN_OAI_BASEURL=https://your-resource-name.openai.azure.com/openai/deployments/your-deployment-name/
 IMAGE_GEN_OAI_AZURE_API_VERSION=2025-04-01-preview
 ```
 
@@ -126,7 +130,7 @@ Sesuaikan deskripsi alat dan panduan prompt dengan variabel lingkungan berikut:
 
 ```bash filename=".env"
 # Image Model
-IMAGE_GEN_OAI_MODEL=gpt-image-1
+IMAGE_GEN_OAI_MODEL=gpt-image-2.5-flare
 
 # Image Generation Tool Descriptions
 IMAGE_GEN_OAI_DESCRIPTION=...
@@ -139,7 +143,7 @@ IMAGE_EDIT_OAI_PROMPT_DESCRIPTION=...
 
 ### Harga [#pricing]
 
-Lihat [halaman harga GPT-Image-1](https://platform.openai.com/docs/models/gpt-image-1) dan [dokumentasi Pembuatan Gambar](https://platform.openai.com/docs/guides/image-generation?image-generation-model=gpt-image-1#cost-and-latency) untuk biaya pembuatan gambar.
+Lihat [halaman harga API](https://openai.com/api/pricing/) OpenAI dan [dokumentasi Image Generation](https://platform.openai.com/docs/guides/image-generation) untuk biaya pembuatan gambar.
 
 ## Alat Gambar Gemini [#gemini-image-tools]
 
@@ -193,51 +197,11 @@ GEMINI_IMAGE_IDS_DESCRIPTION=...
 
 Detail lebih lanjut ada di [panduan Gemini Image Gen](/docs/configuration/tools/gemini_image_gen) khusus.
 
-## DALL·E (legacy) [#dalle-legacy]
-
-DALL·E menyediakan pembuatan gambar warisan menggunakan model gambar `dall-e-3` dari OpenAI.
-
-### Parameter [#parameters-2]
-
-- **prompt**: deskripsi teks dari gambar yang diinginkan (wajib, hingga 4000 karakter)
-- **style**: `vivid` (hiper-realistis, dramatis, default) atau `natural` (kurang hiper-realistis)
-- **quality**: `standard` (default) atau `hd`
-- **size**: `1024x1024` (default, persegi), `1792x1024` (lebar), atau `1024x1792` (tinggi)
-
-### Pengaturan [#setup-2]
-
-```bash filename=".env"
-# Required
-DALLE_API_KEY=sk-...  # or DALLE3_API_KEY=sk-...
-
-# Optional
-DALLE_REVERSE_PROXY=https://...  # Alternative endpoint
-DALLE3_BASEURL=https://...  # For Azure or custom endpoints
-DALLE3_AZURE_API_VERSION=2023-12-01-preview  # For Azure deployments
-DALLE3_SYSTEM_PROMPT=...  # Custom system prompt for DALL·E
-```
-
-Aktifkan alat **DALL·E** untuk agen tersebut dan mulailah memberikan perintah (prompt).
-
-### Konfigurasi Lanjutan [#advanced-configuration-2]
-
-Untuk deployment Azure OpenAI, konfigurasikan base URL dan API version:
-
-```bash filename=".env"
-DALLE3_BASEURL=https://your-resource-name.openai.azure.com/openai/deployments/your-deployment-name
-DALLE3_AZURE_API_VERSION=2023-12-01-preview
-DALLE3_API_KEY=your-azure-api-key
-```
-
-### Harga [#pricing-1]
-
-Lihat [halaman harga DALL-E](https://platform.openai.com/docs/models/dall-e-3) dan [dokumentasi Pembuatan Gambar](https://platform.openai.com/docs/guides/image-generation?image-generation-model=dall-e-3) untuk biaya pembuatan gambar.
-
 ## Stable Diffusion (lokal) [#stable-diffusion-local]
 
 Jalankan gambar sepenuhnya di mesin atau server Anda sendiri. Arahkan LibreChat ke endpoint Automatic1111 (atau yang kompatibel) mana pun dan Anda siap menggunakannya.
 
-### Parameter [#parameters-3]
+### Parameter [#parameters-2]
 
 - **prompt**: kata kunci mendetail yang mendeskripsikan elemen yang diinginkan dalam gambar (wajib)
 - **negative_prompt**: kata kunci yang mendeskripsikan elemen untuk dikecualikan dari gambar (wajib)
@@ -249,7 +213,7 @@ Implementasi Stable Diffusion menggunakan parameter default tetap ini, yang meng
 - width: 1024
 - height: 1024
 
-### Pengaturan [#setup-3]
+### Pengaturan [#setup-2]
 
 Tidak diperlukan API key, cukup URL yang dapat diakses dari Automatic1111 WebUI Anda:
 
@@ -268,7 +232,7 @@ Generator cloud dengan penekanan pada kecepatan dan model yang telah disesuaikan
 - Beberapa tingkat kualitas dan rasio aspek
 - Mode raw untuk gambar yang kurang diproses dan terlihat lebih alami
 
-### Parameter [#parameters-4]
+### Parameter [#parameters-3]
 
 Alat Flux mendukung tiga tindakan utama:
 
@@ -278,7 +242,7 @@ Alat Flux mendukung tiga tindakan utama:
 
 Detail lebih lanjut ada di [panduan Flux](/docs/configuration/tools/flux#parameters) khusus.
 
-### Pengaturan [#setup-4]
+### Pengaturan [#setup-3]
 
 Pilih alat **Flux** di dalam agen. Prompt berupa teks biasa, dan satu panggilan akan menghasilkan satu gambar.
 
@@ -287,7 +251,7 @@ FLUX_API_KEY=flux_live_...
 FLUX_API_BASE_URL=https://api.us1.bfl.ai   # default is fine for most users
 ```
 
-### Harga [#pricing-2]
+### Harga [#pricing-1]
 
 Lihat [halaman harga Flux](https://docs.bfl.ml/pricing/) untuk biaya pembuatan gambar.
 
@@ -373,7 +337,7 @@ Jika sebuah tool mengalami error, ia akan mengembalikan pesan yang menjelaskan a
 
 ## Prompting [#prompting]
 
-Anda dapat menyesuaikan prompt untuk [OpenAI Image Tools](#advanced-configuration) dan [DALL·E](#advanced-configuration-2), namun tips berikut ini menginformasikan prompt default yang disediakan oleh alat tersebut, yang berguna untuk diketahui bagi penulisan Anda sendiri:
+Anda dapat menyesuaikan prompt untuk [OpenAI Image Tools](#advanced-configuration), namun tips berikut menjadi dasar prompt default yang disediakan oleh tool tersebut, sehingga berguna untuk diketahui saat Anda menulis sendiri:
 
 1. Mulai dengan **subjek** dan **gaya** (foto, lukisan cat minyak, dll.).
 2. Tambahkan **komposisi** dan **kamera/medium** ("wide-angle shot of…", "watercolour…").

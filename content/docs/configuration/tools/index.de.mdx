@@ -59,18 +59,17 @@ Starten Sie einen Chat mit diesem Agenten und fragen Sie nach etwas, das das Too
 
 ## Aktuelle integrierte Tools [#current-built-in-tools]
 
-| Tool | Verwendung | Erforderliche Konfiguration | Details |
-|------|------------|------------------------|---------|
-| OpenAI Image Tools | Bilder mit OpenAI-Bildmodellen generieren und bearbeiten | `IMAGE_GEN_OAI_API_KEY`; optional `IMAGE_GEN_OAI_MODEL` | [Bildgenerierung](/docs/features/image_gen#1--openai-image-tools-recommended) |
-| Gemini Image Tools | Bilder generieren und mit Bildkontext mittels Gemini bearbeiten | `GEMINI_API_KEY`, `GOOGLE_KEY` oder `GOOGLE_SERVICE_KEY_FILE`; optional `GEMINI_IMAGE_MODEL` | [Gemini-Bildgenerierung](/docs/configuration/tools/gemini_image_gen) |
-| DALL-E-3 | Legacy OpenAI-Bildgenerierung | `DALLE3_API_KEY` oder `DALLE_API_KEY` | [DALL-E](/docs/features/image_gen#3--dalle-legacy) |
-| Flux | Cloud-Bildgenerierung und feinabgestimmte Bildmodelle | `FLUX_API_KEY`; optional `FLUX_API_BASE_URL` | [Flux](/docs/configuration/tools/flux) |
-| Stable Diffusion | Lokale oder selbstgehostete Bildgenerierung über Automatic1111 | `SD_WEBUI_URL` | [Stable Diffusion](/docs/configuration/tools/stable_diffusion) |
-| Google Search | Google Custom Search-Ergebnisse für einen Agenten | `GOOGLE_SEARCH_API_KEY` und `GOOGLE_CSE_ID` | [Google Search](/docs/configuration/tools/google_search) |
-| Tavily Search | Aktuelle Webergebnisse, optimiert für Agenten | `TAVILY_API_KEY` | [Tavily Search](/docs/configuration/tools/tavily) |
-| Traversaal | KI-Suchergebnisse mit Quellenangaben | `TRAVERSAAL_API_KEY` | [Traversaal](/docs/configuration/tools/traversaal) |
-| Azure AI Search | Durchsuchen eines privaten Azure AI Search-Index | `AZURE_AI_SEARCH_SERVICE_ENDPOINT`, `AZURE_AI_SEARCH_INDEX_NAME`, `AZURE_AI_SEARCH_API_KEY` | [Azure AI Search](/docs/configuration/tools/azure_ai_search) |
-| OpenWeather | Aktuelle Wetterdaten, Vorhersagen, historische Daten und Tagesdaten | `OPENWEATHER_API_KEY` | [OpenWeather](/docs/configuration/tools/openweather) |
+| Tool | Verwenden für | Erforderliche Konfiguration | Details |
+|------|---------------|-----------------------------|---------|
+| OpenAI Image Tools | Bilder mit OpenAI-Bildmodellen generieren und bearbeiten | `IMAGE_GEN_OAI_API_KEY`; optional `IMAGE_GEN_OAI_MODEL` | [Bildgenerierung](/docs/features/image_gen#openai-image-tools) |
+| Gemini Image Tools | Bilder generieren und mit Bildkontext mithilfe von Gemini bearbeiten | `GEMINI_API_KEY`, `GOOGLE_KEY` oder `GOOGLE_SERVICE_KEY_FILE`; optional `GEMINI_IMAGE_MODEL` | [Gemini-Bildgenerierung](/docs/configuration/tools/gemini_image_gen) |
+| Flux | Cloudbasierte Bildgenerierung und feinabgestimmte Bildmodelle | `FLUX_API_KEY`; optional `FLUX_API_BASE_URL` | [Flux](/docs/configuration/tools/flux) |
+| Stable Diffusion | Lokale oder selbst gehostete Bildgenerierung über Automatic1111 | `SD_WEBUI_URL` | [Stable Diffusion](/docs/configuration/tools/stable_diffusion) |
+| Google Search | Google-Custom-Search-Ergebnisse für einen Agenten | `GOOGLE_SEARCH_API_KEY` und `GOOGLE_CSE_ID` | [Google Search](/docs/configuration/tools/google_search) |
+| Tavily Search | Aktuelle, für Agenten optimierte Webergebnisse | `TAVILY_API_KEY` | [Tavily Search](/docs/configuration/tools/tavily) |
+| Traversaal | KI-Suchergebnisse mit Quellen | `TRAVERSAAL_API_KEY` | [Traversaal](/docs/configuration/tools/traversaal) |
+| Azure AI Search | Einen privaten Azure-AI-Search-Index durchsuchen | `AZURE_AI_SEARCH_SERVICE_ENDPOINT`, `AZURE_AI_SEARCH_INDEX_NAME`, `AZURE_AI_SEARCH_API_KEY` | [Azure AI Search](/docs/configuration/tools/azure_ai_search) |
+| OpenWeather | Aktuelle, Vorhersage-, historische und tägliche Wetterdaten | `OPENWEATHER_API_KEY` | [OpenWeather](/docs/configuration/tools/openweather) |
 | Wolfram\|Alpha | Mathematik, Berechnungen, Einheiten, kuratiertes Wissen und Echtzeitdaten | `WOLFRAM_APP_ID` | [Wolfram\|Alpha](/docs/configuration/tools/wolfram) |
 | Calculator | Einfache und komplexe Berechnungen | Keine | [Calculator](/docs/configuration/tools/calculator) |
 

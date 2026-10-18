@@ -31,8 +31,8 @@ OpenAI Image Tools를 사용하여 몇 분 안에 이미지 생성 기능을 설
 
 ```bash filename=".env"
 IMAGE_GEN_OAI_API_KEY=sk-your-openai-api-key
-# Optional; defaults to gpt-image-1
-IMAGE_GEN_OAI_MODEL=gpt-image-1
+# Optional; defaults to gpt-image-2.5-flare
+IMAGE_GEN_OAI_MODEL=gpt-image-2.5-flare
 ```
 
 </Step>
@@ -61,7 +61,7 @@ IMAGE_GEN_OAI_MODEL=gpt-image-1
 - **Image Generation**은 텍스트 프롬프트로부터 완전히 새로운 이미지를 생성합니다(업로드 불필요).
 - **Image Editing**은 업로드한 이미지를 편집하거나 리믹스합니다: 색상 변경, 개체 추가, 캔버스 확장 등을 수행할 수 있습니다.
 
-둘 다 지시 이행, 텍스트 렌더링, 상세 편집 및 실세계 지식에 대해 기본적으로 **GPT-Image-1**을 사용합니다. 배포 환경에서 지원하는 경우 `IMAGE_GEN_OAI_MODEL`을 사용하여 다른 OpenAI 이미지 모델을 선택할 수 있습니다. 자세한 내용은 OpenAI의 [Image Generation documentation](https://platform.openai.com/docs/guides/image-generation?image-generation-model=gpt-image-1)을 참조하세요.
+둘 다 기본값은 `gpt-image-2.5-flare`입니다. 배포 환경에서 지원하는 경우, `IMAGE_GEN_OAI_MODEL`을 사용하여 다른 OpenAI 이미지 모델을 선택할 수 있습니다. OpenAI는 2026년 10월 23일에 `gpt-image-1`을 지원 종료하므로, 명시적으로 설정한 경우 `IMAGE_GEN_OAI_MODEL`에서 제거하십시오. 자세한 내용은 OpenAI의 [이미지 생성 문서](https://platform.openai.com/docs/guides/image-generation)를 참조하십시오.
 
 ### 생성 vs. 편집 [#generation-vs-editing]
 
@@ -86,7 +86,7 @@ IMAGE_GEN_OAI_MODEL=gpt-image-1
 **이미지 생성**
 
 - **prompt**: 텍스트 설명 (필수)
-- **size**: `auto` (기본값), `1024x1024` (정사각형), `1536x1024` (가로형), 또는 `1024x1536` (세로형)
+- **size**: `auto` (기본값), `1024x1024` (정사각형), `1536x1024` (가로형), 또는 `1024x1536` (세로형); `gpt-image-2.5-flare`와 같이 사용자 지정 크기를 지원하는 모델은 해당 모델의 한도 내에서 모든 `WIDTHxHEIGHT` 값을 허용합니다. 예를 들어 `2048x1152` 또는 `3840x2160`을 사용할 수 있습니다.
 - **quality**: `auto` (기본값), `high`, `medium` 또는 `low`
 - **background**: `auto` (기본값), `transparent`, 또는 `opaque` (transparent를 사용하려면 PNG 또는 WebP 형식이 필요함)
 
@@ -94,8 +94,12 @@ IMAGE_GEN_OAI_MODEL=gpt-image-1
 
 - **image_ids**: 편집을 위한 참조로 사용할 이미지 ID 배열 (필수)
 - **prompt**: 변경 사항에 대한 텍스트 설명 (필수)
-- **size**: `auto` (기본값), `1024x1024`, `1536x1024`, `1024x1536`, `256x256` 또는 `512x512`
+- **size**: `auto` (기본값), `1024x1024`, `1536x1024`, 또는 `1024x1536`; 사용자 지정 해상도를 지원하는 모델은 해당 모델의 제한 범위 내에서 모든 `WIDTHxHEIGHT` 값을 허용합니다(예: `3840x2160`).
 - **quality**: `auto` (기본값), `high`, `medium` 또는 `low`
+
+<Callout type="info" title="큰 사이즈 유지하기">
+기본적으로 LibreChat은 저장되는 이미지의 짧은 변이 최대 768픽셀이 되도록 크기를 조정합니다. 따라서 `3840x2160` 결과물은 1365x768로 저장됩니다. 요청한 크기를 유지하려면 [`fileConfig.imageGeneration`](/docs/configuration/librechat_yaml/object_structure/file_config#imagegeneration)에서 `percentage: 100`으로 설정하거나, 사용하는 크기에 충분히 큰 `px` 상한값을 설정하세요.
+</Callout>
 
 ### 설정 [#setup]
 
@@ -104,17 +108,17 @@ OpenAI 키를 생성하거나 재사용하여 `.env`에 추가한 다음, 에이
 ```bash filename=".env"
 IMAGE_GEN_OAI_API_KEY=sk-...
 # optional extras
-IMAGE_GEN_OAI_MODEL=gpt-image-1
+IMAGE_GEN_OAI_MODEL=gpt-image-2.5-flare
 IMAGE_GEN_OAI_BASEURL=https://...
 ```
 
-Azure OpenAI 배포의 경우, 먼저 https://aka.ms/oai/gptimage1access 에서 액세스 권한을 요청한 다음, `.env`에 자격 증명을 추가하세요:
+Azure OpenAI의 경우, Azure OpenAI 리소스에 이미지 모델을 배포한 다음 `.env`에 자격 증명을 추가하세요. `IMAGE_GEN_OAI_MODEL`을 배포 이름으로 설정하세요:
 
 ```bash filename=".env"
 IMAGE_GEN_OAI_API_KEY=your-api-key
 # optional extras
-IMAGE_GEN_OAI_MODEL=gpt-image-1
-IMAGE_GEN_OAI_BASEURL=https://deploymentname.openai.azure.com/openai/deployments/gpt-image-1/
+IMAGE_GEN_OAI_MODEL=your-deployment-name
+IMAGE_GEN_OAI_BASEURL=https://your-resource-name.openai.azure.com/openai/deployments/your-deployment-name/
 IMAGE_GEN_OAI_AZURE_API_VERSION=2025-04-01-preview
 ```
 
@@ -124,7 +128,7 @@ IMAGE_GEN_OAI_AZURE_API_VERSION=2025-04-01-preview
 
 ```bash filename=".env"
 # Image Model
-IMAGE_GEN_OAI_MODEL=gpt-image-1
+IMAGE_GEN_OAI_MODEL=gpt-image-2.5-flare
 
 # Image Generation Tool Descriptions
 IMAGE_GEN_OAI_DESCRIPTION=...
@@ -137,7 +141,7 @@ IMAGE_EDIT_OAI_PROMPT_DESCRIPTION=...
 
 ### 가격 책정 [#pricing]
 
-이미지 생성 비용에 대해서는 [GPT-Image-1 pricing page](https://platform.openai.com/docs/models/gpt-image-1) 및 [Image Generation documentation](https://platform.openai.com/docs/guides/image-generation?image-generation-model=gpt-image-1#cost-and-latency)을 참조하세요.
+OpenAI의 [API 가격 페이지](https://openai.com/api/pricing/)와 [이미지 생성 문서](https://platform.openai.com/docs/guides/image-generation)에서 이미지 생성 비용을 확인하세요.
 
 ## Gemini 이미지 도구 [#gemini-image-tools]
 
@@ -191,51 +195,11 @@ GEMINI_IMAGE_IDS_DESCRIPTION=...
 
 더 자세한 내용은 전용 [Gemini Image Gen 가이드](/docs/configuration/tools/gemini_image_gen)에서 확인할 수 있습니다.
 
-## DALL·E (legacy) [#dalle-legacy]
-
-DALL·E는 OpenAI의 `dall-e-3` 이미지 모델을 사용하는 레거시 이미지 생성을 제공합니다.
-
-### 매개변수 [#parameters-2]
-
-- **prompt**: 원하는 이미지에 대한 텍스트 설명 (필수, 최대 4000자)
-- **style**: `vivid` (초현실적, 극적, 기본값) 또는 `natural` (덜 초현실적)
-- **quality**: `standard` (기본값) 또는 `hd`
-- **size**: `1024x1024` (기본값, 정사각형), `1792x1024` (가로형), 또는 `1024x1792` (세로형)
-
-### 설정 [#setup-2]
-
-```bash filename=".env"
-# Required
-DALLE_API_KEY=sk-...  # or DALLE3_API_KEY=sk-...
-
-# Optional
-DALLE_REVERSE_PROXY=https://...  # Alternative endpoint
-DALLE3_BASEURL=https://...  # For Azure or custom endpoints
-DALLE3_AZURE_API_VERSION=2023-12-01-preview  # For Azure deployments
-DALLE3_SYSTEM_PROMPT=...  # Custom system prompt for DALL·E
-```
-
-에이전트에 **DALL·E** 도구를 활성화하고 프롬프트를 시작하세요.
-
-### 고급 구성 [#advanced-configuration-2]
-
-Azure OpenAI 배포의 경우, 베이스 URL과 API 버전을 구성하세요:
-
-```bash filename=".env"
-DALLE3_BASEURL=https://your-resource-name.openai.azure.com/openai/deployments/your-deployment-name
-DALLE3_AZURE_API_VERSION=2023-12-01-preview
-DALLE3_API_KEY=your-azure-api-key
-```
-
-### 가격 책정 [#pricing-1]
-
-이미지 생성 비용에 대해서는 [DALL-E pricing page](https://platform.openai.com/docs/models/dall-e-3) 및 [Image Generation documentation](https://platform.openai.com/docs/guides/image-generation?image-generation-model=dall-e-3)를 참조하세요.
-
 ## Stable Diffusion (로컬) [#stable-diffusion-local]
 
 이미지를 완전히 본인의 머신이나 서버에서 실행하세요. LibreChat을 모든 Automatic1111(또는 호환 가능한) endpoint로 지정하기만 하면 준비가 완료됩니다.
 
-### 매개변수 [#parameters-3]
+### 매개변수 [#parameters-2]
 
 - **prompt**: 이미지에서 원하는 요소를 설명하는 상세 키워드 (필수)
 - **negative_prompt**: 이미지에서 제외할 요소를 설명하는 키워드 (필수)
@@ -247,7 +211,7 @@ Stable Diffusion 구현은 대부분의 사용 사례에서 좋은 결과를 생
 - width: 1024
 - height: 1024
 
-### 설정 [#setup-3]
+### 설정 [#setup-2]
 
 API 키는 필요하지 않으며, Automatic1111 WebUI에 접근 가능한 URL만 있으면 됩니다:
 
@@ -266,7 +230,7 @@ Automatic1111 설정에 대한 자세한 내용은 전용 [Stable Diffusion 가�
 - 다양한 품질 수준 및 화면 비율
 - 더 적게 처리되고 더 자연스러운 이미지를 위한 Raw 모드
 
-### 매개변수 [#parameters-4]
+### 매개변수 [#parameters-3]
 
 Flux 도구는 세 가지 주요 작업을 지원합니다:
 
@@ -276,7 +240,7 @@ Flux 도구는 세 가지 주요 작업을 지원합니다:
 
 자세한 내용은 전용 [Flux 가이드](/docs/configuration/tools/flux#parameters)에서 확인할 수 있습니다.
 
-### 설정 [#setup-4]
+### 설정 [#setup-3]
 
 에이전트 내에서 **Flux** 도구를 선택하세요. 프롬프트는 일반 텍스트이며, 한 번의 호출로 하나의 이미지가 생성됩니다.
 
@@ -285,7 +249,7 @@ FLUX_API_KEY=flux_live_...
 FLUX_API_BASE_URL=https://api.us1.bfl.ai   # default is fine for most users
 ```
 
-### 가격 책정 [#pricing-2]
+### 가격 책정 [#pricing-1]
 
 이미지 생성 비용은 [Flux pricing page](https://docs.bfl.ml/pricing/)를 참조하세요.
 
@@ -371,7 +335,7 @@ PROXY=http://proxy-url:port
 
 ## 프롬프트 작성 (Prompting) [#prompting]
 
-[OpenAI Image Tools](#advanced-configuration) 및 [DALL·E](#advanced-configuration-2)에 대한 프롬프트를 사용자 지정할 수 있지만, 다음 팁은 도구가 제공하는 기본 프롬프트에 대한 정보를 담고 있으며, 직접 프롬프트를 작성할 때 유용하게 활용할 수 있습니다:
+[OpenAI Image Tools](#advanced-configuration) 를 위한 프롬프트는 직접 커스터마이즈할 수 있습니다. 다만 아래의 팁은 이 도구가 기본으로 제공하는 프롬프트의 바탕이 되므로, 직접 작성할 때 참고하면 유용합니다.
 
 1. **주제**와 **스타일**(사진, 유화 등)로 시작하세요.
 2. **구도(composition)** 및 **카메라/매체(camera/medium)**("…의 광각 촬영", "수채화…" 등)를 추가하세요.

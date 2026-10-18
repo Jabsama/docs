@@ -31,8 +31,8 @@ LibreChat 附带了内置的图像工具，您可以将其添加到 [Agent](/doc
 
 ```bash filename=".env"
 IMAGE_GEN_OAI_API_KEY=sk-your-openai-api-key
-# Optional; defaults to gpt-image-1
-IMAGE_GEN_OAI_MODEL=gpt-image-1
+# Optional; defaults to gpt-image-2.5-flare
+IMAGE_GEN_OAI_MODEL=gpt-image-2.5-flare
 ```
 
 </Step>
@@ -61,7 +61,7 @@ IMAGE_GEN_OAI_MODEL=gpt-image-1
 - **图像生成** (Image Generation) 可根据文本提示词创建全新的图像（无需上传）。
 - **图像编辑**功能可以编辑或重混您上传的图像：更改颜色、添加对象、扩展画布等。
 
-两者默认均使用 **GPT-Image-1** 来进行指令遵循、文本渲染、详细编辑和现实世界知识处理。当您的部署支持时，请使用 `IMAGE_GEN_OAI_MODEL` 来选择其他 OpenAI 图像模型。有关更多详细信息，请参阅 OpenAI 的 [Image Generation documentation](https://platform.openai.com/docs/guides/image-generation?image-generation-model=gpt-image-1)。
+两者默认均为 `gpt-image-2.5-flare`。当您的部署支持时,可使用 `IMAGE_GEN_OAI_MODEL` 选择其他 OpenAI 图像模型。OpenAI 将于 2026 年 10 月 23 日停用 `gpt-image-1`,如果您曾显式设置 `IMAGE_GEN_OAI_MODEL`,请将其从中移除。更多详情请参阅 OpenAI 的[图像生成文档](https://platform.openai.com/docs/guides/image-generation)。
 
 ### 生成与编辑 [#generation-vs-editing]
 
@@ -86,7 +86,7 @@ IMAGE_GEN_OAI_MODEL=gpt-image-1
 **图像生成**
 
 - **prompt**: 文本描述（必填）
-- **size**: `auto`（默认值）、`1024x1024`（正方形）、`1536x1024`（横向）或 `1024x1536`（纵向）
+- **size**：`auto`（默认）、`1024x1024`（正方形）、`1536x1024`（横向）或 `1024x1536`（纵向）；支持自定义尺寸的模型（例如 `gpt-image-2.5-flare`）可接受其限制范围内的任意 `WIDTHxHEIGHT`，例如 `2048x1152` 或 `3840x2160`
 - **quality**: `auto` (默认), `high`, `medium` 或 `low`
 - **background**: `auto` (默认), `transparent`, 或 `opaque` (transparent 需要 PNG 或 WebP 格式)
 
@@ -94,8 +94,12 @@ IMAGE_GEN_OAI_MODEL=gpt-image-1
 
 - **image_ids**: 用作编辑参考的图像 ID 数组（必需）
 - **prompt**: 变更的文本描述（必填）
-- **size**: `auto`（默认值）、`1024x1024`、`1536x1024`、`1024x1536`、`256x256` 或 `512x512`
+- **尺寸**:`auto`(默认),`1024x1024`,`1536x1024`,或 `1024x1536`;支持自定义分辨率的模型可接受其限制范围内的任意 `WIDTHxHEIGHT`,例如 `3840x2160`
 - **quality**: `auto` (默认), `high`, `medium` 或 `low`
+
+<Callout type="info" title="保持大尺寸">
+默认情况下,LibreChat 会缩放保存的图片,使其较短边最大为 768 像素,因此 `3840x2160` 的结果会以 1365x768 的尺寸存储。若要保留请求的尺寸,请将 [`fileConfig.imageGeneration`](/docs/configuration/librechat_yaml/object_structure/file_config#imagegeneration) 设置为 `percentage: 100`,或设置一个足够大的 `px` 上限以满足您的尺寸需求。
+</Callout>
 
 ### 设置 [#setup]
 
@@ -104,17 +108,17 @@ IMAGE_GEN_OAI_MODEL=gpt-image-1
 ```bash filename=".env"
 IMAGE_GEN_OAI_API_KEY=sk-...
 # optional extras
-IMAGE_GEN_OAI_MODEL=gpt-image-1
+IMAGE_GEN_OAI_MODEL=gpt-image-2.5-flare
 IMAGE_GEN_OAI_BASEURL=https://...
 ```
 
-对于 Azure OpenAI 部署，请先在 https://aka.ms/oai/gptimage1access 申请访问权限，然后将您的凭据添加到 `.env`：
+对于 Azure OpenAI,请先在您的 Azure OpenAI 资源中部署一个图像模型,然后将您的凭据添加到 `.env` 中。将 `IMAGE_GEN_OAI_MODEL` 设置为部署名称:
 
 ```bash filename=".env"
 IMAGE_GEN_OAI_API_KEY=your-api-key
 # optional extras
-IMAGE_GEN_OAI_MODEL=gpt-image-1
-IMAGE_GEN_OAI_BASEURL=https://deploymentname.openai.azure.com/openai/deployments/gpt-image-1/
+IMAGE_GEN_OAI_MODEL=your-deployment-name
+IMAGE_GEN_OAI_BASEURL=https://your-resource-name.openai.azure.com/openai/deployments/your-deployment-name/
 IMAGE_GEN_OAI_AZURE_API_VERSION=2025-04-01-preview
 ```
 
@@ -124,7 +128,7 @@ IMAGE_GEN_OAI_AZURE_API_VERSION=2025-04-01-preview
 
 ```bash filename=".env"
 # Image Model
-IMAGE_GEN_OAI_MODEL=gpt-image-1
+IMAGE_GEN_OAI_MODEL=gpt-image-2.5-flare
 
 # Image Generation Tool Descriptions
 IMAGE_GEN_OAI_DESCRIPTION=...
@@ -137,7 +141,7 @@ IMAGE_EDIT_OAI_PROMPT_DESCRIPTION=...
 
 ### 定价 [#pricing]
 
-请参阅 [GPT-Image-1 定价页面](https://platform.openai.com/docs/models/gpt-image-1) 和 [图像生成文档](https://platform.openai.com/docs/guides/image-generation?image-generation-model=gpt-image-1#cost-and-latency) 以了解图像生成的费用。
+请参阅 OpenAI 的 [API 定价页面](https://openai.com/api/pricing/) 和 [图像生成文档](https://platform.openai.com/docs/guides/image-generation),了解图像生成的费用。
 
 ## Gemini 图像工具 [#gemini-image-tools]
 
@@ -191,51 +195,11 @@ GEMINI_IMAGE_IDS_DESCRIPTION=...
 
 更多详细信息请参阅专门的 [Gemini Image Gen 指南](/docs/configuration/tools/gemini_image_gen)。
 
-## DALL·E (旧版) [#dalle-legacy]
-
-DALL·E 使用 OpenAI 的 `dall-e-3` 图像模型提供传统的图像生成功能。
-
-### 参数 [#parameters-2]
-
-- **prompt**: 所需图像的文本描述（必填，最多 4000 个字符）
-- **style**: `vivid`（超现实、戏剧化，默认）或 `natural`（非超现实）
-- **quality**: `standard` (默认) 或 `hd`
-- **size**: `1024x1024`（默认，正方形）、`1792x1024`（宽屏）或 `1024x1792`（竖屏）
-
-### 设置 [#setup-2]
-
-```bash filename=".env"
-# Required
-DALLE_API_KEY=sk-...  # or DALLE3_API_KEY=sk-...
-
-# Optional
-DALLE_REVERSE_PROXY=https://...  # Alternative endpoint
-DALLE3_BASEURL=https://...  # For Azure or custom endpoints
-DALLE3_AZURE_API_VERSION=2023-12-01-preview  # For Azure deployments
-DALLE3_SYSTEM_PROMPT=...  # Custom system prompt for DALL·E
-```
-
-为智能体启用 **DALL·E** 工具并开始提示。
-
-### 高级配置 [#advanced-configuration-2]
-
-对于 Azure OpenAI 部署，请配置 base URL 和 API version：
-
-```bash filename=".env"
-DALLE3_BASEURL=https://your-resource-name.openai.azure.com/openai/deployments/your-deployment-name
-DALLE3_AZURE_API_VERSION=2023-12-01-preview
-DALLE3_API_KEY=your-azure-api-key
-```
-
-### 定价 [#pricing-1]
-
-请参阅 [DALL-E 定价页面](https://platform.openai.com/docs/models/dall-e-3) 和 [图像生成文档](https://platform.openai.com/docs/guides/image-generation?image-generation-model=dall-e-3) 以了解图像生成的费用。
-
 ## Stable Diffusion (本地) [#stable-diffusion-local]
 
 完全在您自己的机器或服务器上运行图像。将 LibreChat 指向任何 Automatic1111（或兼容的）endpoint，即可完成设置。
 
-### 参数 [#parameters-3]
+### 参数 [#parameters-2]
 
 - **prompt**: 描述图像中所需元素的详细关键词（必填）
 - **negative_prompt**: 描述要从图像中排除的元素的关键词（必需）
@@ -247,7 +211,7 @@ Stable Diffusion 的实现使用了这些固定的默认参数，它们在大多
 - width: 1024
 - height: 1024
 
-### 设置 [#setup-3]
+### 设置 [#setup-2]
 
 无需 API 密钥，只需提供您 Automatic1111 WebUI 可访问的 URL：
 
@@ -266,7 +230,7 @@ SD_WEBUI_URL=http://127.0.0.1:7860  # URL to your Automatic1111 WebUI
 - 多种质量级别和长宽比
 - Raw 模式，用于生成处理痕迹更少、更自然的图像
 
-### 参数 [#parameters-4]
+### 参数 [#parameters-3]
 
 Flux 工具支持三个主要操作：
 
@@ -276,7 +240,7 @@ Flux 工具支持三个主要操作：
 
 更多详细信息请参阅专门的 [Flux 指南](/docs/configuration/tools/flux#parameters)。
 
-### 设置 [#setup-4]
+### 设置 [#setup-3]
 
 在智能体中选择 **Flux** 工具。提示词为纯文本，每次调用生成一张图像。
 
@@ -285,7 +249,7 @@ FLUX_API_KEY=flux_live_...
 FLUX_API_BASE_URL=https://api.us1.bfl.ai   # default is fine for most users
 ```
 
-### 定价 [#pricing-2]
+### 定价 [#pricing-1]
 
 请参阅 [Flux 定价页面](https://docs.bfl.ml/pricing/) 以了解图像生成的费用。
 
@@ -371,7 +335,7 @@ PROXY=http://proxy-url:port
 
 ## 提示词 (Prompting) [#prompting]
 
-您可以自定义 [OpenAI Image Tools](#advanced-configuration) 和 [DALL·E](#advanced-configuration-2) 的提示词，但以下提示说明了工具所提供的默认提示词，了解这些内容对您自己的编写工作很有帮助：
+您可以自定义 [OpenAI 图像工具](#advanced-configuration) 的提示词，但以下提示可以帮助您了解该工具提供的默认提示词，这对于编写您自己的提示词很有参考价值：
 
 1. 从**主题**和**风格**（照片、油画等）开始。
 2. 添加 **构图 (composition)** 和 **镜头/媒介 (camera/medium)**（例如：“wide-angle shot of…”、“watercolour…”）。

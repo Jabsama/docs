@@ -60,19 +60,18 @@ LibreChat 工具在 **Agent Builder** 中进行选择，并在 Agent 认为有�
 ## 当前内置工具 [#current-built-in-tools]
 
 | 工具 | 用途 | 所需配置 | 详情 |
-|------|------------|------------------------|---------|
-| OpenAI Image Tools | 使用 OpenAI 图像模型生成和编辑图像 | `IMAGE_GEN_OAI_API_KEY`；可选 `IMAGE_GEN_OAI_MODEL` | [图像生成](/docs/features/image_gen#1--openai-image-tools-recommended) |
-| Gemini Image Tools | 使用 Gemini 生成图像并结合图像上下文进行编辑 | `GEMINI_API_KEY`、`GOOGLE_KEY` 或 `GOOGLE_SERVICE_KEY_FILE`；可选 `GEMINI_IMAGE_MODEL` | [Gemini 图像生成](/docs/configuration/tools/gemini_image_gen) |
-| DALL-E-3 | 旧版 OpenAI 图像生成 | `DALLE3_API_KEY` 或 `DALLE_API_KEY` | [DALL-E](/docs/features/image_gen#3--dalle-legacy) |
-| Flux | 云端图像生成及微调图像模型 | `FLUX_API_KEY`；可选 `FLUX_API_BASE_URL` | [Flux](/docs/configuration/tools/flux) |
+|------|------|----------|------|
+| OpenAI Image Tools | 使用 OpenAI 图像模型生成和编辑图像 | `IMAGE_GEN_OAI_API_KEY`;可选 `IMAGE_GEN_OAI_MODEL` | [图像生成](/docs/features/image_gen#openai-image-tools) |
+| Gemini Image Tools | 使用 Gemini 生成图像,并结合图像上下文进行编辑 | `GEMINI_API_KEY`、`GOOGLE_KEY` 或 `GOOGLE_SERVICE_KEY_FILE`;可选 `GEMINI_IMAGE_MODEL` | [Gemini 图像生成](/docs/configuration/tools/gemini_image_gen) |
+| Flux | 云端图像生成和微调图像模型 | `FLUX_API_KEY`;可选 `FLUX_API_BASE_URL` | [Flux](/docs/configuration/tools/flux) |
 | Stable Diffusion | 通过 Automatic1111 进行本地或自托管图像生成 | `SD_WEBUI_URL` | [Stable Diffusion](/docs/configuration/tools/stable_diffusion) |
 | Google Search | 为智能体提供 Google 自定义搜索结果 | `GOOGLE_SEARCH_API_KEY` 和 `GOOGLE_CSE_ID` | [Google Search](/docs/configuration/tools/google_search) |
-| Tavily Search | 针对智能体优化的实时网络搜索结果 | `TAVILY_API_KEY` | [Tavily Search](/docs/configuration/tools/tavily) |
+| Tavily Search | 为智能体优化的实时网络搜索结果 | `TAVILY_API_KEY` | [Tavily Search](/docs/configuration/tools/tavily) |
 | Traversaal | 带有来源的 AI 搜索结果 | `TRAVERSAAL_API_KEY` | [Traversaal](/docs/configuration/tools/traversaal) |
-| Azure AI Search | 搜索私有 Azure AI Search 索引 | `AZURE_AI_SEARCH_SERVICE_ENDPOINT`、`AZURE_AI_SEARCH_INDEX_NAME`、`AZURE_AI_SEARCH_API_KEY` | [Azure AI Search](/docs/configuration/tools/azure_ai_search) |
-| OpenWeather | 当前、预报、历史及每日天气数据 | `OPENWEATHER_API_KEY` | [OpenWeather](/docs/configuration/tools/openweather) |
-| Wolfram\|Alpha | 数学、计算、单位、精选知识及实时数据 | `WOLFRAM_APP_ID` | [Wolfram\|Alpha](/docs/configuration/tools/wolfram) |
-| Calculator | 基础及复杂计算 | 无 | [Calculator](/docs/configuration/tools/calculator) |
+| Azure AI Search | 搜索私有的 Azure AI Search 索引 | `AZURE_AI_SEARCH_SERVICE_ENDPOINT`、`AZURE_AI_SEARCH_INDEX_NAME`、`AZURE_AI_SEARCH_API_KEY` | [Azure AI Search](/docs/configuration/tools/azure_ai_search) |
+| OpenWeather | 当前、预报、历史和每日天气数据 | `OPENWEATHER_API_KEY` | [OpenWeather](/docs/configuration/tools/openweather) |
+| Wolfram\|Alpha | 数学、计算、单位换算、精选知识和实时数据 | `WOLFRAM_APP_ID` | [Wolfram\|Alpha](/docs/configuration/tools/wolfram) |
+| Calculator | 基础和复杂计算 | 无 | [Calculator](/docs/configuration/tools/calculator) |
 
 ## 创建自定义工具 [#creating-custom-tools]
 
