@@ -13,6 +13,7 @@ description: 'LibreChat에서 캐싱, 세션 저장소 및 수평적 확장을 �
 - [보안 구성](#security-configuration)
 - [고급 옵션](#advanced-options)
 - [복제본 장애 조치 복구](#replica-failover-recovery)
+- [Health Checks](#health-checks)
 - [성능 튜닝](#performance-tuning)
 - [구성 예시](#configuration-examples)
 - [재개 가능한 스트림](#resumable-streams)
@@ -234,6 +235,35 @@ REDIS_READONLY_RECOVERY_INTERVAL=5000
 ```
 
 이 간격은 쓰기 실패가 급증하는 동안 재연결 시도를 디바운스(debounce)합니다. Redis Cluster 클라이언트는 네이티브 클러스터 토폴로지 및 리다이렉트 처리를 사용하므로 제외됩니다.
+
+### Health Checks [#health-checks]
+
+LibreChat serves three probe endpoints. Only `/readyz` reflects Redis:
+
+| Endpoint | Returns `200 OK` | Returns `503 NOT_READY` |
+| --- | --- | --- |
+| `/livez` | Whenever the process is serving requests | Never |
+| `/health` | Whenever the process is serving requests | Never |
+| `/readyz` | After startup completes and, with `USE_REDIS=true`, while Redis is connected | Before startup completes, or while Redis is enabled but disconnected |
+
+When Redis restarts, fails over, or becomes unreachable for longer than the client's retry window, requests that depend on it (sign-in, sessions, rate limits) fail until the connection returns. During that time `/readyz` answers `503`, so a load balancer or Kubernetes readiness probe stops routing traffic to the instance. It returns to `200` as soon as Redis reconnects, without a restart. With Redis enabled, every Redis client must be connected; for a Redis Cluster, that includes every primary node.
+
+Point readiness checks at `/readyz` and liveness checks at `/livez`. Keep Redis out of the liveness check: a liveness probe that fails during a Redis outage restarts every pod at once and cannot bring Redis back.
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /livez
+    port: 3080
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: 3080
+  periodSeconds: 10
+  failureThreshold: 3
+```
+
+`/readyz` does not wait out short reconnects on its own, so use `failureThreshold` to decide how long an outage lasts before traffic is withdrawn.
 
 ### 선택적 인메모리 캐싱 [#selective-in-memory-caching]
 
