@@ -1617,13 +1617,13 @@ Die Fallback-Variablen werden nur verwendet, wenn `pullRequests.token` nicht ges
     [
       'BITBUCKET_PULL_REQUEST_TOKEN',
       'string',
-      'Ausstehend. Fallback-Zugriffstoken für Bitbucket Cloud-Repository, -Projekt oder -Workspace mit Lesezugriff auf Pull Requests und Repositories.',
+      'Fallback-Bitbucket-Cloud-Repository-, Projekt- oder Workspace-Zugriffstoken mit Lesezugriff auf Pull Requests und Repositories.',
       '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'Die Variable, auf die sich `pullRequests.token: "${NAME}"` bezieht. Wird auch für `pullRequests.oauth.clientId` und `clientSecret` (ausstehend) verwendet, bei denen es sich ebenfalls um Referenzen handelt.',
+      'Die Variable, auf die `pullRequests.token: "${NAME}"` verweist. Wird auch für `pullRequests.oauth.clientId` und `clientSecret` verwendet, die ebenfalls Verweise sind.',
       '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
@@ -1635,7 +1635,7 @@ Die Fallback-Variablen werden nur verwendet, wenn `pullRequests.token` nicht ges
   ]}
 />
 
-Benutzer, die ihr eigenes Konto verbinden (ausstehend), benötigen `JWT_SECRET`, welches den Verbindungsvorgang signiert, sowie `DOMAIN_SERVER`, das die Callback-URL `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` bildet. `pullRequests.sharedCache` (ausstehend) wird nur wirksam, wenn `USE_REDIS=true` gesetzt ist.
+Benutzer, die ihr eigenes Konto verbinden, benötigen `JWT_SECRET`, das den Verbindungsablauf signiert, sowie `DOMAIN_SERVER`, das die Callback-URL `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` bildet. `pullRequests.sharedCache` wird nur mit `USE_REDIS=true` wirksam.
 
 Anbieteranfragen verwenden die Proxy-Einstellungen der Bereitstellung (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` sowie deren kleingeschriebene Varianten), wobei `NO_PROXY` berücksichtigt wird. Diese werden mit anderem ausgehenden Datenverkehr von LibreChat geteilt und sind nicht spezifisch für diese Funktion.
 

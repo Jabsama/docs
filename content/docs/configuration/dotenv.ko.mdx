@@ -1616,13 +1616,13 @@ GitHub, GitLab 또는 Bitbucket Cloud에서 대화의 풀 리퀘스트를 표시
     [
       'BITBUCKET_PULL_REQUEST_TOKEN',
       'string',
-      '대기 중. 풀 리퀘스트 및 리포지토리에 대한 읽기 권한이 있는 Bitbucket Cloud 리포지토리, 프로젝트 또는 워크스페이스 액세스 토큰(대체용).',
+      'Bitbucket Cloud 저장소, 프로젝트 또는 워크스페이스 액세스 토큰(풀 리퀘스트 및 저장소에 대한 읽기 권한 포함)을 대체 수단으로 사용합니다.',
       '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      '`pullRequests.token: "${NAME}"`가 참조하는 변수입니다. 또한 참조이기도 한 `pullRequests.oauth.clientId` 및 `clientSecret`(보류 중)에도 사용됩니다.',
+      '`pullRequests.token: "${NAME}"`가 참조하는 변수입니다. `pullRequests.oauth.clientId`와 `clientSecret`에도 사용되며, 이들 역시 참조입니다.',
       '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
@@ -1634,7 +1634,7 @@ GitHub, GitLab 또는 Bitbucket Cloud에서 대화의 풀 리퀘스트를 표시
   ]}
 />
 
-자신의 계정을 연결하는 사용자(대기 중)는 연결 흐름을 서명하는 `JWT_SECRET`과 콜백 URL인 `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`을 구성하는 `DOMAIN_SERVER`가 필요합니다. `pullRequests.sharedCache`(대기 중)는 `USE_REDIS=true`일 때만 적용됩니다.
+사용자가 자신의 계정을 연결하려면 연결 흐름에 서명하는 `JWT_SECRET`과, `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` 형태의 콜백 URL을 구성하는 `DOMAIN_SERVER`가 필요합니다. `pullRequests.sharedCache`는 `USE_REDIS=true`로 설정된 경우에만 적용됩니다.
 
 공급자 요청은 배포의 프록시 설정(`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` 및 해당 소문자 형태)을 사용하며, `NO_PROXY`가 적용됩니다. 이러한 설정은 다른 LibreChat 아웃바운드 트래픽과 공유되며 이 기능에만 국한되지 않습니다.
 

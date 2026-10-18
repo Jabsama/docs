@@ -550,14 +550,12 @@ Event Actor detached Action completion 会自动从内置生成存储中选择�
 
 ## pullRequests
 
-{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
-
 在聊天标题和侧边栏中显示对话所关联代码工作区的拉取请求（GitLab 上称为合并请求）。有关设置、行为和故障排除，请参阅 [Conversation Pull Requests](/docs/features/pull_requests)。每个键都是可选的。
 
 一旦服务器拥有 token 和 repository 范围，该功能即刻启用，或者用户可以通过 `oauth` 连接他们自己的账户。大多数管理员仅设置 repository 范围和 token，并在非 github.com 环境下额外设置 `provider` 和 `host`。调整键（tuning keys）的默认值即可满足需求。
 
 <Callout type="info" title="仅从 librechat.yaml 读取">
-  `provider`、`host` 和 `oauth` 仅从 `librechat.yaml` 中读取。这些键的 Role、group、user 和 tenant 配置覆盖将被忽略，因此覆盖配置无法将令牌重定向到其他服务。
+  `provider`、`host`、`oauth` 和 `sharedCacheSlots` 仅从 `librechat.yaml` 中读取。这些键的角色、用户组、用户及租户级配置覆盖均被忽略,因此覆盖配置无法将令牌重定向到其他服务,并且每个副本都会访问相同的共享缓存槽位。
 </Callout>
 
 <OptionTable
@@ -571,7 +569,7 @@ Event Actor detached Action completion 会自动从内置生成存储中选择�
     [
       'provider',
       'String',
-      '`github`（默认），`gitlab` 用于 gitlab.com 或自托管 GitLab 上的合并请求，或 `bitbucket` 用于 Bitbucket Cloud（待定）。仅从 YAML 读取。',
+      '`github`(默认)、`gitlab`(用于 gitlab.com 或自托管 GitLab 上的合并请求),或 `bitbucket`(用于 Bitbucket Cloud)。仅从 YAML 中读取。',
       'provider: "gitlab"',
     ],
     [
@@ -589,7 +587,7 @@ Event Actor detached Action completion 会自动从内置生成存储中选择�
     [
       'oauth',
       'Object',
-      '待定。允许每个用户连接自己的账户，以便查询时使用该用户的令牌、速率限制和仓库访问权限。仅从 YAML 读取。请参阅下方的 [oauth](#pullrequestsoauth)。',
+      '让每位用户连接各自的账户,使查询使用该用户自己的令牌、速率限制和仓库访问权限。仅从 YAML 中读取。参见下文的 [oauth](#pullrequestsoauth)。',
       'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
@@ -673,14 +671,20 @@ Event Actor detached Action completion 会自动从内置生成存储中选择�
     [
       'sharedCache',
       'Boolean',
-      'Pending. Share looked-up pull requests and rate limit cooldowns between replicas through Redis. Takes effect only with `USE_REDIS`; each replica keeps its own in-memory cache either way. Default: `false`.',
+      '通过 Redis 在各副本之间共享已查询的 Pull Request 和速率限制冷却时间。仅在设置 `USE_REDIS` 时生效;无论如何,每个副本都会保留各自的内存缓存。默认值:`false`。',
       'sharedCache: true',
     ],
     [
       'sharedCacheTimeoutMs',
       'Number',
-      '待定。共享缓存读取或写入操作在查找继续进行而不等待其完成前可能花费的最长时间（以毫秒为单位，范围 10-5000）。默认值：250。',
+      '最长单次共享缓存读取或写入耗时(以毫秒为单位),超过此时间后查询将在不使用缓存的情况下继续进行(10-5000)。默认值:250。',
       'sharedCacheTimeoutMs: 250',
+    ],
+    [
+      'sharedCacheSlots',
+      'Number',
+      '共享缓存使用的大多数 Redis 键，一次用于结果，一次用于速率限制冷却时间（64-1000000）。新条目会替换其插槽中的现有条目。仅从 YAML 中读取。默认值：65536。',
+      'sharedCacheSlots: 65536',
     ],
   ]}
 />
@@ -703,7 +707,7 @@ endpoints:
 
 ### pullRequests.oauth
 
-待定。允许每个用户在 **Settings > Account > Pull request account** 下连接自己的账户。已连接用户的查询将使用其自己的令牌，且不受 `allowedRepositories` 的限制；未连接的用户将继续使用服务器令牌。请将 `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` 注册为应用程序的回调 URL。在 GitHub 上，建议创建一个具有只读 Pull requests、Checks 和 Contents 权限的 GitHub App。请参阅 [Per-user accounts](/docs/features/pull_requests#per-user-accounts)。
+允许每位用户在 **设置 > 账户 > Pull request 账户** 下连接自己的账户。已连接的用户在查询时使用其自己的令牌,且不受 `allowedRepositories` 限制;未连接的用户继续使用服务器令牌。请将 `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` 注册为应用的回调 URL。在 GitHub 上,建议使用具有只读 Pull requests、Checks 和 Contents 权限的 GitHub App。参见 [按用户账户](/docs/features/pull_requests#per-user-accounts)。
 
 <OptionTable
   options={[

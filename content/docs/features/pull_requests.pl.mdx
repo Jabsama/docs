@@ -8,10 +8,6 @@ description: >-
 ---
 
 {/*
-  Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988), per-user
-  accounts through `oauth` (#16989) and the "Pull request account" setting (#16990). Delete the
-  Pending markers once each merges to dev, and re-check the schema in
-  packages/data-provider/src/config.ts.
   TODO(maintainer): first release version for each part (do not guess).
   TODO(maintainer): requirement 4 (where an admin sets the workspace environment's repository).
   Add it to "Requirements" once confirmed.
@@ -19,10 +15,10 @@ description: >-
 
 Gdy czat uruchamia kod w podłączonym obszarze roboczym, proces roboczy (worker) zgłasza gałąź git oraz commit, na którym się znajduje. LibreChat używa tej gałęzi, aby znaleźć pasujący pull request (merge request w GitLabie), przy użyciu tokena przechowywanego na serwerze lub na połączonym koncie użytkownika, i wyświetla go w dwóch miejscach:
 
-- **Nagłówek czatu**: chip z ikoną pull request i kropką CI. Najechanie kursorem lub ustawienie fokusu otwiera kartę.
+- **Nagłówek czatu**: znacznik z ikoną pull request, kropką CI oraz tytułem pull requesta. Najechanie kursorem lub ustawienie fokusu na nim otwiera kartę.
 - **Lista konwersacji na pasku bocznym**: ta sama ikona i kropka CI na końcu wiersza. Wiersz zachowuje własny tytuł konwersacji; tytuł pull requesta pojawia się tylko na karcie.
 
-Pull requests mogą pochodzić z GitHub (domyślnie), GitLab lub Bitbucket Cloud (**Oczekujące**). Jedno wdrożenie korzysta z jednego dostawcy.
+Pull requesty mogą pochodzić z GitHub (domyślnie), GitLab lub Bitbucket Cloud. Jedno wdrożenie korzysta z jednego dostawcy.
 
 ## Wymagania [#requirements]
 
@@ -42,11 +38,11 @@ Wyjątkiem jest `token`, który jest ustawiony, ale którego zmienna środowisko
 
 `provider` wybiera, gdzie znajdują się pull requesty:
 
-| `provider`         | Usługa                                                                                                    | Domyślny `host` |
+| `provider` | Usługa | Domyślny `host` |
 | ------------------ | --------------------------------------------------------------------------------------------------------- | --------------- |
-| `github` (domyślny) | GitHub.com, GitHub Enterprise Server lub dzierżawca rezydencji danych GitHub Enterprise Cloud (`*.ghe.com`) | `github.com`    |
-| `gitlab`           | Merge requests na gitlab.com lub własnej instancji GitLab                                                 | `gitlab.com`    |
-| `bitbucket`        | Tylko Bitbucket Cloud (**Oczekujące**)                                                                     | `bitbucket.org` |
+| `github` (domyślny) | GitHub.com, GitHub Enterprise Server lub dzierżawa rezydencji danych GitHub Enterprise Cloud (`*.ghe.com`) | `github.com` |
+| `gitlab` | Merge requesty na gitlab.com lub samodzielnie hostowanym GitLab | `gitlab.com` |
+| `bitbucket` | Wyłącznie Bitbucket Cloud | `bitbucket.org` |
 
 Ustaw `host` tylko dla GitHub Enterprise Server, tenanta `*.ghe.com` lub własnej instancji GitLab:
 
@@ -86,7 +82,7 @@ Token serwera jest używany dla każdego użytkownika, który nie połączył w�
 
 **GitLab**: osobisty token dostępu, token dostępu do grupy lub projektu z zakresem `read_api`.
 
-**Bitbucket Cloud** (**Oczekujące**): token dostępu do repozytorium, projektu lub obszaru roboczego, wysyłany jako token typu bearer. LibreChat odczytuje pull requesty, ich diffstat, statusy commitów oraz bazy scalania (merge bases), więc należy przyznać uprawnienia do odczytu pull requestów i repozytoriów.
+**Bitbucket Cloud**: token dostępu do repozytorium, projektu lub workspace'u, przesyłany jako token bearer. LibreChat odczytuje pull requesty, ich diffstat, statusy commitów oraz merge bases, więc przyznaj uprawnienia do odczytu pull requestów i repozytoriów.
 
 ### 3. Przekaż token do LibreChat [#3-give-librechat-the-token]
 
@@ -95,11 +91,11 @@ LibreChat szuka tokena w następującej kolejności:
 1. `token: "${MY_VAR}"` w `librechat.yaml`. Jest to **odwołanie** do zmiennej środowiskowej; plik YAML nigdy nie przechowuje samego tokenu, a dosłowny token jest odrzucany przez schemat.
 2. Jeśli `token` nie jest ustawiony, użyta zostanie pierwsza z poniższych zmiennych środowiskowych, która jest ustawiona:
 
-| Dostawca  | Zmienne rezerwowe, w kolejności                           |
+| Dostawca | Zmienne zapasowe, w kolejności |
 | --------- | --------------------------------------------------------- |
-| GitHub    | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`   |
-| GitLab    | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN`               |
-| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` (**Oczekujące**)           |
+| GitHub | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN` |
+| GitLab | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN` |
+| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` |
 
 3. Brak tokena w jakimkolwiek miejscu: funkcja pozostaje nieaktywna, chyba że użytkownicy mogą połączyć własne konta.
 
@@ -148,7 +144,7 @@ endpoints:
       allowedRepositories: ['platform/*']
 ```
 
-Bitbucket Cloud (**Oczekujące**), z ustawionym `BITBUCKET_PULL_REQUEST_TOKEN`:
+Bitbucket Cloud, z ustawioną zmienną `BITBUCKET_PULL_REQUEST_TOKEN`:
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -161,10 +157,6 @@ endpoints:
 Zobacz odniesienie [`pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests), aby poznać każdy klucz.
 
 ## Konta dla poszczególnych użytkowników [#per-user-accounts]
-
-<Callout type="important" title="Oczekujące: jeszcze niewydane">
-  Konta dla poszczególnych użytkowników są częścią LibreChat-AI/LibreChat#16989 oraz #16990.
-</Callout>
 
 Gdy opcja `oauth` jest ustawiona, każdy użytkownik może połączyć swoje własne konto GitHub, GitLab lub Bitbucket w **Ustawienia > Konto**, w sekcji **Konto pull request**. Ich wyszukiwania będą wtedy wykonywane przy użyciu ich własnego tokena, limitu zapytań i dostępu do repozytorium, zamiast tych przypisanych do serwera.
 
@@ -290,15 +282,12 @@ Zapisz, a następnie skopiuj **Key** (klucz) i **Secret** (sekret) konsumenta do
 
 ## Skalowanie za pomocą replik [#scaling-with-replicas]
 
-<Callout type="important" title="Oczekujące: jeszcze niewydane">
-  `sharedCache` jest częścią LibreChat-AI/LibreChat#16988.
-</Callout>
-
 Każda replika buforuje wyniki w pamięci. W przypadku kilku replik należy ustawić `sharedCache: true`, aby współdzieliły one wyszukane żądania pull request oraz limity szybkości (rate limit cooldowns) za pośrednictwem Redis, dzięki czemu każda z nich nie zużywa tokenów na tę samą odpowiedź.
 
 - Wchodzi w życie tylko wtedy, gdy wdrożenie działa z Redis (`USE_REDIS`). Domyślnie: `false`.
 - Każda replika utrzymuje własną pamięć podręczną w pamięci RAM, niezależnie od tego, przed współdzieloną pamięcią podręczną.
 - `sharedCacheTimeoutMs` (10-5000, domyślnie 250) ogranicza czas każdego odczytu lub zapisu w pamięci podręcznej współdzielonej. Wolniejszy Redis jest pomijany, a wyszukiwanie jest kontynuowane bez niego.
+- `sharedCacheSlots` (64-1000000, domyślnie 65536) ogranicza liczbę kluczy Redis używanych przez współdzielony cache. Odczytywane wyłącznie z pliku YAML.
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -331,37 +320,85 @@ Wartości domyślne są odpowiednie dla większości wdrożeń.
 
 ### Chip nagłówka czatu [#chat-header-chip]
 
-- **Desktop**: chip znajduje się po lewej stronie nagłówka, obok innych kontrolek po lewej stronie. Najechanie na niego kursorem lub ustawienie na nim fokusu otwiera kartę po jego prawej stronie.
-- **Mobile**: wpis znajduje się w menu przepełnienia nagłówka (trzy kropki) i otwiera okno dialogowe.
+- **Desktop**: chip znajduje się po lewej stronie nagłówka, obok innych elementów sterujących po lewej. Pokazuje ikonę pull requesta z kropką CI w rogu, a następnie tytuł pull requesta. Najechanie kursorem lub ustawienie fokusu na nim otwiera kartę pod nim, a karta pozostaje otwarta, dopóki kursor lub fokus klawiatury znajduje się w jej obrębie.
+- **Mobile**: nie ma tu chipa. Menu rozwijane nagłówka (trzy kropki) zawiera pozycję `PR #number` (`MR !number` w GitLab), która otwiera tę samą kartę w oknie dialogowym.
 - Nagłówek odświeża się samoczynnie: mniej więcej co 20 sekund, gdy trwają testy lub obliczana jest możliwość scalenia, w przeciwnym razie mniej więcej co 60 sekund, a wcale, gdy pull request zostanie scalony lub zamknięty bez uruchomionych testów.
+
+<ThemeImage
+  light="/images/pull-requests/hdr-ready-light.png"
+  dark="/images/pull-requests/hdr-ready-dark.png"
+  alt="Chip nagłówka czatu dla otwartego pull requesta, który można scalić, z przechodzącymi sprawdzeniami, oraz jego karta otwarta poniżej."
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-menu-light.png"
+  dark="/images/pull-requests/mob-menu-dark.png"
+  alt="Wpis PR #1234 w menu przepełnienia nagłówka na małym ekranie"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-dialog-light.png"
+  dark="/images/pull-requests/mob-dialog-dark.png"
+  alt="Karta pull requesta wyświetlana w oknie dialogowym na małym ekranie"
+/>
 
 ### Znacznik paska bocznego [#sidebar-mark]
 
-- Ikona pull request z kropką CI znajduje się na końcu wiersza konwersacji. Pojawia się ona tylko w przypadku konwersacji, które posiadają pull request.
-- Najechanie kursorem, skupienie (focus) lub kliknięcie otwiera tę samą kartę po prawej stronie znacznika. Kliknięcie znacznika nie otwiera konwersacji.
+- Ikona pull requestu wraz z kropką CI znajduje się na końcu wiersza rozmowy. Pojawia się wyłącznie przy rozmowach, które mają pull request.
+- Najechanie kursorem na dowolne miejsce w wierszu, ustawienie fokusu lub kliknięcie znacznika otwiera tę samą kartę po prawej stronie znacznika. Kliknięcie znacznika nie otwiera rozmowy.
 - Pasek boczny nigdy nie odpytuje serwera. Wiersz jest tak aktualny, jak przy ostatnim załadowaniu listy, a odświeża się, gdy okno odzyskuje fokus, a jego dane mają więcej niż minutę.
 - Jeśli wyszukiwanie nie powiedzie się, wiersz wyświetli ikonę ostrzeżenia z przyciskiem ponowienia próby w swojej karcie, dzięki czemu błąd nie zostanie pomylony z „brakiem pull requesta”.
+
+<ThemeImage
+  light="/images/pull-requests/side-rows-light.png"
+  dark="/images/pull-requests/side-rows-dark.png"
+  alt="Wiersze paska bocznego z oznaczeniami żądań ściągnięcia: gotowe do scalenia, konflikty z nieudanymi sprawdzeniami, wersja robocza z trwającymi sprawdzeniami oraz scalone żądanie ściągnięcia"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/side-card-light.png"
+  dark="/images/pull-requests/side-card-dark.png"
+  alt="Karta żądania ściągnięcia otwarta po prawej stronie wiersza paska bocznego"
+/>
 
 ### Karta [#the-card]
 
 Karta pokazuje `PR #number` (`MR !number` na GitLab), `+additions` na zielono, `-deletions` na czerwono, link **Open in GitHub**, **Open in GitLab** lub **Open in Bitbucket**, tytuł oraz dwie odznaki:
 
-- **Stan**: Open, Draft, Merged lub Closed.
-- **Checks**: Passing (Zakończone powodzeniem), Failing (Zakończone niepowodzeniem), Running (W trakcie) lub brak. W serwisie GitLab jest to główny potok (pipeline), liczony tylko wtedy, gdy został uruchomiony dla bieżącego zatwierdzenia (commit). W serwisie Bitbucket są to statusy zatwierdzeń (commit statuses).
-
-{/* TODO(docs): add the screenshots from LibreChat PRs #16794 and #16815. */}
+- **Stan**: Open, Conflicts, Draft, Merged lub Closed. Status Conflicts zastępuje Open, gdy otwarty pull request ma konflikty scalania.
+- **Sprawdzenia**: Passing, Failing, Running lub None. W GitLab jest to pipeline główny (head pipeline), uwzględniany tylko wtedy, gdy został uruchomiony dla bieżącego commita head. W Bitbucket są to statusy commitów.
 
 ### Znaczenie ikony i kropki [#icon-and-dot-meaning]
 
 | Sytuacja | Kolor ikony | Kropka CI |
-| --------------------------------------- | ------------------------- | ------------------------------------- |
-| Otwarte, brak konfliktów, testy zaliczone | Zielony (gotowe do scalenia) | Zielony |
-| Otwarte, brak konfliktów, brak testów | Zielony | Brak |
-| Otwarte, konflikty scalania | Czerwony (nie można scalić) | Według testów |
-| Wersja robocza (Draft) | Neutralny | Według testów |
-| Scalone lub zamknięte | Neutralny | Brak (bursztynowy, gdy testy nadal trwają) |
+| -------- | ----------- | --------- |
+| Otwarta, bez konfliktów, kontrole zakończone powodzeniem | Zielony (gotowy do scalenia) | Zielona |
+| Otwarta, bez konfliktów, brak jakichkolwiek kontroli | Zielony | Brak |
+| Otwarta, trwa obliczanie możliwości scalenia | Neutralny | Zgodnie z kontrolami |
+| Otwarta, konflikty scalania | Czerwony (nie można scalić) | Zgodnie z kontrolami |
+| Wersja robocza | Neutralny | Zgodnie z kontrolami |
+| Scalona | Fioletowy | Brak |
+| Zamknięta | Neutralny | Brak |
 
-Kolory kropek CI: zielony dla zaliczonych, czerwony dla niezaliczonych, bursztynowy dla uruchomionych oraz brak koloru, gdy nie ma żadnych testów lub gdy pull request został scalony lub zamknięty i żadne testy nie są już uruchomione. Nieudany test ma wyższy priorytet niż test w trakcie działania. Podsumowanie z większą liczbą uruchomionych testów niż odczytano nigdy nie jest zgłaszane jako zaliczone.
+Kropki CI: zielona dla zakończonych pomyślnie, czerwona dla zakończonych niepowodzeniem, bursztynowa dla uruchomionych. Kropka nie jest wyświetlana, gdy brak sprawdzeń lub gdy pull request został scalony albo zamknięty. Niepowodzenie sprawdzenia ma pierwszeństwo przed sprawdzeniem nadal trwającym. Zbiorcze zestawienie z większą liczbą uruchomień sprawdzeń niż odczytanych nigdy nie jest raportowane jako zakończone pomyślnie.
+
+<ThemeImage
+  light="/images/pull-requests/hdr-conflict-light.png"
+  dark="/images/pull-requests/hdr-conflict-dark.png"
+  alt="Otwarte pull request z konfliktami scalania: czerwona ikona, czerwona kropka dla nieudanych sprawdzeń oraz odznaki Conflicts i Failing"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-draft-light.png"
+  dark="/images/pull-requests/hdr-draft-dark.png"
+  alt="Szkic pull requesta: neutralna ikona, bursztynowa kropka podczas uruchamiania sprawdzeń"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-merged-light.png"
+  dark="/images/pull-requests/hdr-merged-dark.png"
+  alt="Scalona pull request: fioletowa ikona i brak kropki"
+/>
 
 ## Jak dopasowywany jest pull request [#how-a-pull-request-is-matched]
 
@@ -441,7 +478,7 @@ Obie poniższe trasy `/api/convos` wymagają uwierzytelnionego użytkownika i s�
 - **200**: `{ "results": [ { "conversationId", "pullRequest" } | { "conversationId", "error": { "code" } } ] }`, w kolejności zapytań. Jedno nieudane wyszukiwanie nie ukrywa pozostałych.
 - Brakujący token powoduje niepowodzenie tylko tych wpisów, które go wymagały.
 
-### Połączenie konta (**Oczekujące**) [#account-connection-pending]
+### Połączenie konta [#account-connection]
 
 Te trasy istnieją tylko wtedy, gdy ustawiono `JWT_SECRET`. Wszystkie, z wyjątkiem callback, wymagają uwierzytelnionego użytkownika.
 
@@ -457,6 +494,6 @@ Te trasy istnieją tylko wtedy, gdy ustawiono `JWT_SECRET`. Wszystkie, z wyjątk
 - `pullRequestsEnabled` (wartość logiczna)
 - `pullRequestsBatchVersion` (`1`, obecne tylko przy włączonej funkcji)
 - `pullRequestsMaxConcurrentLookups` (liczba, obecna tylko przy włączonej funkcji)
-- `pullRequestsConnect` (`github`, `gitlab` lub `bitbucket`, obecne tylko wtedy, gdy użytkownicy mogą połączyć własne konto; **Oczekujące**)
+- `pullRequestsConnect` (`github`, `gitlab` lub `bitbucket`, obecne tylko wtedy, gdy użytkownicy mogą połączyć własne konto)
 
 Tylko kody błędów wymienione powyżej są stabilne.

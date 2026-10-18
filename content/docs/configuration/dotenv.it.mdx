@@ -1617,13 +1617,13 @@ Le variabili di fallback vengono utilizzate solo quando `pullRequests.token` non
     [
       'BITBUCKET_PULL_REQUEST_TOKEN',
       'string',
-      'In sospeso. Token di accesso al repository, al progetto o all\'area di lavoro di Bitbucket Cloud di fallback con accesso in lettura a pull request e repository.',
+      'Token di accesso di fallback di Bitbucket Cloud per repository, progetto o workspace con accesso in lettura alle pull request e ai repository.',
       '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'La variabile a cui fa riferimento `pullRequests.token: "${NAME}"`. Utilizzata anche per `pullRequests.oauth.clientId` e `clientSecret` (in sospeso), che sono anch\'essi dei riferimenti.',
+      'La variabile a cui fa riferimento `pullRequests.token: "${NAME}"`. Viene usata anche per `pullRequests.oauth.clientId` e `clientSecret`, che sono anch\'essi riferimenti.',
       '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
@@ -1635,7 +1635,7 @@ Le variabili di fallback vengono utilizzate solo quando `pullRequests.token` non
   ]}
 />
 
-Gli utenti che collegano il proprio account (In sospeso) necessitano di `JWT_SECRET`, che firma il flusso di connessione, e `DOMAIN_SERVER`, che forma l'URL di callback `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` (In sospeso) ha effetto solo con `USE_REDIS=true`.
+Gli utenti che collegano il proprio account necessitano di `JWT_SECRET`, che firma il flusso di connessione, e di `DOMAIN_SERVER`, che forma l'URL di callback `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` ha effetto solo con `USE_REDIS=true`.
 
 Le richieste del provider utilizzano le impostazioni proxy della distribuzione (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` e le loro forme minuscole), e `NO_PROXY` viene rispettato. Queste sono condivise con altro traffico in uscita di LibreChat e non sono specifiche per questa funzionalità.
 

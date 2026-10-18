@@ -550,14 +550,12 @@ Event Actor detached Action completion được chọn tự động từ kho lư
 
 ## pullRequests
 
-{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
-
 Hiển thị pull request (merge request trên GitLab) cho không gian làm việc mã nguồn được đính kèm của một cuộc trò chuyện trong tiêu đề trò chuyện và thanh bên. Xem [Conversation Pull Requests](/docs/features/pull_requests) để biết cách thiết lập, hành vi và khắc phục sự cố. Mọi khóa đều là tùy chọn.
 
 Tính năng này sẽ được bật ngay khi máy chủ có token và phạm vi repository, hoặc người dùng có thể kết nối tài khoản của riêng họ thông qua `oauth`. Hầu hết các quản trị viên chỉ thiết lập phạm vi repository và token, cùng với `provider` và `host` khi không sử dụng github.com. Các giá trị mặc định của các khóa tinh chỉnh (tuning keys) đã là phù hợp.
 
 <Callout type="info" title="Chỉ đọc từ librechat.yaml">
-  `provider`, `host` và `oauth` chỉ được đọc từ `librechat.yaml`. Các cấu hình ghi đè (override) cho vai trò, nhóm, người dùng và đối tượng thuê (tenant) của các khóa này sẽ bị bỏ qua, do đó việc ghi đè không thể chuyển hướng token sang một dịch vụ khác.
+  `provider`, `host`, `oauth` và `sharedCacheSlots` chỉ được đọc từ `librechat.yaml`. Các ghi đè cấu hình theo vai trò, nhóm, người dùng hoặc tenant đối với các khóa này sẽ bị bỏ qua, nhờ đó một ghi đè không thể chuyển hướng token sang dịch vụ khác, và mọi replica đều truy cập cùng các shared cache slot.
 </Callout>
 
 <OptionTable
@@ -571,7 +569,7 @@ Tính năng này sẽ được bật ngay khi máy chủ có token và phạm vi
     [
       'provider',
       'String',
-      '`github` (mặc định), `gitlab` cho các yêu cầu hợp nhất (merge requests) trên gitlab.com hoặc GitLab tự quản lý, hoặc `bitbucket` cho Bitbucket Cloud (Đang chờ xử lý). Chỉ đọc từ YAML.',
+      '`github` (mặc định), `gitlab` cho merge request trên gitlab.com hoặc GitLab tự quản lý, hoặc `bitbucket` cho Bitbucket Cloud. Chỉ đọc từ YAML.',
       'provider: "gitlab"',
     ],
     [
@@ -589,7 +587,7 @@ Tính năng này sẽ được bật ngay khi máy chủ có token và phạm vi
     [
       'oauth',
       'Object',
-      'Đang chờ xử lý. Cho phép mỗi người dùng kết nối tài khoản riêng của họ, để các tra cứu sử dụng token, giới hạn tốc độ và quyền truy cập kho lưu trữ của người dùng đó. Chỉ đọc từ YAML. Xem [oauth](#pullrequestsoauth) bên dưới.',
+      'Cho phép mỗi người dùng kết nối tài khoản riêng, nhờ đó các truy vấn sử dụng token, giới hạn tốc độ và quyền truy cập kho lưu trữ của chính người dùng đó. Chỉ đọc từ YAML. Xem [oauth](#pullrequestsoauth) bên dưới.',
       'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
@@ -673,14 +671,20 @@ Tính năng này sẽ được bật ngay khi máy chủ có token và phạm vi
     [
       'sharedCache',
       'Boolean',
-      'Đang chờ xử lý. Chia sẻ các pull request đã tra cứu và thời gian chờ giới hạn tốc độ giữa các bản sao thông qua Redis. Chỉ có hiệu lực khi dùng `USE_REDIS`; mỗi bản sao vẫn giữ bộ nhớ đệm trong RAM riêng. Mặc định: `false`.',
+      'Chia sẻ các yêu cầu kéo (pull request) đã tra cứu và thời gian chờ giới hạn tốc độ (rate limit cooldown) giữa các replica thông qua Redis. Chỉ có hiệu lực khi `USE_REDIS` được bật; mỗi replica vẫn giữ bộ nhớ đệm trong bộ nhớ (in-memory cache) riêng của nó trong cả hai trường hợp. Mặc định: `false`.',
       'sharedCache: true',
     ],
     [
       'sharedCacheTimeoutMs',
       'Number',
-      'Đang chờ. Thời gian tối đa tính bằng mili giây mà một lần đọc hoặc ghi bộ nhớ đệm dùng chung có thể mất trước khi quá trình tra cứu tiếp tục mà không cần nó (10-5000). Mặc định: 250.',
+      'Thời gian chờ tối đa để đọc hoặc ghi một bộ nhớ đệm dùng chung, tính bằng mili giây, trước khi quá trình tra cứu tiếp tục mà không cần bộ nhớ đệm đó (10-5000). Mặc định: 250.',
       'sharedCacheTimeoutMs: 250',
+    ],
+    [
+      'sharedCacheSlots',
+      'Number',
+      'Hầu hết các khóa Redis mà bộ nhớ đệm dùng chung sử dụng, một lần cho kết quả và một lần cho thời gian chờ giới hạn tốc độ (64-1000000). Một mục mới sẽ thay thế mục trong vị trí của nó. Chỉ đọc từ YAML. Mặc định: 65536.',
+      'sharedCacheSlots: 65536',
     ],
   ]}
 />
@@ -703,7 +707,7 @@ endpoints:
 
 ### pullRequests.oauth
 
-Đang chờ xử lý. Cho phép mỗi người dùng kết nối tài khoản riêng của họ trong **Settings > Account > Pull request account**. Các lượt tra cứu của người dùng đã kết nối sẽ sử dụng token của chính họ và không bị giới hạn bởi `allowedRepositories`; những người dùng chưa kết nối sẽ tiếp tục sử dụng token của máy chủ. Hãy đăng ký `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` làm URL callback của ứng dụng. Trên GitHub, khuyến nghị sử dụng GitHub App với các quyền read-only cho Pull requests, Checks và Contents. Xem [Per-user accounts](/docs/features/pull_requests#per-user-accounts).
+Cho phép mỗi người dùng kết nối tài khoản của riêng họ trong **Settings > Account > Pull request account**. Các truy vấn của người dùng đã kết nối sẽ sử dụng token của chính họ và không bị giới hạn bởi `allowedRepositories`; những người dùng chưa kết nối vẫn sử dụng token của máy chủ. Đăng ký `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` làm callback URL của ứng dụng. Trên GitHub, nên sử dụng một GitHub App với quyền chỉ đọc đối với Pull requests, Checks và Contents. Xem [Per-user accounts](/docs/features/pull_requests#per-user-accounts).
 
 <OptionTable
   options={[

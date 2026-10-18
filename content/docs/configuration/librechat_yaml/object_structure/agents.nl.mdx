@@ -550,14 +550,12 @@ Event Actor detached Action completion wordt automatisch geselecteerd uit de ing
 
 ## pullRequests
 
-{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
-
 Toont de pull request (een merge request op GitLab) voor de gekoppelde code-workspace van een conversatie in de chat-header en zijbalk. Zie [Conversation Pull Requests](/docs/features/pull_requests) voor installatie, werking en probleemoplossing. Elke sleutel is optioneel.
 
 De functie is ingeschakeld zodra de server een token en een repository-scope heeft, of gebruikers kunnen hun eigen accounts koppelen via `oauth`. De meeste beheerders stellen alleen een repository-scope en een token in, plus `provider` en `host` wanneer ze niet op github.com zitten. De standaardwaarden van de tuning-keys zijn in orde.
 
 <Callout type="info" title="Alleen lezen vanuit librechat.yaml">
-  `provider`, `host` en `oauth` worden uitsluitend gelezen vanuit `librechat.yaml`. Configuratie-overschrijvingen van deze sleutels voor rollen, groepen, gebruikers en tenants worden genegeerd, waardoor een overschrijving een token niet naar een andere service kan omleiden.
+  `provider`, `host`, `oauth` en `sharedCacheSlots` worden alleen uit `librechat.yaml` gelezen. Overschrijvingen van deze sleutels in rol-, groeps-, gebruikers- en tenantconfiguratie worden genegeerd, zodat een overschrijving een token niet naar een andere service kan omleiden, en elke replica dezelfde gedeelde cacheslots gebruikt.
 </Callout>
 
 <OptionTable
@@ -571,7 +569,7 @@ De functie is ingeschakeld zodra de server een token en een repository-scope hee
     [
       'provider',
       'String',
-      '`github` (standaard), `gitlab` voor merge requests op gitlab.com of een zelf-beheerde GitLab, of `bitbucket` voor Bitbucket Cloud (in afwachting). Alleen lezen vanuit de YAML.',
+      '`github` (standaard), `gitlab` voor merge requests op gitlab.com of een zelfgehoste GitLab, of `bitbucket` voor Bitbucket Cloud. Lees alleen uit de YAML.',
       'provider: "gitlab"',
     ],
     [
@@ -589,7 +587,7 @@ De functie is ingeschakeld zodra de server een token en een repository-scope hee
     [
       'oauth',
       'Object',
-      'In afwachting. Hiermee kan elke gebruiker zijn eigen account koppelen, zodat opzoekingen gebruikmaken van het token, de rate limit en de repository-toegang van die gebruiker. Alleen lezen vanuit de YAML. Zie [oauth](#pullrequestsoauth) hieronder.',
+      'Laat elke gebruiker zijn eigen account koppelen, zodat zoekopdrachten het token, de snelheidslimiet en de repositorytoegang van die gebruiker gebruiken. Lees alleen uit de YAML. Zie [oauth](#pullrequestsoauth) hieronder.',
       'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
@@ -673,14 +671,20 @@ De functie is ingeschakeld zodra de server een token en een repository-scope hee
     [
       'sharedCache',
       'Boolean',
-      'In afwachting. Deel opgezochte pull requests en rate limit cooldowns tussen replica\'s via Redis. Alleen van kracht bij `USE_REDIS`; elke replica behoudt hoe dan ook zijn eigen in-memory cache. Standaard: `false`.',
+      'Deel opgehaalde pull requests en afkoelperiodes na snelheidslimieten tussen replica\'s via Redis. Dit werkt alleen met `USE_REDIS`; elke replica behoudt hoe dan ook zijn eigen in-memory cache. Standaard: `false`.',
       'sharedCache: true',
     ],
     [
       'sharedCacheTimeoutMs',
       'Number',
-      'In afwachting. De langste tijd in milliseconden die een gedeelde cache-lees- of schrijfactie mag duren voordat de opzoeking zonder deze actie doorgaat (10-5000). Standaard: 250.',
+      'De langste tijd die één gedeelde cache-lees- of schrijfactie mag duren, in milliseconden, voordat de opzoekactie zonder deze cache doorgaat (10-5000). Standaard: 250.',
       'sharedCacheTimeoutMs: 250',
+    ],
+    [
+      'sharedCacheSlots',
+      'Number',
+      'Meeste Redis-sleutels die de gedeelde cache gebruikt, één keer voor resultaten en één keer voor afkoelperiodes van snelheidslimieten (64-1000000). Een nieuw item vervangt het item in zijn slot. Lees alleen uit de YAML. Standaard: 65536.',
+      'sharedCacheSlots: 65536',
     ],
   ]}
 />
@@ -703,7 +707,7 @@ endpoints:
 
 ### pullRequests.oauth
 
-In afwachting. Hiermee kan elke gebruiker zijn eigen account koppelen onder **Settings > Account > Pull request account**. De opzoekingen van een gekoppelde gebruiker gebruiken hun eigen token en zijn niet gebonden aan `allowedRepositories`; gebruikers die geen account hebben gekoppeld, blijven het server-token gebruiken. Registreer `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` als de callback-URL van de app. Op GitHub wordt een GitHub App met alleen-lezen machtigingen voor Pull requests, Checks en Contents aanbevolen. Zie [Per-user accounts](/docs/features/pull_requests#per-user-accounts).
+Hiermee kan elke gebruiker zijn eigen account koppelen onder **Instellingen > Account > Pull request-account**. De opzoekingen van een gekoppelde gebruiker gebruiken hun eigen token en vallen niet onder `allowedRepositories`; gebruikers die nog niet gekoppeld zijn, blijven het servertoken gebruiken. Registreer `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` als de callback-URL van de app. Op GitHub wordt een GitHub App met alleen-lezen-rechten voor Pull requests, Checks en Contents aanbevolen. Zie [Accounts per gebruiker](/docs/features/pull_requests#per-user-accounts).
 
 <OptionTable
   options={[

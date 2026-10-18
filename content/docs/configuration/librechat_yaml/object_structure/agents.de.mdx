@@ -550,14 +550,12 @@ Die Event Actor detached Action-Vervollständigung wird automatisch aus dem inte
 
 ## pullRequests
 
-{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
-
 Zeigt den Pull Request (einen Merge Request auf GitLab) für den angehängten Code-Workspace einer Konversation im Chat-Header und in der Seitenleiste an. Siehe [Conversation Pull Requests](/docs/features/pull_requests) für Einrichtung, Verhalten und Fehlerbehebung. Jeder Schlüssel ist optional.
 
 Die Funktion ist aktiviert, sobald der Server über ein Token und einen Repository-Scope verfügt, oder Benutzer können ihre eigenen Konten über `oauth` verbinden. Die meisten Administratoren legen nur einen Repository-Scope und ein Token fest, sowie `provider` und `host`, wenn sie nicht auf github.com arbeiten. Die Standardwerte der Tuning-Keys sind in Ordnung.
 
 <Callout type="info" title="Nur aus librechat.yaml lesen">
-  `provider`, `host` und `oauth` werden ausschließlich aus der `librechat.yaml` gelesen. Konfigurations-Overrides für Rolle, Gruppe, Benutzer und Mandant für diese Schlüssel werden ignoriert, sodass ein Override ein Token nicht an einen anderen Dienst umleiten kann.
+  `provider`, `host`, `oauth` und `sharedCacheSlots` werden ausschließlich aus `librechat.yaml` gelesen. Rollen-, Gruppen-, Benutzer- und Mandantenkonfigurationen, die diese Schlüssel überschreiben, werden ignoriert. Dadurch kann ein Überschreiben kein Token an einen anderen Dienst umleiten, und jede Replik greift auf dieselben gemeinsamen Cache-Slots zu.
 </Callout>
 
 <OptionTable
@@ -571,7 +569,7 @@ Die Funktion ist aktiviert, sobald der Server über ein Token und einen Reposito
     [
       'provider',
       'String',
-      '`github` (Standard), `gitlab` für Merge Requests auf gitlab.com oder einem selbstverwalteten GitLab, oder `bitbucket` für Bitbucket Cloud (ausstehend). Nur aus der YAML lesen.',
+      '`github` (Standard), `gitlab` für Merge Requests auf gitlab.com oder einem selbst gehosteten GitLab, oder `bitbucket` für Bitbucket Cloud. Nur aus der YAML lesen.',
       'provider: "gitlab"',
     ],
     [
@@ -589,7 +587,7 @@ Die Funktion ist aktiviert, sobald der Server über ein Token und einen Reposito
     [
       'oauth',
       'Object',
-      'Ausstehend. Ermöglicht es jedem Benutzer, sein eigenes Konto zu verbinden, sodass Abfragen das Token, das Rate-Limit und den Repository-Zugriff des jeweiligen Benutzers verwenden. Nur aus der YAML lesen. Siehe [oauth](#pullrequestsoauth) unten.',
+      'Ermöglicht es jedem Benutzer, sein eigenes Konto zu verbinden, sodass Abfragen mit dem Token, dem Rate-Limit und dem Repository-Zugriff dieses Benutzers erfolgen. Liest ausschließlich aus der YAML. Siehe [oauth](#pullrequestsoauth) unten.',
       'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
@@ -673,14 +671,20 @@ Die Funktion ist aktiviert, sobald der Server über ein Token und einen Reposito
     [
       'sharedCache',
       'Boolean',
-      'Ausstehend. Teilt nachgeschlagene Pull-Requests und Rate-Limit-Abklingzeiten zwischen Replikaten über Redis. Wirkt sich nur bei `USE_REDIS` aus; jedes Replikat behält ohnehin seinen eigenen In-Memory-Cache. Standard: `false`.',
+      'Gemeinsame Nutzung von abgerufenen Pull Requests und Abklingzeiten bei Ratenbegrenzungen zwischen Replikaten über Redis. Wirkt nur mit `USE_REDIS`; jedes Replikat behält unabhängig davon seinen eigenen In-Memory-Cache. Standard: `false`.',
       'sharedCache: true',
     ],
     [
       'sharedCacheTimeoutMs',
       'Number',
-      'Ausstehend. Die längste Zeit in Millisekunden, die ein gemeinsamer Cache-Lese- oder Schreibvorgang dauern darf, bevor die Suche ohne ihn fortgesetzt wird (10-5000). Standard: 250.',
+      'Längste Zeit in Millisekunden, die ein einzelner gemeinsamer Cache-Lese- oder Schreibvorgang dauern darf, bevor die Abfrage ohne ihn fortgesetzt wird (10-5000). Standard: 250.',
       'sharedCacheTimeoutMs: 250',
+    ],
+    [
+      'sharedCacheSlots',
+      'Number',
+      'Die meisten Redis-Schlüssel, die der gemeinsame Cache verwendet, einmal für Ergebnisse und einmal für Abklingzeiten von Ratenbegrenzungen (64–1000000). Ein neuer Eintrag ersetzt den Eintrag in seinem Slot. Nur aus der YAML lesen. Standard: 65536.',
+      'sharedCacheSlots: 65536',
     ],
   ]}
 />
@@ -703,7 +707,7 @@ endpoints:
 
 ### pullRequests.oauth
 
-Ausstehend. Ermöglicht es jedem Benutzer, sein eigenes Konto unter **Einstellungen > Konto > Pull-Request-Konto** zu verbinden. Die Suchanfragen eines verbundenen Benutzers verwenden dessen eigenes Token und unterliegen nicht `allowedRepositories`; Benutzer, die kein Konto verbunden haben, verwenden weiterhin das Server-Token. Registrieren Sie `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` als Callback-URL der App. Auf GitHub wird eine GitHub App mit schreibgeschützten Berechtigungen für Pull Requests, Checks und Contents empfohlen. Siehe [Benutzerbezogene Konten](/docs/features/pull_requests#per-user-accounts).
+Ermöglicht es jedem Benutzer, sein eigenes Konto unter **Einstellungen > Konto > Pull-Request-Konto** zu verbinden. Die Abfragen eines verbundenen Benutzers verwenden dessen eigenes Token und unterliegen nicht `allowedRepositories`; Benutzer, die kein Konto verbunden haben, verwenden weiterhin das Server-Token. Registrieren Sie `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` als Callback-URL der App. Auf GitHub wird eine GitHub App mit schreibgeschützten Berechtigungen für Pull requests, Checks und Contents empfohlen. Siehe [Per-user accounts](/docs/features/pull_requests#per-user-accounts).
 
 <OptionTable
   options={[

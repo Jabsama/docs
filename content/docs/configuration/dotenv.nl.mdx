@@ -1617,13 +1617,13 @@ De fallback-variabelen worden alleen gebruikt wanneer `pullRequests.token` niet 
     [
       'BITBUCKET_PULL_REQUEST_TOKEN',
       'string',
-      'In afwachting. Fallback Bitbucket Cloud repository, project of workspace toegangstoken met leestoegang tot pull requests en repositories.',
+      'Fallback Bitbucket Cloud-repository, project- of workspace-toegangstoken met leestoegang tot pull requests en repositories.',
       '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'De variabele waarnaar `pullRequests.token: "${NAME}"` verwijst. Ook gebruikt voor `pullRequests.oauth.clientId` en `clientSecret` (in afwachting), die eveneens verwijzingen zijn.',
+      'De variabele waarnaar `pullRequests.token: "${NAME}"` verwijst. Ook gebruikt voor `pullRequests.oauth.clientId` en `clientSecret`, die eveneens verwijzingen zijn.',
       '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
@@ -1635,7 +1635,7 @@ De fallback-variabelen worden alleen gebruikt wanneer `pullRequests.token` niet 
   ]}
 />
 
-Gebruikers die hun eigen account koppelen (In afwachting) hebben `JWT_SECRET` nodig, die de koppelingsstroom ondertekent, en `DOMAIN_SERVER`, die de callback-URL `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` vormt. `pullRequests.sharedCache` (In afwachting) is alleen van kracht bij `USE_REDIS=true`.
+Gebruikers die hun eigen account koppelen, hebben `JWT_SECRET` nodig, die de koppelingsstroom ondertekent, en `DOMAIN_SERVER`, die de callback-URL `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` vormt. `pullRequests.sharedCache` wordt alleen van kracht met `USE_REDIS=true`.
 
 Provider-verzoeken gebruiken de proxy-instellingen van de deployment (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` en hun kleinelettervarianten), en `NO_PROXY` wordt gerespecteerd. Deze worden gedeeld met ander uitgaand verkeer van LibreChat en zijn niet specifiek voor deze functie.
 

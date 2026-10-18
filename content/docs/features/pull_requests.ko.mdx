@@ -7,10 +7,6 @@ description: >-
 ---
 
 {/*
-  Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988), per-user
-  accounts through `oauth` (#16989) and the "Pull request account" setting (#16990). Delete the
-  Pending markers once each merges to dev, and re-check the schema in
-  packages/data-provider/src/config.ts.
   TODO(maintainer): first release version for each part (do not guess).
   TODO(maintainer): requirement 4 (where an admin sets the workspace environment's repository).
   Add it to "Requirements" once confirmed.
@@ -18,10 +14,10 @@ description: >-
 
 채팅이 연결된 작업 공간(workspace)에서 코드를 실행할 때, 워커(worker)는 현재 위치한 git 브랜치와 커밋을 보고합니다. LibreChat은 해당 브랜치를 사용하여 서버에 보관된 토큰이나 사용자가 직접 연결한 계정을 통해 일치하는 풀 리퀘스트(GitLab의 경우 머지 리퀘스트)를 찾고, 이를 다음 두 곳에 표시합니다:
 
-- **채팅 헤더**: pull request 아이콘과 CI 점이 있는 칩입니다. 마우스를 올리거나 포커스를 맞추면 카드가 열립니다.
+- **채팅 헤더**: 풀 리퀘스트 아이콘, CI 상태 점, 그리고 풀 리퀘스트 제목이 표시되는 칩입니다. 칩에 마우스를 올리거나 포커스하면 카드가 열립니다.
 - **사이드바 대화 목록**: 행 끝에 동일한 아이콘과 CI 점이 표시됩니다. 행은 대화 고유의 제목을 유지하며, 풀 리퀘스트 제목은 카드에만 나타납니다.
 
-Pull requests는 GitHub(기본값), GitLab 또는 Bitbucket Cloud(**대기 중**)에서 가져올 수 있습니다. 하나의 배포는 하나의 공급자를 사용합니다.
+풀 리퀘스트는 GitHub(기본값), GitLab, 또는 Bitbucket Cloud에서 가져올 수 있습니다. 하나의 배포에서는 하나의 제공자만 사용합니다.
 
 ## 요구 사항 [#requirements]
 
@@ -41,11 +37,11 @@ Pull requests는 GitHub(기본값), GitLab 또는 Bitbucket Cloud(**대기 중**
 
 `provider`는 풀 리퀘스트가 위치할 곳을 선택합니다:
 
-| `provider`         | 서비스                                                                                                   | 기본 `host`  |
+| `provider` | 서비스 | 기본 `host` |
 | ------------------ | --------------------------------------------------------------------------------------------------------- | --------------- |
-| `github` (기본값) | GitHub.com, GitHub Enterprise Server 또는 GitHub Enterprise Cloud 데이터 레지던시 테넌트 (`*.ghe.com`)     | `github.com`    |
-| `gitlab`           | gitlab.com 또는 자체 관리형 GitLab의 머지 리퀘스트                                                     | `gitlab.com`    |
-| `bitbucket`        | Bitbucket Cloud 전용 (**대기 중**)                                                                        | `bitbucket.org` |
+| `github` (기본값) | GitHub.com, GitHub Enterprise Server 또는 GitHub Enterprise Cloud 데이터 상주 테넌트(`*.ghe.com`) | `github.com` |
+| `gitlab` | gitlab.com 또는 자체 관리형 GitLab의 병합 요청 | `gitlab.com` |
+| `bitbucket` | Bitbucket Cloud 전용 | `bitbucket.org` |
 
 GitHub Enterprise Server, `*.ghe.com` 테넌트 또는 자체 관리형 GitLab의 경우에만 `host`를 설정하세요:
 
@@ -85,7 +81,7 @@ endpoints:
 
 **GitLab**: `read_api` 스코프가 포함된 개인, 그룹 또는 프로젝트 액세스 토큰.
 
-**Bitbucket Cloud** (**대기 중**): 리포지토리, 프로젝트 또는 워크스페이스 액세스 토큰이며, Bearer 토큰으로 전송됩니다. LibreChat은 풀 리퀘스트, diffstat, 커밋 상태 및 병합 베이스를 읽으므로, 풀 리퀘스트 및 리포지토리에 대한 읽기 권한을 부여하세요.
+**Bitbucket Cloud**: 저장소, 프로젝트 또는 워크스페이스 액세스 토큰을 사용하며, 이 토큰은 Bearer 토큰으로 전송됩니다. LibreChat은 풀 리퀘스트, diffstat, 커밋 상태 및 merge base 정보를 읽으므로, 풀 리퀘스트와 저장소에 대한 읽기 권한을 부여하세요.
 
 ### 3. LibreChat에 토큰 제공하기 [#3-give-librechat-the-token]
 
@@ -94,11 +90,11 @@ LibreChat은 다음 순서로 토큰을 찾습니다:
 1. `token: "${MY_VAR}"` (은/는) `librechat.yaml` 내에 있습니다. 이는 환경 변수 **참조**입니다. YAML은 토큰 자체를 포함하지 않으며, 리터럴 토큰은 스키마에 의해 거부됩니다.
 2. `token`이 설정되지 않은 경우, 다음 환경 변수 중 먼저 설정된 값이 사용됩니다:
 
-| 공급자 (Provider) | 순서대로 적용되는 대체(Fallback) 변수 |
+| 제공자 | 대체(fallback) 변수, 적용 순서 |
 | --------- | --------------------------------------------------------- |
-| GitHub    | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`   |
-| GitLab    | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN`               |
-| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` (**대기 중**)              |
+| GitHub | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN` |
+| GitLab | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN` |
+| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` |
 
 3. 어디에도 토큰이 없습니다: 사용자가 자신의 계정을 직접 연결할 수 없는 한, 이 기능은 비활성 상태로 유지됩니다.
 
@@ -147,7 +143,7 @@ endpoints:
       allowedRepositories: ['platform/*']
 ```
 
-Bitbucket Cloud (**대기 중**), `BITBUCKET_PULL_REQUEST_TOKEN` 설정 포함:
+Bitbucket Cloud, `BITBUCKET_PULL_REQUEST_TOKEN`이 설정된 경우:
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -160,10 +156,6 @@ endpoints:
 모든 키에 대한 내용은 [`pullRequests` 참조](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests)를 확인하세요.
 
 ## 사용자별 계정 [#per-user-accounts]
-
-<Callout type="important" title="대기 중: 아직 출시되지 않음">
-  사용자별 계정은 LibreChat-AI/LibreChat#16989 및 #16990의 일부입니다.
-</Callout>
 
 `oauth`가 설정되면, 각 사용자는 **설정 > 계정(Settings > Account)**의 **Pull request 계정(Pull request account)** 항목에서 자신의 GitHub, GitLab 또는 Bitbucket 계정을 연결할 수 있습니다. 이렇게 하면 서버의 토큰, 속도 제한 및 저장소 액세스 권한 대신 사용자의 토큰, 속도 제한 및 저장소 액세스 권한을 사용하여 조회가 실행됩니다.
 
@@ -289,15 +281,12 @@ Bitbucket Cloud에서 **Workspace settings > OAuth consumers > Add consumer**를
 
 ## 복제본을 통한 확장 (Scaling with replicas) [#scaling-with-replicas]
 
-<Callout type="important" title="대기 중: 아직 출시되지 않음">
-  `sharedCache`는 LibreChat-AI/LibreChat#16988의 일부입니다.
-</Callout>
-
 각 복제본은 결과를 메모리에 캐시합니다. 여러 복제본을 사용하는 경우, `sharedCache: true`로 설정하여 Redis를 통해 조회된 풀 리퀘스트와 속도 제한 쿨다운을 공유하도록 하세요. 이렇게 하면 각 복제본이 동일한 답변에 대해 토큰을 중복으로 소모하지 않게 됩니다.
 
 - `USE_REDIS`를 사용하여 배포가 실행될 때만 적용됩니다. 기본값: `false`.
 - 어느 쪽이든 각 복제본은 공유 캐시 앞단에 자체적인 인메모리 캐시를 유지합니다.
 - `sharedCacheTimeoutMs` (10-5000, 기본값 250)는 각 공유 캐시 읽기 또는 쓰기 작업의 제한 시간을 설정합니다. Redis가 느릴 경우 해당 작업은 건너뛰며, 조회는 Redis 없이 계속 진행됩니다.
+- `sharedCacheSlots` (64-1000000, 기본값 65536)은 공유 캐시가 사용하는 Redis 키의 개수를 제한합니다. YAML에서만 읽어옵니다.
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -330,37 +319,85 @@ endpoints:
 
 ### 채팅 헤더 칩 [#chat-header-chip]
 
-- **Desktop**: 칩은 헤더의 왼쪽, 다른 왼쪽 컨트롤 옆에 위치합니다. 마우스를 올리거나 포커스를 맞추면 오른쪽으로 카드가 열립니다.
-- **모바일**: 해당 항목은 헤더의 오버플로우(점 세 개) 메뉴에 있으며, 대화 상자를 엽니다.
+- **데스크톱**: 칩은 헤더 왼쪽, 다른 왼쪽 컨트롤 옆에 위치합니다. 풀 리퀘스트 아이콘과 그 모서리에 CI 점이 함께 표시되며, 그 다음에 풀 리퀘스트 제목이 나타납니다. 칩에 마우스를 올리거나 포커스를 맞추면 그 아래에 카드가 열리며, 포인터 또는 키보드 포커스가 카드 안에 있는 동안에는 카드가 계속 열려 있습니다.
+- **모바일**: 칩이 없습니다. 헤더의 더보기(점 세 개) 메뉴에 있는 `PR #number` 항목(GitLab에서는 `MR !number`)을 누르면 같은 카드가 대화 상자에서 열립니다.
 - 헤더는 자동으로 새로고침됩니다: 검사가 실행 중이거나 병합 가능 여부가 계산되는 동안에는 약 20초마다, 그 외의 경우에는 약 60초마다 새로고침되며, 풀 리퀘스트가 병합되거나 검사가 실행되지 않은 상태로 닫히면 더 이상 새로고침되지 않습니다.
+
+<ThemeImage
+  light="/images/pull-requests/hdr-ready-light.png"
+  dark="/images/pull-requests/hdr-ready-dark.png"
+  alt="채팅 헤더 칩: 병합 가능하고 검사를 통과한 열린 풀 리퀘스트, 그 아래에 카드가 열린 상태"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-menu-light.png"
+  dark="/images/pull-requests/mob-menu-dark.png"
+  alt="PR #1234 항목이 작은 화면에서 헤더의 오버플로 메뉴에 표시되는 모습"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-dialog-light.png"
+  dark="/images/pull-requests/mob-dialog-dark.png"
+  alt="작은 화면에서 대화 상자에 표시되는 풀 리퀘스트 카드"
+/>
 
 ### 사이드바 표시 [#sidebar-mark]
 
-- CI 점이 있는 pull request 아이콘이 대화 행 끝에 위치합니다. 이 아이콘은 pull request가 있는 대화에만 나타납니다.
-- 마우스를 올리거나(hover), 포커스를 맞추거나(focus), 클릭하면 표시(mark) 오른쪽의 동일한 카드가 열립니다. 표시를 클릭해도 대화가 열리지 않습니다.
+- 대화 행의 끝에는 CI 상태 점이 표시된 풀 리퀘스트 아이콘이 있습니다. 이 아이콘은 풀 리퀘스트가 연결된 대화에만 나타납니다.
+- 행 어디에든 마우스를 올리거나, 표시(mark)에 포커스를 두거나 클릭하면 표시 오른쪽에 같은 카드가 열립니다. 표시를 클릭해도 대화는 열리지 않습니다.
 - 사이드바는 절대 폴링(polling)하지 않습니다. 행(row)의 데이터는 목록이 마지막으로 로드되었을 때의 상태를 유지하며, 창이 다시 포커스를 얻었을 때 데이터가 1분 이상 경과했다면 새로고침됩니다.
 - 조회가 실패하면 해당 행의 카드에 재시도 버튼이 포함된 경고 아이콘이 표시되므로, 실패를 "풀 리퀘스트 없음"으로 오인하지 않도록 합니다.
+
+<ThemeImage
+  light="/images/pull-requests/side-rows-light.png"
+  dark="/images/pull-requests/side-rows-dark.png"
+  alt="사이드바에서 풀 리퀘스트 표시가 있는 행: 병합 준비 완료, 실패한 검사와 충돌이 있는 항목, 검사가 실행 중인 초안, 병합된 풀 리퀘스트"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/side-card-light.png"
+  dark="/images/pull-requests/side-card-dark.png"
+  alt="풀 리퀘스트 카드가 사이드바 행의 오른쪽에 열림"
+/>
 
 ### 카드 [#the-card]
 
 카드는 `PR #number` (GitLab의 경우 `MR !number`), 녹색으로 표시된 `+additions`, 적색으로 표시된 `-deletions`, **Open in GitHub**, **Open in GitLab** 또는 **Open in Bitbucket** 링크, 제목, 그리고 두 개의 배지를 보여줍니다:
 
-- **상태**: Open(열림), Draft(초안), Merged(병합됨) 또는 Closed(닫힘).
-- **Checks**: 통과(Passing), 실패(Failing), 실행 중(Running) 또는 없음. GitLab에서는 헤드 파이프라인(head pipeline)이며, 현재 헤드 커밋에 대해 실행된 경우에만 집계됩니다. Bitbucket에서는 커밋 상태(commit statuses)를 의미합니다.
-
-{/* TODO(docs): add the screenshots from LibreChat PRs #16794 and #16815. */}
+- **상태**: Open, Conflicts, Draft, Merged 또는 Closed. 열려 있는 풀 리퀘스트에 병합 충돌이 있으면 Open 대신 Conflicts로 표시됩니다.
+- **체크**: Passing, Failing, Running, 또는 None. GitLab에서는 현재 head 커밋에 대해 실행된 경우에만 집계되는 head 파이프라인입니다. Bitbucket에서는 커밋 상태입니다.
 
 ### 아이콘과 점의 의미 [#icon-and-dot-meaning]
 
 | 상황 | 아이콘 색상 | CI 점 |
-| --------------------------------------- | ------------------------- | ------------------------------------- |
-| 열림, 충돌 없음, 검사 통과 | 녹색 (병합 준비 완료) | 녹색 |
+| ------------------------------------------- | ---------------------- | --------- |
+| 열림, 충돌 없음, 검사 통과 | 녹색 (병합 가능) | 녹색 |
 | 열림, 충돌 없음, 검사 없음 | 녹색 | 없음 |
-| 열림, 병합 충돌 발생 | 빨간색 (병합 불가) | 검사 기준 |
-| 초안 | 중립 | 검사 기준 |
-| 병합됨 또는 닫힘 | 중립 | 없음 (검사 진행 중에는 호박색) |
+| 열림, 병합 가능성 계산 중 | 중립 | 검사에 따름 |
+| 열림, 병합 충돌 | 빨간색 (병합 불가) | 검사에 따름 |
+| 초안 | 중립 | 검사에 따름 |
+| 병합됨 | 보라색 | 없음 |
+| 닫힘 | 중립 | 없음 |
 
-CI 점 색상: 통과 시 녹색, 실패 시 빨간색, 실행 중일 때 호박색(amber), 그리고 검사가 없거나 풀 리퀘스트가 병합 또는 닫혔고 실행 중인 검사가 없을 때는 색상이 표시되지 않습니다. 실패한 검사는 실행 중인 검사보다 우선순위가 높습니다. 읽어 들인 것보다 더 많은 검사 실행이 포함된 롤업은 절대 통과로 보고되지 않습니다.
+CI 점 색상: 통과는 초록색, 실패는 빨간색, 실행 중은 주황색입니다. 검사가 없거나 풀 리퀘스트가 병합 또는 닫힌 경우에는 점이 표시되지 않습니다. 실패한 검사는 아직 실행 중인 검사보다 우선합니다. 읽은 검사 실행 수보다 더 많은 검사 실행이 포함된 롤업은 결코 통과로 보고되지 않습니다.
+
+<ThemeImage
+  light="/images/pull-requests/hdr-conflict-light.png"
+  dark="/images/pull-requests/hdr-conflict-dark.png"
+  alt="병합 충돌이 있는 열린 풀 리퀘스트: 빨간색 아이콘, 실패한 검사를 나타내는 빨간색 점, 그리고 Conflicts 및 Failing 배지"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-draft-light.png"
+  dark="/images/pull-requests/hdr-draft-dark.png"
+  alt="초안 풀 리퀘스트: 중립 아이콘, 검사가 실행되는 동안 노란색 점 표시"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-merged-light.png"
+  dark="/images/pull-requests/hdr-merged-dark.png"
+  alt="병합된 풀 리퀘스트: 보라색 아이콘, 점 없음"
+/>
 
 ## 풀 리퀘스트가 매칭되는 방식 [#how-a-pull-request-is-matched]
 
@@ -440,7 +477,7 @@ CI 점 색상: 통과 시 녹색, 실패 시 빨간색, 실행 중일 때 호박
 - **200**: `{ "results": [ { "conversationId", "pullRequest" } | { "conversationId", "error": { "code" } } ] }`, 요청된 순서대로입니다. 하나의 조회 실패가 다른 조회를 숨기지 않습니다.
 - 토큰이 누락되면 해당 토큰이 필요한 항목만 실패합니다.
 
-### 계정 연결 (**대기 중**) [#account-connection-pending]
+### 계정 연결 [#account-connection]
 
 이 경로들은 `JWT_SECRET`이 설정된 경우에만 존재합니다. 콜백을 제외한 모든 경로는 인증된 사용자를 필요로 합니다.
 
@@ -456,6 +493,6 @@ CI 점 색상: 통과 시 녹색, 실패 시 빨간색, 실행 중일 때 호박
 - `pullRequestsEnabled` (boolean)
 - `pullRequestsBatchVersion` (`1`, 기능이 켜져 있을 때만 존재)
 - `pullRequestsMaxConcurrentLookups` (숫자, 해당 기능이 켜져 있을 때만 존재)
-- `pullRequestsConnect` (`github`, `gitlab` 또는 `bitbucket`, 사용자가 자신의 계정을 연결할 수 있는 경우에만 존재; **대기 중**)
+- `pullRequestsConnect` (`github`, `gitlab` 또는 `bitbucket`, 사용자가 자신의 계정을 연결할 수 있을 때만 표시됨)
 
 위에 나열된 오류 코드만 안정적입니다.

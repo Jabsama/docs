@@ -550,14 +550,12 @@ Event Actor detached Action completion は、組み込みの生成ストアか�
 
 ## pullRequests
 
-{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
-
 チャットヘッダーおよびサイドバーに、会話に添付されたコードワークスペースのプルリクエスト（GitLabではマージリクエスト）を表示します。設定、動作、トラブルシューティングについては、[Conversation Pull Requests](/docs/features/pull_requests) を参照してください。すべてのキーは任意です。
 
 この機能は、サーバーがトークンとリポジトリスコープを持つとすぐに有効になります。あるいは、ユーザーが `oauth` を通じて自身のアカウントを接続することも可能です。ほとんどの管理者は、リポジトリスコープとトークンのみを設定し、github.com 以外を使用する場合は `provider` と `host` を追加で設定します。チューニングキーのデフォルト値はそのままで問題ありません。
 
 <Callout type="info" title="librechat.yaml からのみ読み込む">
-  `provider`、`host`、および `oauth` は `librechat.yaml` からのみ読み込まれます。これらのキーに対するロール、グループ、ユーザー、およびテナントの設定オーバーライドは無視されるため、オーバーライドを使用してトークンを別のサービスにリダイレクトすることはできません。
+  `provider`、`host`、`oauth`、`sharedCacheSlots` は `librechat.yaml` からのみ読み込まれます。ロール、グループ、ユーザー、テナントごとの設定による上書きはこれらのキーに対して無視されるため、上書きによってトークンを別のサービスへ送ることはできず、すべてのレプリカが同じ共有キャッシュスロットを参照します。
 </Callout>
 
 <OptionTable
@@ -571,7 +569,7 @@ Event Actor detached Action completion は、組み込みの生成ストアか�
     [
       'provider',
       'String',
-      '`github`（デフォルト）、`gitlab`（gitlab.comまたはセルフホスト型GitLabでのマージリクエスト用）、または`bitbucket`（Bitbucket Cloud用、保留中）。YAMLからのみ読み取ります。',
+      '`github`（デフォルト）、`gitlab`（gitlab.comまたはセルフマネージドGitLabのマージリクエスト用）、または`bitbucket`（Bitbucket Cloud用）。YAMLからのみ読み込みます。',
       'provider: "gitlab"',
     ],
     [
@@ -589,7 +587,7 @@ Event Actor detached Action completion は、組み込みの生成ストアか�
     [
       'oauth',
       'Object',
-      '保留中。各ユーザーが自分のアカウントを接続できるようにし、ルックアップでそのユーザーのトークン、レート制限、リポジトリアクセスを使用するようにします。YAMLからのみ読み取ります。以下の [oauth](#pullrequestsoauth) を参照してください。',
+      'ユーザーごとに自分のアカウントを接続できるようにし、そのユーザーのトークン、レート制限、リポジトリへのアクセス権で検索が行われるようにします。YAMLからのみ読み込みます。詳しくは[oauth](#pullrequestsoauth)を参照してください。',
       'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
@@ -673,14 +671,20 @@ Event Actor detached Action completion は、組み込みの生成ストアか�
     [
       'sharedCache',
       'Boolean',
-      '保留中。Redisを介してレプリカ間で検索されたプルリクエストとレート制限のクールダウンを共有します。`USE_REDIS` が有効な場合のみ機能します。いずれの場合も、各レプリカは独自のインメモリキャッシュを保持します。デフォルト: `false`。',
+      'Redisを通じて、レプリカ間で参照済みのプルリクエストとレート制限のクールダウンを共有します。`USE_REDIS`が有効な場合にのみ機能します。いずれの場合も、各レプリカは独自のインメモリキャッシュを保持します。デフォルト: `false`',
       'sharedCache: true',
     ],
     [
       'sharedCacheTimeoutMs',
       'Number',
-      '保留中。共有キャッシュの読み取りまたは書き込みが完了するまで待機する最長時間をミリ秒単位で指定します（10〜5000）。これを超えると、そのキャッシュを待たずにルックアップが続行されます。デフォルト：250。',
+      '最長の共有キャッシュ読み取りまたは書き込みにかかる時間(ミリ秒)。この時間を超えると、キャッシュを使わずに検索を続行します(10〜5000)。デフォルト: 250。',
       'sharedCacheTimeoutMs: 250',
+    ],
+    [
+      'sharedCacheSlots',
+      'Number',
+      '共有キャッシュが使用するほとんどの Redis キーの数。結果用と、レート制限のクールダウン用に 1 回ずつ使用されます（64〜1000000）。新しいエントリは、そのスロット内の既存のエントリを置き換えます。YAML からのみ読み込まれます。デフォルト: 65536。',
+      'sharedCacheSlots: 65536',
     ],
   ]}
 />
@@ -703,7 +707,7 @@ endpoints:
 
 ### pullRequests.oauth
 
-保留中。各ユーザーが **Settings > Account > Pull request account** から自身のアカウントを接続できるようにします。接続されたユーザーのルックアップは自身のトークンを使用し、`allowedRepositories` の制限を受けません。接続していないユーザーは引き続きサーバーのトークンを使用します。アプリのコールバックURLとして `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` を登録してください。GitHubでは、Pull requests、Checks、Contentsに対する読み取り専用権限を持つGitHub Appの使用を推奨します。[Per-user accounts](/docs/features/pull_requests#per-user-accounts) を参照してください。
+ユーザーがそれぞれ **設定 > アカウント > Pull request アカウント** から自分のアカウントを接続できるようにします。接続済みのユーザーの検索は自身のトークンを使用し、`allowedRepositories` の制限を受けません。接続していないユーザーは引き続きサーバーのトークンを使用します。アプリのコールバック URL として `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` を登録してください。GitHub の場合は、Pull requests、Checks、Contents に対する読み取り専用権限を持つ GitHub App の使用を推奨します。詳細は [ユーザーごとのアカウント](/docs/features/pull_requests#per-user-accounts) を参照してください。
 
 <OptionTable
   options={[

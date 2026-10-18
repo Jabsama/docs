@@ -1617,13 +1617,13 @@ Las variables de respaldo se utilizan solo cuando `pullRequests.token` no está 
     [
       'BITBUCKET_PULL_REQUEST_TOKEN',
       'string',
-      'Pendiente. Token de acceso de respaldo para el repositorio, proyecto o espacio de trabajo de Bitbucket Cloud con acceso de lectura a solicitudes de extracción y repositorios.',
+      'Token de acceso de repositorio, proyecto o espacio de trabajo de Bitbucket Cloud de reserva con acceso de lectura a pull requests y repositorios.',
       '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'La variable a la que hace referencia `pullRequests.token: "${NAME}"`. También se utiliza para `pullRequests.oauth.clientId` y `clientSecret` (Pendiente), que también son referencias.',
+      'La variable a la que hace referencia `pullRequests.token: "${NAME}"`. También se usa para `pullRequests.oauth.clientId` y `clientSecret`, que también son referencias.',
       '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
@@ -1635,7 +1635,7 @@ Las variables de respaldo se utilizan solo cuando `pullRequests.token` no está 
   ]}
 />
 
-Los usuarios que conectan su propia cuenta (Pendiente) necesitan `JWT_SECRET`, que firma el flujo de conexión, y `DOMAIN_SERVER`, que forma la URL de callback `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` (Pendiente) solo surte efecto con `USE_REDIS=true`.
+Los usuarios que conectan su propia cuenta necesitan `JWT_SECRET`, que firma el flujo de conexión, y `DOMAIN_SERVER`, que forma la URL de callback `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` solo surte efecto con `USE_REDIS=true`.
 
 Las solicitudes del proveedor utilizan la configuración de proxy del despliegue (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` y sus formas en minúsculas), y se respeta `NO_PROXY`. Estos se comparten con otro tráfico saliente de LibreChat y no son específicos de esta función.
 

@@ -550,14 +550,12 @@ Ukończenie akcji (Action completion) dla Event Actor detached jest wybierane au
 
 ## pullRequests
 
-{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
-
 Wyświetla pull request (merge request w GitLab) dla dołączonego obszaru roboczego kodu konwersacji w nagłówku czatu oraz na pasku bocznym. Zobacz [Conversation Pull Requests](/docs/features/pull_requests), aby uzyskać informacje na temat konfiguracji, działania i rozwiązywania problemów. Każdy klucz jest opcjonalny.
 
 Funkcja jest włączona, gdy tylko serwer posiada token i zakres repozytorium (repository scope), lub użytkownicy mogą połączyć własne konta poprzez `oauth`. Większość administratorów ustawia tylko zakres repozytorium i token, a także `provider` oraz `host`, jeśli nie korzystają z github.com. Domyślne wartości kluczy dostrajania (tuning keys) są odpowiednie.
 
 <Callout type="info" title="Czytaj tylko z librechat.yaml">
-  `provider`, `host` oraz `oauth` są odczytywane wyłącznie z `librechat.yaml`. Nadpisania tych kluczy w konfiguracji ról, grup, użytkowników i dzierżaw (tenant) są ignorowane, więc nadpisanie nie może przekierować tokena do innej usługi.
+  `provider`, `host`, `oauth` i `sharedCacheSlots` są odczytywane wyłącznie z `librechat.yaml`. Nadpisania tych kluczy w konfiguracji ról, grup, użytkowników i najemców są ignorowane, dzięki czemu nadpisanie nie może przekierować tokenu do innej usługi, a każda replika korzysta z tych samych współdzielonych slotów pamięci podręcznej.
 </Callout>
 
 <OptionTable
@@ -571,7 +569,7 @@ Funkcja jest włączona, gdy tylko serwer posiada token i zakres repozytorium (r
     [
       'provider',
       'String',
-      '`github` (domyślnie), `gitlab` dla merge requests w gitlab.com lub własnej instancji GitLab, albo `bitbucket` dla Bitbucket Cloud (oczekujące). Odczytywane tylko z pliku YAML.',
+      '`github` (domyślnie), `gitlab` dla żądań scalenia na gitlab.com lub samodzielnie hostowanym GitLab, lub `bitbucket` dla Bitbucket Cloud. Odczytuj wyłącznie z YAML.',
       'provider: "gitlab"',
     ],
     [
@@ -589,7 +587,7 @@ Funkcja jest włączona, gdy tylko serwer posiada token i zakres repozytorium (r
     [
       'oauth',
       'Object',
-      'Oczekujące. Pozwala każdemu użytkownikowi połączyć własne konto, dzięki czemu wyszukiwania wykorzystują token, limit zapytań i dostęp do repozytorium danego użytkownika. Odczyt tylko z pliku YAML. Zobacz [oauth](#pullrequestsoauth) poniżej.',
+      'Pozwala każdemu użytkownikowi połączyć własne konto, dzięki czemu wyszukiwania korzystają z tokena, limitu żądań i dostępu do repozytoriów tego użytkownika. Odczyt wyłącznie z YAML. Zobacz [oauth](#pullrequestsoauth) poniżej.',
       'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
@@ -673,14 +671,20 @@ Funkcja jest włączona, gdy tylko serwer posiada token i zakres repozytorium (r
     [
       'sharedCache',
       'Boolean',
-      'Oczekujące. Udostępnia wyszukane pull requesty i limity szybkości między replikami za pośrednictwem Redis. Działa tylko przy `USE_REDIS`; w każdym przypadku każda replika zachowuje własną pamięć podręczną w pamięci RAM. Domyślnie: `false`.',
+      'Udostępniaj wyszukane pull requesty i okresy ochłonięcia limitów zapytań między replikami za pomocą Redis. Działa tylko przy `USE_REDIS`; każda replika i tak zachowuje własną pamięć podręczną w pamięci operacyjnej. Domyślnie: `false`.',
       'sharedCache: true',
     ],
     [
       'sharedCacheTimeoutMs',
       'Number',
-      'Oczekujące. Najdłuższy czas w milisekundach, przez jaki odczyt lub zapis w pamięci podręcznej współdzielonej może trwać, zanim wyszukiwanie będzie kontynuowane bez niego (10-5000). Domyślnie: 250.',
+      'Najdłuższy czas, w milisekundach, jaki pojedynczy odczyt lub zapis w udostępnionej pamięci podręcznej może trwać, zanim wyszukiwanie będzie kontynuowane bez niej (10-5000). Domyślnie: 250.',
       'sharedCacheTimeoutMs: 250',
+    ],
+    [
+      'sharedCacheSlots',
+      'Number',
+      'Większość kluczy Redis używanych przez wspólną pamięć podręczną, raz dla wyników i raz dla okresów oczekiwania na limit żądań (64-1000000). Nowy wpis zastępuje ten znajdujący się w jego slocie. Odczyt tylko z pliku YAML. Domyślnie: 65536.',
+      'sharedCacheSlots: 65536',
     ],
   ]}
 />
@@ -703,7 +707,7 @@ endpoints:
 
 ### pullRequests.oauth
 
-Oczekujące. Pozwala każdemu użytkownikowi połączyć własne konto w sekcji **Ustawienia > Konto > Pull request account**. Wyszukiwania połączonego użytkownika wykorzystują jego własny token i nie podlegają ograniczeniu `allowedRepositories`; użytkownicy, którzy nie połączyli konta, nadal korzystają z tokena serwera. Zarejestruj `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` jako adres URL wywołania zwrotnego (callback URL) aplikacji. W przypadku GitHub zalecana jest aplikacja GitHub App z uprawnieniami tylko do odczytu (read-only) dla Pull requests, Checks oraz Contents. Zobacz [Konta dla poszczególnych użytkowników](/docs/features/pull_requests#per-user-accounts).
+Pozwala każdemu użytkownikowi połączyć własne konto w sekcji **Ustawienia > Konto > Konto pull requestów**. Wyszukiwania połączonego użytkownika używają jego własnego tokena i nie podlegają ograniczeniu `allowedRepositories`; użytkownicy, którzy nie połączyli konta, nadal korzystają z tokena serwera. Zarejestruj `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` jako adres URL wywołania zwrotnego aplikacji. W przypadku GitHuba zalecana jest aplikacja GitHub App z uprawnieniami tylko do odczytu dla Pull requests, Checks i Contents. Zobacz [Konta użytkowników indywidualnych](/docs/features/pull_requests#per-user-accounts).
 
 <OptionTable
   options={[

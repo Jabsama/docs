@@ -8,10 +8,6 @@ description: >-
 ---
 
 {/*
-  Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988), per-user
-  accounts through `oauth` (#16989) and the "Pull request account" setting (#16990). Delete the
-  Pending markers once each merges to dev, and re-check the schema in
-  packages/data-provider/src/config.ts.
   TODO(maintainer): first release version for each part (do not guess).
   TODO(maintainer): requirement 4 (where an admin sets the workspace environment's repository).
   Add it to "Requirements" once confirmed.
@@ -19,10 +15,10 @@ description: >-
 
 Wenn ein Chat Code in einem angehängten Workspace ausführt, meldet der Worker den Git-Branch und den Commit, auf dem er sich befindet. LibreChat verwendet diesen Branch, um den passenden Pull Request (einen Merge Request auf GitLab) mithilfe eines auf dem Server oder dem verbundenen Konto des Benutzers gespeicherten Tokens zu finden, und zeigt diesen an zwei Stellen an:
 
-- **Chat-Header**: ein Chip mit dem Pull-Request-Symbol und einem CI-Punkt. Durch Bewegen des Mauszeigers oder Fokussieren wird eine Karte geöffnet.
+- **Chat-Kopfzeile**: ein Chip mit dem Pull-Request-Symbol, seinem CI-Punkt und dem Titel des Pull Requests. Beim Überfahren oder Fokussieren öffnet sich eine Karte.
 - **Konversationsliste in der Seitenleiste**: das gleiche Symbol und der CI-Punkt am Ende der Zeile. Die Zeile behält den eigenen Titel der Konversation bei; der Titel des Pull Requests erscheint nur in der Karte.
 
-Pull requests können von GitHub (Standard), GitLab oder Bitbucket Cloud (**Ausstehend**) stammen. Eine Bereitstellung verwendet einen Anbieter.
+Pull-Requests können von GitHub (der Standard), GitLab oder Bitbucket Cloud stammen. Eine Bereitstellung verwendet jeweils einen Anbieter.
 
 ## Anforderungen [#requirements]
 
@@ -42,11 +38,11 @@ Die Ausnahme ist ein `token`, das zwar gesetzt ist, dessen Umgebungsvariable jed
 
 `provider` wählt aus, wo Pull Requests gespeichert werden:
 
-| `provider`         | Service                                                                                                   | Standard-`host` |
-| ------------------ | --------------------------------------------------------------------------------------------------------- | --------------- |
-| `github` (Standard) | GitHub.com, GitHub Enterprise Server oder ein GitHub Enterprise Cloud Data Residency-Tenant (`*.ghe.com`)     | `github.com`    |
-| `gitlab`           | Merge Requests auf gitlab.com oder einer selbst gehosteten GitLab-Instanz                                 | `gitlab.com`    |
-| `bitbucket`        | Nur Bitbucket Cloud (**Ausstehend**)                                                                      | `bitbucket.org` |
+| `provider` | Dienst | Standard-`host` |
+| ---------- | ------ | --------------- |
+| `github` (Standard) | GitHub.com, GitHub Enterprise Server oder ein Mandant mit Datenresidenz von GitHub Enterprise Cloud (`*.ghe.com`) | `github.com` |
+| `gitlab` | Merge Requests auf gitlab.com oder einem selbst gehosteten GitLab | `gitlab.com` |
+| `bitbucket` | Nur Bitbucket Cloud | `bitbucket.org` |
 
 Setzen Sie `host` nur für GitHub Enterprise Server, einen `*.ghe.com`-Tenant oder eine selbst gehostete GitLab-Instanz:
 
@@ -86,7 +82,7 @@ Der Server-Token wird für jeden Benutzer verwendet, der sein eigenes Konto nich
 
 **GitLab**: ein persönlicher, Gruppen- oder Projektzugriffstoken mit dem `read_api`-Scope.
 
-**Bitbucket Cloud** (**Ausstehend**): ein Repository-, Projekt- oder Workspace-Zugriffstoken, das als Bearer-Token gesendet wird. LibreChat liest Pull Requests, deren Diffstat, deren Commit-Status und Merge-Bases; gewähren Sie daher Lesezugriff auf Pull Requests und Repositories.
+**Bitbucket Cloud**: ein Repository-, Projekt- oder Workspace-Zugriffstoken, das als Bearer-Token gesendet wird. LibreChat liest Pull Requests, deren Diffstat, Commit-Status und Merge-Basen, daher sollten Sie Lesezugriff auf Pull Requests und Repositories gewähren.
 
 ### 3. Geben Sie LibreChat das Token [#3-give-librechat-the-token]
 
@@ -95,11 +91,11 @@ LibreChat sucht in dieser Reihenfolge nach einem Token:
 1. `token: "${MY_VAR}"` in der `librechat.yaml`. Dies ist eine **Referenz** auf eine Umgebungsvariable; die YAML-Datei enthält niemals das Token selbst, und ein direktes Token wird vom Schema abgelehnt.
 2. Wenn `token` nicht gesetzt ist, wird die erste der folgenden Umgebungsvariablen verwendet, die gesetzt ist:
 
-| Anbieter | Fallback-Variablen, in der Reihenfolge |
+| Anbieter  | Ersatzvariablen in Reihenfolge                            |
 | --------- | --------------------------------------------------------- |
 | GitHub    | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`   |
 | GitLab    | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN`               |
-| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` (**Ausstehend**)              |
+| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN`                            |
 
 3. Kein Token vorhanden: Die Funktion bleibt inaktiv, es sei denn, Benutzer können ihre eigenen Konten verbinden.
 
@@ -148,7 +144,7 @@ endpoints:
       allowedRepositories: ['platform/*']
 ```
 
-Bitbucket Cloud (**Ausstehend**), mit gesetztem `BITBUCKET_PULL_REQUEST_TOKEN`:
+Bitbucket Cloud, mit gesetztem `BITBUCKET_PULL_REQUEST_TOKEN`:
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -161,10 +157,6 @@ endpoints:
 Siehe die [`pullRequests` Referenz](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests) für jeden Schlüssel.
 
 ## Benutzerkonten pro Nutzer [#per-user-accounts]
-
-<Callout type="important" title="Ausstehend: noch nicht veröffentlicht">
-  Benutzerkonten sind Teil von LibreChat-AI/LibreChat#16989 und #16990.
-</Callout>
 
 Wenn `oauth` aktiviert ist, kann jeder Benutzer sein eigenes GitHub-, GitLab- oder Bitbucket-Konto unter **Einstellungen > Konto** im Bereich **Pull-Request-Konto** verknüpfen. Ihre Suchanfragen werden dann mit ihrem eigenen Token, ihren eigenen Ratenbegrenzungen und ihrem eigenen Repository-Zugriff ausgeführt, anstatt mit denen des Servers.
 
@@ -290,15 +282,12 @@ Speichern Sie den **Key** und das **Secret** des Consumers und kopieren Sie dies
 
 ## Skalierung mit Replikaten [#scaling-with-replicas]
 
-<Callout type="important" title="Ausstehend: noch nicht veröffentlicht">
-  `sharedCache` ist Teil von LibreChat-AI/LibreChat#16988.
-</Callout>
-
 Jede Replik speichert Ergebnisse im Arbeitsspeicher zwischen. Setzen Sie bei mehreren Replikaten `sharedCache: true`, damit diese nachgeschlagene Pull-Requests und Rate-Limit-Abklingzeiten über Redis teilen und nicht jedes Replikat das Token für dieselbe Antwort verbraucht.
 
 - Es wird nur wirksam, wenn die Bereitstellung mit Redis (`USE_REDIS`) ausgeführt wird. Standard: `false`.
 - Jedes Replikat behält in jedem Fall seinen eigenen In-Memory-Cache vor dem gemeinsam genutzten Cache bei.
 - `sharedCacheTimeoutMs` (10-5000, Standardwert 250) begrenzt jeden Lese- oder Schreibvorgang des geteilten Caches. Ein langsameres Redis wird übersprungen und die Suche wird ohne dieses fortgesetzt.
+- `sharedCacheSlots` (64-1000000, Standard 65536) begrenzt die Redis-Schlüssel, die der gemeinsame Cache verwendet. Wird nur aus der YAML gelesen.
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -331,37 +320,85 @@ Die Standardeinstellungen sind für die meisten Bereitstellungen in Ordnung.
 
 ### Chat-Header-Chip [#chat-header-chip]
 
-- **Desktop**: Der Chip befindet sich links in der Kopfzeile, neben den anderen Steuerelementen auf der linken Seite. Durch Bewegen des Mauszeigers oder Fokussieren wird die Karte rechts daneben geöffnet.
-- **Mobil**: Der Eintrag befindet sich im Überlaufmenü (drei Punkte) des Headers und öffnet ein Dialogfenster.
+- **Desktop**: Der Chip befindet sich links in der Kopfzeile, neben den anderen linken Steuerelementen. Er zeigt das Symbol für den Pull Request mit dem CI-Punkt an seiner Ecke und danach den Titel des Pull Requests. Beim Überfahren mit der Maus oder beim Fokussieren wird darunter die Karte geöffnet, die so lange geöffnet bleibt, wie sich der Mauszeiger oder der Tastaturfokus innerhalb der Karte befindet.
+- **Mobil**: Es gibt keinen Chip. Das Überlaufmenü (drei Punkte) in der Kopfzeile enthält einen Eintrag `PR #number` (`MR !number` bei GitLab), der dieselbe Karte in einem Dialog öffnet.
 - Die Kopfzeile aktualisiert sich von selbst: etwa alle 20 Sekunden, während Prüfungen laufen oder die Zusammenführbarkeit noch berechnet wird, ansonsten etwa alle 60 Sekunden und gar nicht mehr, sobald ein Pull Request zusammengeführt oder geschlossen wurde und keine Prüfungen mehr laufen.
+
+<ThemeImage
+  light="/images/pull-requests/hdr-ready-light.png"
+  dark="/images/pull-requests/hdr-ready-dark.png"
+  alt="Der Chat-Header-Chip für einen offenen Pull Request, der zusammengeführt werden kann, mit bestandenen Prüfungen, und seine darunter geöffnete Karte"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-menu-light.png"
+  dark="/images/pull-requests/mob-menu-dark.png"
+  alt="Der PR #1234-Eintrag im Überlaufmenü der Kopfzeile auf einem kleinen Bildschirm"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-dialog-light.png"
+  dark="/images/pull-requests/mob-dialog-dark.png"
+  alt="Die Pull-Request-Karte, die auf einem kleinen Bildschirm in einem Dialog angezeigt wird"
+/>
 
 ### Seitenleistenmarkierung [#sidebar-mark]
 
-- Ein Pull-Request-Symbol mit einem CI-Punkt befindet sich am Ende der Konversationszeile. Es erscheint nur bei Konversationen, die einen Pull Request haben.
-- Durch Bewegen des Mauszeigers, Fokussieren oder Klicken wird dieselbe Karte rechts neben der Markierung geöffnet. Ein Klick auf die Markierung öffnet die Konversation nicht.
+- Ein Pull-Request-Symbol mit seinem CI-Punkt befindet sich am Ende der Gesprächszeile. Es erscheint nur bei Gesprächen, die einen Pull Request haben.
+- Wenn Sie mit dem Mauszeiger über die Zeile fahren oder den Markierungspunkt fokussieren bzw. anklicken, öffnet sich dieselbe Karte rechts neben der Markierung. Ein Klick auf die Markierung öffnet die Unterhaltung nicht.
 - Die Seitenleiste fragt niemals Daten ab (polling). Eine Zeile ist so aktuell wie beim letzten Laden der Liste und wird aktualisiert, wenn das Fenster wieder den Fokus erhält und die Daten älter als eine Minute sind.
 - Wenn eine Suche fehlschlägt, zeigt die Zeile in ihrer Karte ein Warnsymbol mit einer Schaltfläche zum erneuten Versuch an, damit ein Fehler nicht mit „kein Pull Request“ verwechselt wird.
+
+<ThemeImage
+  light="/images/pull-requests/side-rows-light.png"
+  dark="/images/pull-requests/side-rows-dark.png"
+  alt="Seitenleistenzeilen mit Pull-Request-Markierungen: bereit zum Zusammenführen, Konflikte mit fehlgeschlagenen Prüfungen, ein Entwurf mit laufenden Prüfungen und ein zusammengeführter Pull Request"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/side-card-light.png"
+  dark="/images/pull-requests/side-card-dark.png"
+  alt="Die Pull-Request-Karte öffnete sich rechts neben einer Seitenleistenzeile"
+/>
 
 ### Die Karte [#the-card]
 
 Die Karte zeigt `PR #number` (`MR !number` auf GitLab), `+additions` in Grün, `-deletions` in Rot, einen **Open in GitHub**-, **Open in GitLab**- oder **Open in Bitbucket**-Link, den Titel sowie zwei Badges:
 
-- **Status**: Open, Draft, Merged oder Closed.
-- **Checks**: Bestanden (Passing), Fehlgeschlagen (Failing), Läuft (Running) oder keine. Auf GitLab ist dies die Head-Pipeline, die nur gezählt wird, wenn sie für den aktuellen Head-Commit ausgeführt wurde. Auf Bitbucket sind dies die Commit-Status.
-
-{/* TODO(docs): add the screenshots from LibreChat PRs #16794 and #16815. */}
+- **Status**: Offen, Konflikte, Entwurf, Zusammengeführt oder Geschlossen. Konflikte ersetzt Offen, wenn ein offener Pull Request Merge-Konflikte aufweist.
+- **Checks**: Passing, Failing, Running oder None. Bei GitLab ist dies die Head-Pipeline, die nur gezählt wird, wenn sie für den aktuellen Head-Commit ausgeführt wurde. Bei Bitbucket sind es die Commit-Status.
 
 ### Bedeutung von Icon und Punkt [#icon-and-dot-meaning]
 
-| Situation                               | Symbolfarbe               | CI-Punkt                              |
-| --------------------------------------- | ------------------------- | ------------------------------------- |
-| Offen, keine Konflikte, Prüfungen bestanden | Grün (bereit zum Zusammenführen) | Grün                                  |
-| Offen, keine Konflikte, keine Prüfungen | Grün                      | Keiner                                |
-| Offen, Zusammenführungskonflikte        | Rot (nicht zusammenführbar) | Nach Prüfungen                        |
-| Entwurf                                 | Neutral                   | Nach Prüfungen                        |
-| Zusammengeführt oder geschlossen        | Neutral                   | Keiner (gelb, solange Prüfungen laufen) |
+| Situation | Symbolfarbe | CI-Punkt |
+| --- | --- | --- |
+| Offen, keine Konflikte, Prüfungen bestanden | Grün (bereit zum Mergen) | Grün |
+| Offen, keine Konflikte, keine Prüfungen vorhanden | Grün | Keiner |
+| Offen, Mergebarkeit wird noch berechnet | Neutral | Nach Prüfungen |
+| Offen, Merge-Konflikte | Rot (Merge nicht möglich) | Nach Prüfungen |
+| Entwurf | Neutral | Nach Prüfungen |
+| Zusammengeführt | Lila | Keiner |
+| Geschlossen | Neutral | Keiner |
 
-CI-Punktfarben: Grün für erfolgreich, Rot für fehlgeschlagen, Bernstein für läuft, und keine, wenn keine Prüfungen vorliegen oder wenn der Pull Request zusammengeführt oder geschlossen wurde und keine Prüfungen mehr laufen. Eine fehlgeschlagene Prüfung hat Vorrang vor einer laufenden. Ein Rollup mit mehr Prüfläufen als gelesen wurden, wird niemals als erfolgreich gemeldet.
+CI-Punktfarben: Grün für bestanden, Rot für fehlgeschlagen, Gelb für laufend. Es wird kein Punkt angezeigt, wenn keine Prüfungen vorhanden sind oder sobald der Pull Request zusammengeführt oder geschlossen wurde. Eine fehlgeschlagene Prüfung hat Vorrang vor einer noch laufenden. Eine Zusammenfassung mit mehr Prüfungsläufen, als gelesen wurden, wird niemals als bestanden gemeldet.
+
+<ThemeImage
+  light="/images/pull-requests/hdr-conflict-light.png"
+  dark="/images/pull-requests/hdr-conflict-dark.png"
+  alt="Ein offener Pull Request mit Merge-Konflikten: rotes Symbol, roter Punkt für fehlgeschlagene Prüfungen sowie die Abzeichen „Conflicts“ und „Failing“"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-draft-light.png"
+  dark="/images/pull-requests/hdr-draft-dark.png"
+  alt="Ein Entwurf eines Pull Requests: neutrales Symbol, gelber Punkt, während Prüfungen laufen"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-merged-light.png"
+  dark="/images/pull-requests/hdr-merged-dark.png"
+  alt="Ein zusammengeführter Pull Request: lila Symbol und kein Punkt"
+/>
 
 ## Wie ein Pull Request abgeglichen wird [#how-a-pull-request-is-matched]
 
@@ -441,7 +478,7 @@ Beide `/api/convos` Routen unten erfordern einen authentifizierten Benutzer und 
 - **200**: `{ "results": [ { "conversationId", "pullRequest" } | { "conversationId", "error": { "code" } } ] }`, in der angefragten Reihenfolge. Eine fehlschlagende Suche verbirgt die anderen nicht.
 - Ein fehlendes Token führt nur bei den Einträgen zu einem Fehler, die es benötigt hätten.
 
-### Kontoverbindung (**Ausstehend**) [#account-connection-pending]
+### Kontoverbindung [#account-connection]
 
 Diese Routen existieren nur, wenn `JWT_SECRET` gesetzt ist. Alle außer dem Callback erfordern einen authentifizierten Benutzer.
 
@@ -457,6 +494,6 @@ Diese Routen existieren nur, wenn `JWT_SECRET` gesetzt ist. Alle außer dem Call
 - `pullRequestsEnabled` (Boolean)
 - `pullRequestsBatchVersion` (`1`, nur vorhanden, wenn das Feature aktiviert ist)
 - `pullRequestsMaxConcurrentLookups` (Zahl, nur vorhanden, wenn die Funktion aktiviert ist)
-- `pullRequestsConnect` (`github`, `gitlab` oder `bitbucket`, nur vorhanden, wenn Benutzer ihr eigenes Konto verbinden können; **Ausstehend**)
+- `pullRequestsConnect` (`github`, `gitlab` oder `bitbucket`, nur vorhanden, wenn Benutzer ihr eigenes Konto verbinden können)
 
 Nur die oben aufgeführten Fehlercodes sind stabil.

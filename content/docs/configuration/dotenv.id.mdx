@@ -1617,13 +1617,13 @@ Variabel cadangan hanya digunakan ketika `pullRequests.token` tidak diatur, dan 
     [
       'BITBUCKET_PULL_REQUEST_TOKEN',
       'string',
-      'Tertunda. Token akses repositori, proyek, atau ruang kerja Bitbucket Cloud cadangan dengan akses baca ke pull request dan repositori.',
+      'Token akses repositori, proyek, atau workspace Bitbucket Cloud cadangan dengan akses baca ke pull request dan repositori.',
       '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'Variabel yang dirujuk oleh `pullRequests.token: "${NAME}"`. Juga digunakan untuk `pullRequests.oauth.clientId` dan `clientSecret` (Tertunda), yang juga merupakan referensi.',
+      'Variabel yang dirujuk oleh `pullRequests.token: "${NAME}"`. Juga digunakan untuk `pullRequests.oauth.clientId` dan `clientSecret`, yang juga merupakan referensi.',
       '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
@@ -1635,7 +1635,7 @@ Variabel cadangan hanya digunakan ketika `pullRequests.token` tidak diatur, dan 
   ]}
 />
 
-Pengguna yang menghubungkan akun mereka sendiri (Pending) memerlukan `JWT_SECRET`, yang menandatangani alur koneksi, dan `DOMAIN_SERVER`, yang membentuk URL callback `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` (Pending) hanya akan berlaku jika `USE_REDIS=true`.
+Pengguna yang menghubungkan akun mereka sendiri memerlukan `JWT_SECRET`, yang menandatangani alur koneksi, dan `DOMAIN_SERVER`, yang membentuk URL callback `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` hanya berlaku dengan `USE_REDIS=true`.
 
 Permintaan penyedia menggunakan pengaturan proksi deployment (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY`, dan bentuk huruf kecilnya), dan `NO_PROXY` tetap dihormati. Pengaturan ini digunakan bersama dengan lalu lintas keluar LibreChat lainnya dan tidak spesifik untuk fitur ini.
 

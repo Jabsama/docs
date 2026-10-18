@@ -7,10 +7,6 @@ description: >-
 ---
 
 {/*
-  Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988), per-user
-  accounts through `oauth` (#16989) and the "Pull request account" setting (#16990). Delete the
-  Pending markers once each merges to dev, and re-check the schema in
-  packages/data-provider/src/config.ts.
   TODO(maintainer): first release version for each part (do not guess).
   TODO(maintainer): requirement 4 (where an admin sets the workspace environment's repository).
   Add it to "Requirements" once confirmed.
@@ -18,10 +14,10 @@ description: >-
 
 チャットが添付されたワークスペースでコードを実行すると、ワーカーは現在チェックアウトしているgitブランチとコミットを報告します。LibreChatはそのブランチを使用して、サーバー上に保持されているトークン、またはユーザー自身の接続済みアカウントを使用して、一致するプルリクエスト（GitLabの場合はマージリクエスト）を検索し、以下の2箇所に表示します。
 
-- **Chat header**: プルリクエストアイコンとCIドットが付いたチップ。ホバーまたはフォーカスするとカードが開きます。
+- **チャットヘッダー**: プルリクエストアイコン、CIのドット、プルリクエストのタイトルを含むチップです。ホバーまたはフォーカスするとカードが開きます。
 - **サイドバーの会話リスト**: 行の末尾に同じアイコンとCIドットが表示されます。行には会話自体のタイトルが保持され、プルリクエストのタイトルはカード内にのみ表示されます。
 
-Pull requestsはGitHub（デフォルト）、GitLab、またはBitbucket Cloud（**保留中**）から取得できます。1つのデプロイメントにつき1つのプロバイダーを使用します。
+プルリクエストは、GitHub（デフォルト）、GitLab、または Bitbucket Cloud から取得できます。1つのデプロイメントでは、1つのプロバイダーのみを使用します。
 
 ## 要件 [#requirements]
 
@@ -41,11 +37,11 @@ Pull requestsはGitHub（デフォルト）、GitLab、またはBitbucket Cloud�
 
 `provider` はプルリクエストの保存先を選択します：
 
-| `provider`         | サービス                                                                                                   | デフォルトの `host`  |
+| `provider` | サービス | デフォルトの `host` |
 | ------------------ | --------------------------------------------------------------------------------------------------------- | --------------- |
-| `github` (デフォルト) | GitHub.com、GitHub Enterprise Server、または GitHub Enterprise Cloud データレジデンシーテナント (`*.ghe.com`)     | `github.com`    |
-| `gitlab`           | gitlab.com またはセルフホスト型 GitLab 上のマージリクエスト                                                     | `gitlab.com`    |
-| `bitbucket`        | Bitbucket Cloud のみ (**保留中**)                                                                        | `bitbucket.org` |
+| `github` (デフォルト) | GitHub.com、GitHub Enterprise Server、または GitHub Enterprise Cloud のデータレジデンシーテナント (`*.ghe.com`) | `github.com` |
+| `gitlab` | gitlab.com または自己管理型 GitLab のマージリクエスト | `gitlab.com` |
+| `bitbucket` | Bitbucket Cloud のみ | `bitbucket.org` |
 
 GitHub Enterprise Server、`*.ghe.com` テナント、またはセルフマネージドの GitLab の場合にのみ `host` を設定してください：
 
@@ -85,7 +81,7 @@ endpoints:
 
 **GitLab**: `read_api` スコープを持つ個人、グループ、またはプロジェクトのアクセストークン。
 
-**Bitbucket Cloud** (**保留中**): リポジトリ、プロジェクト、またはワークスペースのアクセストークン。Bearerトークンとして送信されます。LibreChatはプルリクエスト、そのdiffstat、コミットステータス、およびマージベースを読み取るため、プルリクエストとリポジトリに対する読み取り権限を付与してください。
+**Bitbucket Cloud**: リポジトリ、プロジェクト、またはワークスペースのアクセストークンを、Bearerトークンとして送信します。LibreChatはプルリクエスト、その差分統計(diffstat)、コミットステータス、およびマージベースを読み取るため、プルリクエストとリポジトリへの読み取りアクセス権を付与してください。
 
 ### 3. LibreChatにトークンを渡す [#3-give-librechat-the-token]
 
@@ -94,11 +90,11 @@ LibreChatは、以下の順序でトークンを検索します：
 1. `token: "${MY_VAR}"` ( `librechat.yaml` 内)。これは環境変数の**参照**です。YAML 自体にはトークンは保持されず、リテラルのトークンはスキーマによって拒否されます。
 2. `token` が設定されていない場合、以下の環境変数のうち最初に設定されているものが使用されます：
 
-| プロバイダー | フォールバック変数（優先順位順） |
+| プロバイダー | フォールバック変数（順番どおり） |
 | --------- | --------------------------------------------------------- |
 | GitHub    | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`   |
 | GitLab    | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN`               |
-| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` (**保留中**)              |
+| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN`              |
 
 3. トークンはどこにも存在しません：ユーザーが自身のアカウントを接続できない限り、この機能は休止状態のままとなります。
 
@@ -147,7 +143,7 @@ endpoints:
       allowedRepositories: ['platform/*']
 ```
 
-Bitbucket Cloud (**保留中**)、`BITBUCKET_PULL_REQUEST_TOKEN` を設定した場合:
+Bitbucket Cloud、`BITBUCKET_PULL_REQUEST_TOKEN` を設定した場合:
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -160,10 +156,6 @@ endpoints:
 すべてのキーについては、[`pullRequests` リファレンス](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests) を参照してください。
 
 ## ユーザーごとのアカウント [#per-user-accounts]
-
-<Callout type="important" title="保留中：未リリース">
-  ユーザーごとのアカウントは、LibreChat-AI/LibreChat#16989 および #16990 の一部です。
-</Callout>
 
 `oauth` を設定すると、各ユーザーは **Settings > Account** の **Pull request account** から、自身の GitHub、GitLab、または Bitbucket アカウントを接続できるようになります。これにより、サーバーのトークン、レート制限、リポジトリアクセスではなく、ユーザー自身のトークン、レート制限、リポジトリアクセスを使用してルックアップが実行されるようになります。
 
@@ -289,15 +281,12 @@ Bitbucket Cloudで **Workspace settings > OAuth consumers > Add consumer** を�
 
 ## レプリカによるスケーリング [#scaling-with-replicas]
 
-<Callout type="important" title="保留中：未リリース">
-  `sharedCache` は LibreChat-AI/LibreChat#16988 の一部です。
-</Callout>
-
 各レプリカは結果をメモリ内にキャッシュします。複数のレプリカを使用する場合は、`sharedCache: true` を設定することで、Redis を介して検索されたプルリクエストやレート制限のクールダウンを共有し、各レプリカが同じ回答に対してトークンを消費しないようにします。
 
 - これは、デプロイメントがRedis (`USE_REDIS`) で実行されている場合にのみ有効になります。デフォルト: `false`。
 - いずれの場合も、各レプリカは共有キャッシュの前に、独自のインメモリキャッシュを保持します。
 - `sharedCacheTimeoutMs` (10-5000、デフォルト 250) は、各共有キャッシュの読み取りまたは書き込みの制限時間を設定します。Redis の応答が遅い場合はスキップされ、それを使用せずにルックアップが続行されます。
+- `sharedCacheSlots`(64〜1000000、デフォルト 65536)は、共有キャッシュが使用する Redis キーの上限を設定します。この値は YAML からのみ読み込まれます。
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -330,37 +319,85 @@ endpoints:
 
 ### チャットヘッダーチップ [#chat-header-chip]
 
-- **Desktop**: チップはヘッダーの左側、他の左側のコントロールの隣に配置されます。ホバーまたはフォーカスすると、その右側にカードが開きます。
-- **Mobile**: エントリはヘッダーのオーバーフロー（3点リーダー）メニュー内にあり、ダイアログを開きます。
+- **デスクトップ**: チップはヘッダーの左側、他の左側コントロールの隣に配置されます。プルリクエストのアイコンと、その角に CI のドットが表示され、続いてプルリクエストのタイトルが表示されます。チップにホバーまたはフォーカスすると、その下にカードが開きます。カードは、ポインターまたはキーボードのフォーカスがカード内にある限り、開いたままになります。
+- **モバイル**: チップはありません。ヘッダーのオーバーフロー(三点)メニューに `PR #number`(GitLab では `MR !number`)の項目があり、同じカードをダイアログで開きます。
 - ヘッダーは自動的に更新されます。チェックが実行中またはマージ可能性が計算中の場合は約20秒ごと、それ以外の場合は約60秒ごとに行われます。プルリクエストがマージされた、またはチェックが実行されていない状態でクローズされた場合は更新されません。
+
+<ThemeImage
+  light="/images/pull-requests/hdr-ready-light.png"
+  dark="/images/pull-requests/hdr-ready-dark.png"
+  alt="チャットヘッダーのチップ：マージ可能で、チェックがすべて通過しているオープンなプルリクエストと、その下に開いているカード"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-menu-light.png"
+  dark="/images/pull-requests/mob-menu-dark.png"
+  alt="小さな画面でヘッダーのオーバーフローメニューにある PR #1234 のエントリー"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-dialog-light.png"
+  dark="/images/pull-requests/mob-dialog-dark.png"
+  alt="小さな画面のダイアログに表示されるプルリクエストのカード"
+/>
 
 ### サイドバーマーク [#sidebar-mark]
 
-- 会話行の末尾に、CIドットが付いたプルリクエストアイコンが表示されます。これは、プルリクエストが存在する会話にのみ表示されます。
-- ホバー、フォーカス、またはクリックすると、マークの右側に同じカードが開きます。マークをクリックしても会話は開きません。
+- プルリクエストのアイコンと、その CI ステータスを示すドットが、会話の行の末尾に表示されます。プルリクエストがある会話にのみ表示されます。
+- 行のどこにマウスを乗せても、またマークにフォーカスしたりクリックしたりしても、マークの右側に同じカードが開きます。マークをクリックしても会話は開きません。
 - サイドバーはポーリングを行いません。各行の情報はリストが最後に読み込まれた時点のままですが、ウィンドウがフォーカスを取り戻した際にデータが1分以上経過している場合は更新されます。
 - ルックアップが失敗した場合、そのカードには警告アイコンと再試行ボタンが表示されるため、失敗が「プルリクエストなし」と誤認されることはありません。
+
+<ThemeImage
+  light="/images/pull-requests/side-rows-light.png"
+  dark="/images/pull-requests/side-rows-dark.png"
+  alt="ready to merge、競合あり・チェック失敗、ドラフトでチェック実行中、マージ済みのプルリクエストマークが付いたサイドバーの行"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/side-card-light.png"
+  dark="/images/pull-requests/side-card-dark.png"
+  alt="プルリクエストカードは、サイドバーの行の右側に開きました"
+/>
 
 ### カード [#the-card]
 
 カードには `PR #number`（GitLabの場合は `MR !number`）、緑色で `+additions`、赤色で `-deletions`、**Open in GitHub**、**Open in GitLab**、または **Open in Bitbucket** へのリンク、タイトル、そして2つのバッジが表示されます。
 
-- **State**: Open（オープン）、Draft（ドラフト）、Merged（マージ済み）、または Closed（クローズ）。
-- **Checks**: Passing（成功）、Failing（失敗）、Running（実行中）、またはなし。GitLabでは、これはヘッドパイプラインであり、現在のヘッドコミットに対して実行された場合にのみカウントされます。Bitbucketでは、これはコミットステータスです。
-
-{/* TODO(docs): add the screenshots from LibreChat PRs #16794 and #16815. */}
+- **状態**: Open、Conflicts、Draft、Merged、Closed のいずれか。オープンなプルリクエストにマージコンフリクトがある場合は、Open の代わりに Conflicts と表示されます。
+- **チェック**: Passing、Failing、Running、またはNone。GitLab では、現在のヘッドコミットに対して実行されたヘッドパイプラインのみがカウントされます。Bitbucket では、コミットステータスが対象となります。
 
 ### アイコンとドットの意味 [#icon-and-dot-meaning]
 
-| 状況 | アイコンの色 | CIドット |
-| --------------------------------------- | ------------------------- | ------------------------------------- |
-| オープン、競合なし、チェック通過済み | 緑（マージ可能） | 緑 |
+| 状況 | アイコンの色 | CIのドット |
+| ------------------------------------------- | ---------------------- | --------- |
+| オープン、競合なし、チェックがすべて合格 | 緑（マージ可能） | 緑 |
 | オープン、競合なし、チェックなし | 緑 | なし |
-| オープン、マージ競合あり | 赤（マージ不可） | チェックによる |
-| ドラフト | ニュートラル | チェックによる |
-| マージ済みまたはクローズ済み | ニュートラル | なし（チェック実行中は琥珀色） |
+| オープン、マージ可能性を計算中 | 中立 | チェックに依存 |
+| オープン、マージ競合あり | 赤（マージ不可） | チェックに依存 |
+| ドラフト | 中立 | チェックに依存 |
+| マージ済み | 紫 | なし |
+| クローズ | 中立 | なし |
 
-CIドットの色：緑は成功、赤は失敗、琥珀色は実行中を示します。チェックがない場合、またはプルリクエストがマージまたはクローズされ、実行中のチェックがない場合は、何も表示されません。失敗したチェックは、実行中のチェックよりも優先されます。読み取られた数よりも多くのチェック実行を含むロールアップは、成功として報告されることはありません。
+CI のドットの色: 成功は緑、失敗は赤、実行中は黄色（アンバー）です。チェックがない場合、またはプルリクエストがマージまたはクローズされた後は、ドットは表示されません。失敗したチェックは、まだ実行中のチェックより優先されます。読み取られた数より多くのチェック実行を含むロールアップが、成功として報告されることはありません。
+
+<ThemeImage
+  light="/images/pull-requests/hdr-conflict-light.png"
+  dark="/images/pull-requests/hdr-conflict-dark.png"
+  alt="マージコンフリクトのあるオープンなプルリクエスト: 赤いアイコン、チェック失敗を示す赤い点、および「Conflicts」「Failing」バッジ"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-draft-light.png"
+  dark="/images/pull-requests/hdr-draft-dark.png"
+  alt="ドラフトのプルリクエスト: 中立のアイコン、チェックの実行中は黄色のドット"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-merged-light.png"
+  dark="/images/pull-requests/hdr-merged-dark.png"
+  alt="マージされたプルリクエスト: 紫色のアイコンとドットなし"
+/>
 
 ## プルリクエストがどのようにマッチングされるか [#how-a-pull-request-is-matched]
 
@@ -440,7 +477,7 @@ CIドットの色：緑は成功、赤は失敗、琥珀色は実行中を示し
 - **200**: `{ "results": [ { "conversationId", "pullRequest" } | { "conversationId", "error": { "code" } } ] }`。リクエストされた順序で返されます。1つの検索が失敗しても、他の検索結果が隠されることはありません。
 - トークンが不足している場合、それを必要とするエントリのみが失敗します。
 
-### アカウント接続 (**Pending**) [#account-connection-pending]
+### アカウント接続 [#account-connection]
 
 これらのルートは `JWT_SECRET` が設定されている場合にのみ存在します。コールバックを除くすべてにおいて、認証されたユーザーが必要です。
 
@@ -456,6 +493,6 @@ CIドットの色：緑は成功、赤は失敗、琥珀色は実行中を示し
 - `pullRequestsEnabled` (boolean)
 - `pullRequestsBatchVersion` (`1`、機能が有効な場合にのみ存在)
 - `pullRequestsMaxConcurrentLookups` (数値、機能が有効な場合のみ存在)
-- `pullRequestsConnect` (`github`、`gitlab` または `bitbucket`、ユーザーが自身のアカウントを接続できる場合にのみ存在; **保留中**)
+- `pullRequestsConnect`（`github`、`gitlab`、`bitbucket` のいずれか。ユーザーが自分のアカウントを接続できる場合にのみ存在）
 
 上記のリストにあるエラーコードのみが安定しています。

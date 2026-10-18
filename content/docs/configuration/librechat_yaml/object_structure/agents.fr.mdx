@@ -550,14 +550,12 @@ L'achèvement de l'Action détachée de l'Event Actor est sélectionné automati
 
 ## pullRequests
 
-{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
-
 Affiche la pull request (une merge request sur GitLab) pour l'espace de travail de code attaché à une conversation dans l'en-tête du chat et la barre latérale. Voir [Conversation Pull Requests](/docs/features/pull_requests) pour la configuration, le comportement et le dépannage. Chaque clé est optionnelle.
 
 La fonctionnalité est activée dès que le serveur dispose d'un jeton et d'une portée de dépôt, ou les utilisateurs peuvent connecter leurs propres comptes via `oauth`. La plupart des administrateurs définissent uniquement une portée de dépôt et un jeton, ainsi que `provider` et `host` lorsqu'ils ne sont pas sur github.com. Les valeurs par défaut des clés de réglage sont appropriées.
 
 <Callout type="info" title="Lire uniquement à partir de librechat.yaml">
-  `provider`, `host` et `oauth` sont lus uniquement à partir de `librechat.yaml`. Les remplacements de configuration de rôle, de groupe, d'utilisateur et de locataire pour ces clés sont ignorés, donc un remplacement ne peut pas rediriger un jeton vers un autre service.
+  `provider`, `host`, `oauth` et `sharedCacheSlots` sont lus uniquement à partir de `librechat.yaml`. Les surcharges de ces clés au niveau du rôle, du groupe, de l'utilisateur ou du tenant sont ignorées ; ainsi, une surcharge ne peut pas rediriger un jeton vers un autre service, et chaque réplica adresse les mêmes emplacements de cache partagé.
 </Callout>
 
 <OptionTable
@@ -571,7 +569,7 @@ La fonctionnalité est activée dès que le serveur dispose d'un jeton et d'une 
     [
       'provider',
       'String',
-      '`github` (par défaut), `gitlab` pour les merge requests sur gitlab.com ou un GitLab auto-hébergé, ou `bitbucket` pour Bitbucket Cloud (en attente). Lecture à partir du YAML uniquement.',
+      '`github` (par défaut), `gitlab` pour les merge requests sur gitlab.com ou une instance GitLab auto-hébergée, ou `bitbucket` pour Bitbucket Cloud. Lire uniquement depuis le YAML.',
       'provider: "gitlab"',
     ],
     [
@@ -589,7 +587,7 @@ La fonctionnalité est activée dès que le serveur dispose d'un jeton et d'une 
     [
       'oauth',
       'Object',
-      'En attente. Permet à chaque utilisateur de connecter son propre compte, afin que les recherches utilisent le jeton, la limite de débit et l\'accès au dépôt de cet utilisateur. Lecture à partir du YAML uniquement. Voir [oauth](#pullrequestsoauth) ci-dessous.',
+      'Permet à chaque utilisateur de connecter son propre compte, afin que les recherches utilisent le jeton, la limite de débit et l\'accès aux dépôts de cet utilisateur. Lecture uniquement depuis le YAML. Voir [oauth](#pullrequestsoauth) ci-dessous.',
       'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
@@ -673,14 +671,20 @@ La fonctionnalité est activée dès que le serveur dispose d'un jeton et d'une 
     [
       'sharedCache',
       'Boolean',
-      'En attente. Partagez les pull requests recherchées et les temps de refroidissement des limites de débit entre les réplicas via Redis. Ne prend effet qu\'avec `USE_REDIS` ; chaque réplica conserve son propre cache en mémoire dans tous les cas. Par défaut : `false`.',
+      'Partager les demandes de pull (pull requests) consultées et les délais de refroidissement des limites de débit entre les réplicas via Redis. Ne prend effet qu\'avec `USE_REDIS` ; chaque réplica conserve son propre cache en mémoire dans tous les cas. Valeur par défaut : `false`.',
       'sharedCache: true',
     ],
     [
       'sharedCacheTimeoutMs',
       'Number',
-      'En attente. Durée maximale, en millisecondes, qu\'une lecture ou écriture dans le cache partagé peut prendre avant que la recherche ne se poursuive sans lui (10-5000). Par défaut : 250.',
+      'La durée maximale, en millisecondes, d\'une lecture ou écriture dans le cache partagé avant que la recherche se poursuive sans celui-ci (10-5000). Par défaut : 250.',
       'sharedCacheTimeoutMs: 250',
+    ],
+    [
+      'sharedCacheSlots',
+      'Number',
+      'La plupart des clés Redis utilisées par le cache partagé, une fois pour les résultats et une fois pour les délais de limitation de débit (64-1000000). Une nouvelle entrée remplace celle de son emplacement. Lecture uniquement depuis le YAML. Valeur par défaut : 65536.',
+      'sharedCacheSlots: 65536',
     ],
   ]}
 />
@@ -703,7 +707,7 @@ endpoints:
 
 ### pullRequests.oauth
 
-En attente. Permet à chaque utilisateur de connecter son propre compte sous **Paramètres > Compte > Compte de pull request**. Les recherches d'un utilisateur connecté utilisent son propre jeton et ne sont pas soumises à `allowedRepositories` ; les utilisateurs qui ne se sont pas connectés continuent d'utiliser le jeton du serveur. Enregistrez `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` comme URL de rappel de l'application. Sur GitHub, une GitHub App avec des autorisations en lecture seule pour les Pull requests, Checks et Contents est recommandée. Voir [Comptes par utilisateur](/docs/features/pull_requests#per-user-accounts).
+Permet à chaque utilisateur de connecter son propre compte sous **Paramètres > Compte > Compte de pull request**. Les recherches d'un utilisateur connecté utilisent son propre jeton et ne sont pas soumises à `allowedRepositories` ; les utilisateurs non connectés continuent d'utiliser le jeton du serveur. Enregistrez `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` comme URL de rappel de l'application. Sur GitHub, une GitHub App disposant des autorisations en lecture seule sur Pull requests, Checks et Contents est recommandée. Voir [Comptes par utilisateur](/docs/features/pull_requests#per-user-accounts).
 
 <OptionTable
   options={[

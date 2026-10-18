@@ -1617,13 +1617,13 @@ As variáveis de fallback são usadas apenas quando `pullRequests.token` não es
     [
       'BITBUCKET_PULL_REQUEST_TOKEN',
       'string',
-      'Pendente. Token de acesso de fallback para repositório, projeto ou workspace do Bitbucket Cloud com acesso de leitura a pull requests e repositórios.',
+      'Token de acesso de fallback do Bitbucket Cloud para repositório, projeto ou workspace com acesso de leitura a pull requests e repositórios.',
       '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'A variável à qual `pullRequests.token: "${NAME}"` se refere. Também usada para `pullRequests.oauth.clientId` e `clientSecret` (Pendente), que também são referências.',
+      'A variável à qual `pullRequests.token: "${NAME}"` se refere. Também usada para `pullRequests.oauth.clientId` e `clientSecret`, que também são referências.',
       '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
@@ -1635,7 +1635,7 @@ As variáveis de fallback são usadas apenas quando `pullRequests.token` não es
   ]}
 />
 
-Usuários conectando suas próprias contas (Pendente) precisam de `JWT_SECRET`, que assina o fluxo de conexão, e `DOMAIN_SERVER`, que forma a URL de retorno `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` (Pendente) entra em vigor apenas com `USE_REDIS=true`.
+Usuários que conectam a própria conta precisam de `JWT_SECRET`, que assina o fluxo de conexão, e de `DOMAIN_SERVER`, que forma a URL de callback `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` só entra em vigor com `USE_REDIS=true`.
 
 As solicitações de provedores usam as configurações de proxy da implantação (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` e suas formas em minúsculas), e `NO_PROXY` é respeitado. Elas são compartilhadas com outros tráfegos de saída do LibreChat e não são específicas deste recurso.
 

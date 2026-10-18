@@ -8,10 +8,6 @@ description: >-
 ---
 
 {/*
-  Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988), per-user
-  accounts through `oauth` (#16989) and the "Pull request account" setting (#16990). Delete the
-  Pending markers once each merges to dev, and re-check the schema in
-  packages/data-provider/src/config.ts.
   TODO(maintainer): first release version for each part (do not guess).
   TODO(maintainer): requirement 4 (where an admin sets the workspace environment's repository).
   Add it to "Requirements" once confirmed.
@@ -19,10 +15,10 @@ description: >-
 
 Khi một cuộc trò chuyện chạy mã trong một workspace được đính kèm, worker sẽ báo cáo nhánh git và commit mà nó đang sử dụng. LibreChat sử dụng nhánh đó để tìm pull request tương ứng (hoặc merge request trên GitLab), với một token được lưu trữ trên máy chủ hoặc tài khoản đã kết nối của người dùng, và hiển thị nó ở hai nơi:
 
-- **Tiêu đề trò chuyện (Chat header)**: một thẻ (chip) với biểu tượng pull request và một dấu chấm CI. Khi di chuột hoặc tập trung vào đó sẽ mở ra một thẻ thông tin.
+- **Tiêu đề trò chuyện**: một chip có biểu tượng pull request, chấm trạng thái CI và tiêu đề pull request. Khi di chuột vào hoặc focus vào chip, một thẻ (card) sẽ mở ra.
 - **Danh sách hội thoại trên thanh bên**: cùng biểu tượng và dấu chấm CI ở cuối hàng. Hàng này vẫn giữ tiêu đề riêng của cuộc hội thoại; tiêu đề của pull request chỉ xuất hiện trong thẻ.
 
-Các pull request có thể đến từ GitHub (mặc định), GitLab hoặc Bitbucket Cloud (**Đang chờ xử lý**). Một bản triển khai sử dụng một nhà cung cấp.
+Pull request có thể đến từ GitHub (mặc định), GitLab hoặc Bitbucket Cloud. Mỗi lần triển khai chỉ sử dụng một nhà cung cấp.
 
 ## Yêu cầu [#requirements]
 
@@ -42,11 +38,11 @@ Ngoại lệ là một `token` đã được thiết lập nhưng biến môi tr
 
 `provider` chọn nơi lưu trữ các pull request:
 
-| `provider`         | Dịch vụ                                                                                                   | `host` mặc định |
+| `provider` | Dịch vụ | `host` mặc định |
 | ------------------ | --------------------------------------------------------------------------------------------------------- | --------------- |
-| `github` (mặc định) | GitHub.com, GitHub Enterprise Server, hoặc một tenant lưu trữ dữ liệu GitHub Enterprise Cloud (`*.ghe.com`)     | `github.com`    |
-| `gitlab`           | Merge requests trên gitlab.com hoặc GitLab tự quản lý                                                     | `gitlab.com`    |
-| `bitbucket`        | Chỉ Bitbucket Cloud (**Đang chờ xử lý**)                                                                        | `bitbucket.org` |
+| `github` (mặc định) | GitHub.com, GitHub Enterprise Server hoặc một tenant lưu trữ dữ liệu của GitHub Enterprise Cloud (`*.ghe.com`) | `github.com` |
+| `gitlab` | Merge request trên gitlab.com hoặc GitLab tự quản lý | `gitlab.com` |
+| `bitbucket` | Chỉ Bitbucket Cloud | `bitbucket.org` |
 
 Chỉ thiết lập `host` cho GitHub Enterprise Server, một tenant `*.ghe.com`, hoặc GitLab tự quản lý:
 
@@ -86,7 +82,7 @@ Token máy chủ được sử dụng cho mọi người dùng chưa kết nối
 
 **GitLab**: một mã truy cập cá nhân, nhóm hoặc dự án với phạm vi `read_api`.
 
-**Bitbucket Cloud** (**Đang chờ xử lý**): một token truy cập kho lưu trữ, dự án hoặc không gian làm việc, được gửi dưới dạng bearer token. LibreChat đọc các pull request, diffstat, trạng thái commit và merge base của chúng, vì vậy hãy cấp quyền đọc cho các pull request và kho lưu trữ.
+**Bitbucket Cloud**: một access token cấp repository, project hoặc workspace, được gửi dưới dạng bearer token. LibreChat đọc các pull request, diffstat, trạng thái commit và merge base của chúng, vì vậy hãy cấp quyền đọc cho pull request và repository.
 
 ### 3. Cung cấp token cho LibreChat [#3-give-librechat-the-token]
 
@@ -99,7 +95,7 @@ LibreChat tìm kiếm token theo thứ tự sau:
 | --------- | --------------------------------------------------------- |
 | GitHub    | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`   |
 | GitLab    | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN`               |
-| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` (**Đang chờ xử lý**)              |
+| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN`              |
 
 3. Không có token ở bất kỳ đâu: tính năng này sẽ ở trạng thái không hoạt động, trừ khi người dùng có thể kết nối tài khoản của riêng họ.
 
@@ -148,7 +144,7 @@ endpoints:
       allowedRepositories: ['platform/*']
 ```
 
-Bitbucket Cloud (**Đang chờ xử lý**), với `BITBUCKET_PULL_REQUEST_TOKEN` được thiết lập:
+Bitbucket Cloud, với `BITBUCKET_PULL_REQUEST_TOKEN` được đặt:
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -161,10 +157,6 @@ endpoints:
 Xem [`pullRequests` reference](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests) để biết mọi khóa.
 
 ## Tài khoản theo người dùng [#per-user-accounts]
-
-<Callout type="important" title="Đang chờ xử lý: chưa được phát hành">
-  Các tài khoản theo người dùng là một phần của LibreChat-AI/LibreChat#16989 và #16990.
-</Callout>
 
 Với `oauth` được thiết lập, mỗi người dùng có thể kết nối tài khoản GitHub, GitLab hoặc Bitbucket của riêng họ trong **Settings > Account**, tại mục **Pull request account**. Các truy vấn của họ sau đó sẽ chạy bằng token, giới hạn tốc độ (rate limit) và quyền truy cập kho lưu trữ của chính họ thay vì của máy chủ.
 
@@ -290,15 +282,12 @@ Lưu lại, sau đó sao chép **Key** và **Secret** của người tiêu dùng
 
 ## Mở rộng quy mô với các bản sao (replicas) [#scaling-with-replicas]
 
-<Callout type="important" title="Đang chờ xử lý: chưa được phát hành">
-  `sharedCache` là một phần của LibreChat-AI/LibreChat#16988.
-</Callout>
-
 Mỗi bản sao (replica) lưu trữ kết quả trong bộ nhớ. Với nhiều bản sao, hãy đặt `sharedCache: true` để chúng chia sẻ các yêu cầu truy vấn và thời gian chờ giới hạn tốc độ (rate limit cooldowns) thông qua Redis, đồng thời tránh việc mỗi bản sao đều tiêu tốn token cho cùng một câu trả lời.
 
 - Nó chỉ có hiệu lực khi quá trình triển khai chạy với Redis (`USE_REDIS`). Mặc định: `false`.
 - Mỗi bản sao (replica) đều giữ bộ nhớ đệm trong bộ nhớ (in-memory cache) riêng của nó, nằm trước bộ nhớ đệm dùng chung.
 - `sharedCacheTimeoutMs` (10-5000, mặc định 250) giới hạn thời gian cho mỗi lần đọc hoặc ghi bộ nhớ đệm chia sẻ. Nếu Redis phản hồi chậm, nó sẽ bị bỏ qua và quá trình tra cứu vẫn tiếp tục mà không cần đến nó.
+- `sharedCacheSlots` (64-1000000, mặc định 65536) giới hạn số lượng khóa Redis mà bộ nhớ đệm dùng chung sử dụng. Chỉ đọc giá trị từ YAML.
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -331,37 +320,85 @@ Các thiết lập mặc định là phù hợp cho hầu hết các triển kha
 
 ### Chip tiêu đề trò chuyện [#chat-header-chip]
 
-- **Desktop**: chip nằm ở bên trái của tiêu đề, cạnh các điều khiển bên trái khác. Di chuột hoặc tập trung vào nó sẽ mở thẻ ở bên phải của nó.
-- **Mobile**: mục này nằm trong menu tràn (ba dấu chấm) của tiêu đề và mở ra một hộp thoại.
+- **Máy tính để bàn**: chip nằm ở bên trái của phần tiêu đề, cạnh các điều khiển bên trái khác. Nó hiển thị biểu tượng pull request với chấm CI ở góc, sau đó là tiêu đề pull request. Khi di chuột hoặc focus vào chip, thẻ bên dưới sẽ mở ra, và thẻ vẫn mở trong khi con trỏ chuột hoặc focus bàn phím nằm bên trong thẻ.
+- **Di động**: không có chip. Menu tràn (ba chấm) ở tiêu đề có mục `PR #number` (`MR !number` trên GitLab) mở cùng thẻ đó trong một hộp thoại.
 - Phần tiêu đề tự động làm mới: khoảng 20 giây một lần khi các kiểm tra đang chạy hoặc khả năng hợp nhất vẫn đang được tính toán, khoảng 60 giây một lần trong các trường hợp khác, và không làm mới sau khi một pull request đã được hợp nhất hoặc đóng mà không có kiểm tra nào đang chạy.
+
+<ThemeImage
+  light="/images/pull-requests/hdr-ready-light.png"
+  dark="/images/pull-requests/hdr-ready-dark.png"
+  alt="Chip tiêu đề trò chuyện cho một pull request đang mở có thể merge, các kiểm tra đều đạt, và thẻ chi tiết của nó đang mở bên dưới"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-menu-light.png"
+  dark="/images/pull-requests/mob-menu-dark.png"
+  alt="Mục PR #1234 trong menu tràn của tiêu đề trên màn hình nhỏ"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-dialog-light.png"
+  dark="/images/pull-requests/mob-dialog-dark.png"
+  alt="Thẻ pull request được hiển thị trong hộp thoại trên màn hình nhỏ"
+/>
 
 ### Đánh dấu thanh bên [#sidebar-mark]
 
-- Một biểu tượng pull request với dấu chấm CI nằm ở cuối hàng hội thoại. Nó chỉ xuất hiện đối với các hội thoại có pull request.
-- Di chuột, tiêu điểm hoặc nhấp chuột sẽ mở cùng một thẻ ở bên phải của dấu. Việc nhấp vào dấu sẽ không mở cuộc trò chuyện.
+- Một biểu tượng pull request cùng với chấm trạng thái CI nằm ở cuối hàng hội thoại. Biểu tượng này chỉ xuất hiện đối với các hội thoại có pull request.
+- Di chuột vào bất kỳ vị trí nào trên hàng, hoặc lấy tiêu điểm hay nhấp vào dấu, sẽ mở cùng một thẻ ở bên phải dấu. Nhấp vào dấu không mở cuộc trò chuyện.
 - Thanh bên không bao giờ tự động gửi yêu cầu (poll). Một hàng dữ liệu chỉ mới như lần cuối danh sách được tải, và nó sẽ làm mới khi cửa sổ được lấy lại tiêu điểm (focus) và dữ liệu của nó đã cũ hơn một phút.
 - Nếu quá trình tra cứu thất bại, hàng đó sẽ hiển thị biểu tượng cảnh báo kèm theo nút thử lại trong thẻ của nó, để tránh nhầm lẫn lỗi này với trạng thái "không có pull request".
+
+<ThemeImage
+  light="/images/pull-requests/side-rows-light.png"
+  dark="/images/pull-requests/side-rows-dark.png"
+  alt="Các hàng thanh bên có đánh dấu pull request: sẵn sàng để merge, xung đột với kiểm tra thất bại, bản nháp đang chạy kiểm tra, và một pull request đã được merge"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/side-card-light.png"
+  dark="/images/pull-requests/side-card-dark.png"
+  alt="Thẻ pull request được mở ở bên phải của một hàng trong thanh bên"
+/>
 
 ### Thẻ [#the-card]
 
 Thẻ này hiển thị `PR #number` (`MR !number` trên GitLab), `+additions` màu xanh lá, `-deletions` màu đỏ, một liên kết **Open in GitHub**, **Open in GitLab** hoặc **Open in Bitbucket**, tiêu đề và hai huy hiệu:
 
-- **Trạng thái**: Open (Mở), Draft (Bản nháp), Merged (Đã hợp nhất) hoặc Closed (Đã đóng).
-- **Checks**: Đang vượt qua (Passing), Đang thất bại (Failing), Đang chạy (Running), hoặc không có trạng thái nào. Trên GitLab, đây là pipeline chính, chỉ được tính khi nó chạy cho commit chính hiện tại. Trên Bitbucket, đây là các trạng thái commit.
-
-{/* TODO(docs): add the screenshots from LibreChat PRs #16794 and #16815. */}
+- **Trạng thái**: Open, Conflicts, Draft, Merged hoặc Closed. Conflicts thay thế Open khi một pull request đang mở có xung đột hợp nhất (merge conflicts).
+- **Kiểm tra**: Passing, Failing, Running hoặc None. Trên GitLab, đây là pipeline đầu (head pipeline), chỉ được tính khi nó chạy cho commit đầu hiện tại. Trên Bitbucket, đây là các trạng thái commit (commit statuses).
 
 ### Ý nghĩa của biểu tượng và dấu chấm [#icon-and-dot-meaning]
 
 | Tình huống | Màu biểu tượng | Chấm CI |
-| --------------------------------------- | ------------------------- | ------------------------------------- |
-| Mở, không xung đột, kiểm tra thành công | Xanh lá (sẵn sàng hợp nhất) | Xanh lá |
-| Mở, không xung đột, không có kiểm tra | Xanh lá | Không có |
-| Mở, xung đột hợp nhất | Đỏ (không thể hợp nhất) | Theo kiểm tra |
+| ---------- | -------------- | ------- |
+| Đang mở, không có xung đột, các kiểm tra đều đạt | Xanh lá (sẵn sàng merge) | Xanh lá |
+| Đang mở, không có xung đột, không có kiểm tra nào | Xanh lá | Không có |
+| Đang mở, vẫn đang tính toán khả năng merge | Trung tính | Theo kiểm tra |
+| Đang mở, có xung đột merge | Đỏ (không thể merge) | Theo kiểm tra |
 | Bản nháp | Trung tính | Theo kiểm tra |
-| Đã hợp nhất hoặc đóng | Trung tính | Không có (màu hổ phách khi kiểm tra vẫn đang chạy) |
+| Đã merge | Tím | Không có |
+| Đã đóng | Trung tính | Không có |
 
-Màu sắc của các dấu chấm CI: màu xanh lá cây cho trạng thái đạt, màu đỏ cho trạng thái thất bại, màu hổ phách cho trạng thái đang chạy, và không có màu khi không có kiểm tra nào, hoặc khi yêu cầu kéo (pull request) đã được hợp nhất hoặc đóng và không còn kiểm tra nào đang chạy. Một kiểm tra thất bại sẽ được ưu tiên hơn một kiểm tra vẫn đang chạy. Một bản tổng hợp có nhiều lượt kiểm tra hơn số lượng đã đọc sẽ không bao giờ được báo cáo là đạt.
+Chấm màu CI: màu xanh lá cho kiểm tra đạt, màu đỏ cho kiểm tra thất bại, màu hổ phách cho kiểm tra đang chạy. Không hiển thị chấm khi không có kiểm tra nào, hoặc khi pull request đã được merge hoặc đóng. Kiểm tra thất bại được ưu tiên hơn kiểm tra vẫn đang chạy. Một tổng hợp có số lượng check run nhiều hơn số lượng đã đọc sẽ không bao giờ được báo cáo là đạt.
+
+<ThemeImage
+  light="/images/pull-requests/hdr-conflict-light.png"
+  dark="/images/pull-requests/hdr-conflict-dark.png"
+  alt="Một pull request đang mở có xung đột hợp nhất: biểu tượng màu đỏ, chấm đỏ cho các kiểm tra thất bại, và huy hiệu Conflicts và Failing"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-draft-light.png"
+  dark="/images/pull-requests/hdr-draft-dark.png"
+  alt="Một pull request ở trạng thái nháp: biểu tượng trung tính, chấm màu hổ phách khi các kiểm tra đang chạy"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-merged-light.png"
+  dark="/images/pull-requests/hdr-merged-dark.png"
+  alt="Pull request đã được merge: biểu tượng màu tím và không có chấm"
+/>
 
 ## Cách một pull request được khớp [#how-a-pull-request-is-matched]
 
@@ -441,7 +478,7 @@ Cả hai tuyến `/api/convos` bên dưới đều yêu cầu người dùng đ�
 - **200**: `{ "results": [ { "conversationId", "pullRequest" } | { "conversationId", "error": { "code" } } ] }`, theo thứ tự được yêu cầu. Một tra cứu thất bại không làm ẩn đi các kết quả khác.
 - Một token bị thiếu chỉ làm thất bại các mục cần đến nó.
 
-### Kết nối tài khoản (**Đang chờ xử lý**) [#account-connection-pending]
+### Kết nối tài khoản [#account-connection]
 
 Các route này chỉ tồn tại khi `JWT_SECRET` được thiết lập. Tất cả các route, ngoại trừ callback, đều yêu cầu người dùng đã xác thực.
 
@@ -457,6 +494,6 @@ Các route này chỉ tồn tại khi `JWT_SECRET` được thiết lập. Tất
 - `pullRequestsEnabled` (boolean)
 - `pullRequestsBatchVersion` (`1`, chỉ xuất hiện khi tính năng này được bật)
 - `pullRequestsMaxConcurrentLookups` (số, chỉ xuất hiện khi tính năng này được bật)
-- `pullRequestsConnect` (`github`, `gitlab` hoặc `bitbucket`, chỉ xuất hiện khi người dùng có thể kết nối tài khoản của riêng họ; **Đang chờ xử lý**)
+- `pullRequestsConnect` (`github`, `gitlab` hoặc `bitbucket`, chỉ xuất hiện khi người dùng có thể kết nối tài khoản của riêng mình)
 
 Chỉ các mã lỗi được liệt kê ở trên mới ổn định.

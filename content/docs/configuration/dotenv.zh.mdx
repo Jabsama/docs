@@ -1614,13 +1614,13 @@ Code Interpreter API 提供了一个用于执行代码和管理文件的安全�
     [
       'BITBUCKET_PULL_REQUEST_TOKEN',
       'string',
-      '待定。用于回退的 Bitbucket Cloud 仓库、项目或工作区访问令牌，需具备对拉取请求和仓库的读取权限。',
+      'Bitbucket Cloud 仓库、项目或工作区的备用访问令牌,需具备读取拉取请求(pull requests)和仓库的权限。',
       '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      '`pullRequests.token: "${NAME}"` 所引用的变量。也用于 `pullRequests.oauth.clientId` 和 `clientSecret`（待定），它们同样是引用。',
+      '`pullRequests.token: "${NAME}"` 所引用的变量。同时，`pullRequests.oauth.clientId` 和 `clientSecret` 也会用到它，它们同样是引用。',
       '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
@@ -1632,7 +1632,7 @@ Code Interpreter API 提供了一个用于执行代码和管理文件的安全�
   ]}
 />
 
-连接自己账户的用户（待定）需要 `JWT_SECRET`（用于签署连接流程）以及 `DOMAIN_SERVER`（用于构成回调 URL `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`）。`pullRequests.sharedCache`（待定）仅在 `USE_REDIS=true` 时生效。
+用户连接自己的账户时需要 `JWT_SECRET`(用于为连接流程签名)以及 `DOMAIN_SERVER`(用于构成回调 URL `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`)。`pullRequests.sharedCache` 仅在 `USE_REDIS=true` 时生效。
 
 提供商请求会使用部署的代理设置（`PROXY`、`HTTP_PROXY`、`HTTPS_PROXY`、`NO_PROXY` 及其小写形式），并且会遵循 `NO_PROXY` 的设置。这些设置与 LibreChat 的其他出站流量共享，并非此功能所特有。
 

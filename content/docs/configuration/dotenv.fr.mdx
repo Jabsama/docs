@@ -1617,13 +1617,13 @@ Les variables de secours ne sont utilisées que lorsque `pullRequests.token` n'e
     [
       'BITBUCKET_PULL_REQUEST_TOKEN',
       'string',
-      'En attente. Jeton d\'accès de secours pour le dépôt, le projet ou l\'espace de travail Bitbucket Cloud avec accès en lecture aux demandes de tirage (pull requests) et aux dépôts.',
+      'Jeton d\'accès Bitbucket Cloud de secours (au niveau du dépôt, du projet ou de l\'espace de travail) avec un accès en lecture aux pull requests et aux dépôts.',
       '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'La variable à laquelle `pullRequests.token: "${NAME}"` fait référence. Également utilisée pour `pullRequests.oauth.clientId` et `clientSecret` (en attente), qui sont aussi des références.',
+      'La variable à laquelle fait référence `pullRequests.token: "${NAME}"`. Elle est également utilisée pour `pullRequests.oauth.clientId` et `clientSecret`, qui sont également des références.',
       '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
@@ -1635,7 +1635,7 @@ Les variables de secours ne sont utilisées que lorsque `pullRequests.token` n'e
   ]}
 />
 
-Les utilisateurs connectant leur propre compte (En attente) ont besoin de `JWT_SECRET`, qui signe le flux de connexion, et de `DOMAIN_SERVER`, qui forme l'URL de rappel `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` (En attente) ne prend effet qu'avec `USE_REDIS=true`.
+Les utilisateurs qui connectent leur propre compte ont besoin de `JWT_SECRET`, qui signe le flux de connexion, et de `DOMAIN_SERVER`, qui forme l'URL de rappel `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` ne prend effet que si `USE_REDIS=true`.
 
 Les requêtes des fournisseurs utilisent les paramètres de proxy du déploiement (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` et leurs formes en minuscules), et `NO_PROXY` est pris en compte. Ceux-ci sont partagés avec le reste du trafic sortant de LibreChat et ne sont pas spécifiques à cette fonctionnalité.
 

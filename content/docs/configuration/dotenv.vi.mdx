@@ -1617,13 +1617,13 @@ Các biến dự phòng chỉ được sử dụng khi `pullRequests.token` khô
     [
       'BITBUCKET_PULL_REQUEST_TOKEN',
       'string',
-      'Đang chờ xử lý. Token truy cập dự phòng cho kho lưu trữ, dự án hoặc không gian làm việc của Bitbucket Cloud với quyền đọc đối với các pull request và kho lưu trữ.',
+      'Mã truy cập dự phòng của Bitbucket Cloud cho repository, project hoặc workspace, có quyền đọc đối với pull request và repository.',
       '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'Biến mà `pullRequests.token: "${NAME}"` tham chiếu đến. Cũng được sử dụng cho `pullRequests.oauth.clientId` và `clientSecret` (Đang chờ xử lý), vốn cũng là các tham chiếu.',
+      'Biến mà `pullRequests.token: "${NAME}"` tham chiếu đến. Cũng được dùng cho `pullRequests.oauth.clientId` và `clientSecret`, vốn cũng là các tham chiếu.',
       '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
@@ -1635,7 +1635,7 @@ Các biến dự phòng chỉ được sử dụng khi `pullRequests.token` khô
   ]}
 />
 
-Người dùng kết nối tài khoản của riêng họ (Đang chờ xử lý) cần `JWT_SECRET`, dùng để ký quy trình kết nối, và `DOMAIN_SERVER`, dùng để tạo URL callback `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` (Đang chờ xử lý) chỉ có hiệu lực khi `USE_REDIS=true`.
+Người dùng kết nối tài khoản riêng cần `JWT_SECRET`, dùng để ký luồng kết nối, và `DOMAIN_SERVER`, dùng để tạo URL callback `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` chỉ có hiệu lực khi `USE_REDIS=true`.
 
 Các yêu cầu của nhà cung cấp sử dụng cài đặt proxy của triển khai (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` và các dạng chữ thường của chúng), và `NO_PROXY` được tuân thủ. Các cài đặt này được chia sẻ với lưu lượng truy cập đi khác của LibreChat và không dành riêng cho tính năng này.
 

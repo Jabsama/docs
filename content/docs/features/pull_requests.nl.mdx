@@ -8,10 +8,6 @@ description: >-
 ---
 
 {/*
-  Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988), per-user
-  accounts through `oauth` (#16989) and the "Pull request account" setting (#16990). Delete the
-  Pending markers once each merges to dev, and re-check the schema in
-  packages/data-provider/src/config.ts.
   TODO(maintainer): first release version for each part (do not guess).
   TODO(maintainer): requirement 4 (where an admin sets the workspace environment's repository).
   Add it to "Requirements" once confirmed.
@@ -19,10 +15,10 @@ description: >-
 
 Wanneer een chat code uitvoert in een gekoppelde workspace, rapporteert de worker de git-branch en commit waarop deze zich bevindt. LibreChat gebruikt die branch om de bijbehorende pull request (een merge request op GitLab) te vinden, met een token dat op de server of het verbonden account van de gebruiker wordt bewaard, en toont dit op twee plaatsen:
 
-- **Chat header**: een chip met het pull request-icoon en een CI-punt. Door eroverheen te zweven of erop te focussen, wordt een kaart geopend.
+- **Chatkop**: een chip met het pull request-pictogram, de CI-stip en de titel van de pull request. Door erop te zweven of het te focussen, opent zich een kaart.
 - **Sidebar conversation list**: hetzelfde icoon en de CI-stip aan het einde van de rij. De rij behoudt de eigen titel van het gesprek; de titel van de pull request verschijnt alleen in de kaart.
 
-Pull requests kunnen afkomstig zijn van GitHub (de standaard), GitLab of Bitbucket Cloud (**In afwachting**). Eén implementatie gebruikt één provider.
+Pull requests kunnen afkomstig zijn van GitHub (de standaard), GitLab of Bitbucket Cloud. Eén deployment gebruikt één provider.
 
 ## Vereisten [#requirements]
 
@@ -42,11 +38,11 @@ De uitzondering is een `token` dat is ingesteld, maar waarvan de omgevingsvariab
 
 `provider` selecteert waar pull requests zich bevinden:
 
-| `provider`         | Service                                                                                                   | Standaard `host`  |
-| ------------------ | --------------------------------------------------------------------------------------------------------- | --------------- |
-| `github` (standaard) | GitHub.com, GitHub Enterprise Server, of een GitHub Enterprise Cloud data residency tenant (`*.ghe.com`)     | `github.com`    |
-| `gitlab`           | Merge requests op gitlab.com of een zelf-beheerde GitLab                                                     | `gitlab.com`    |
-| `bitbucket`        | Alleen Bitbucket Cloud (**In afwachting**)                                                                        | `bitbucket.org` |
+| `provider` | Dienst | Standaard `host` |
+| ---------- | ------ | ---------------- |
+| `github` (standaard) | GitHub.com, GitHub Enterprise Server of een GitHub Enterprise Cloud-tenant voor gegevensopslag (`*.ghe.com`) | `github.com` |
+| `gitlab` | Merge requests op gitlab.com of een zelfbeheerde GitLab | `gitlab.com` |
+| `bitbucket` | Alleen Bitbucket Cloud | `bitbucket.org` |
 
 Stel `host` alleen in voor GitHub Enterprise Server, een `*.ghe.com` tenant, of een zelf-beheerde GitLab:
 
@@ -86,7 +82,7 @@ De server-token wordt gebruikt voor elke gebruiker die zijn eigen account niet h
 
 **GitLab**: een persoonlijk, groeps- of projecttoegangstoken met de `read_api` scope.
 
-**Bitbucket Cloud** (**In afwachting**): een repository-, project- of workspace-toegangstoken, verzonden als een bearer-token. LibreChat leest pull requests, hun diffstat, hun commit-statussen en merge bases, dus verleen leestoegang tot pull requests en repositories.
+**Bitbucket Cloud**: een repository-, project- of workspace-toegangstoken, verzonden als bearer token. LibreChat leest pull requests, hun diffstat, hun commitstatussen en merge bases, dus verleen leestoegang tot pull requests en repositories.
 
 ### 3. Geef LibreChat de token [#3-give-librechat-the-token]
 
@@ -95,11 +91,11 @@ LibreChat zoekt in deze volgorde naar een token:
 1. `token: "${MY_VAR}"` in `librechat.yaml`. Dit is een **verwijzing** naar een omgevingsvariabele; de YAML bevat nooit het token zelf, en een letterlijk token wordt door het schema geweigerd.
 2. Als `token` niet is ingesteld, wordt de eerste van deze omgevingsvariabelen gebruikt die wel is ingesteld:
 
-| Provider  | Fallback-variabelen, in volgorde                           |
+| Provider  | Fallback-variabelen, in volgorde                          |
 | --------- | --------------------------------------------------------- |
 | GitHub    | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`   |
 | GitLab    | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN`               |
-| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` (**In afwachting**)        |
+| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN`                            |
 
 3. Geen token aanwezig: de functie blijft inactief, tenzij gebruikers hun eigen accounts kunnen koppelen.
 
@@ -148,7 +144,7 @@ endpoints:
       allowedRepositories: ['platform/*']
 ```
 
-Bitbucket Cloud (**In afwachting**), met `BITBUCKET_PULL_REQUEST_TOKEN` ingesteld:
+Bitbucket Cloud, met `BITBUCKET_PULL_REQUEST_TOKEN` ingesteld:
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -161,10 +157,6 @@ endpoints:
 Zie de [`pullRequests` referentie](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests) voor elke key.
 
 ## Gebruikersaccounts per gebruiker [#per-user-accounts]
-
-<Callout type="important" title="In afwachting: nog niet uitgebracht">
-  Per-user accounts maken deel uit van LibreChat-AI/LibreChat#16989 en #16990.
-</Callout>
 
 Met `oauth` ingesteld, kan elke gebruiker zijn eigen GitHub-, GitLab- of Bitbucket-account koppelen in **Settings > Account**, onder **Pull request account**. Hun opzoekingen worden vervolgens uitgevoerd met hun eigen token, snelheidslimiet en repository-toegang in plaats van die van de server.
 
@@ -290,15 +282,12 @@ Sla op en kopieer vervolgens de **Key** en **Secret** van de consumer naar de om
 
 ## Schalen met replica's [#scaling-with-replicas]
 
-<Callout type="important" title="In afwachting: nog niet uitgebracht">
-  `sharedCache` is onderdeel van LibreChat-AI/LibreChat#16988.
-</Callout>
-
 Elke replica slaat resultaten op in het geheugen. Bij meerdere replica's stelt u `sharedCache: true` in, zodat ze opgezochte pull requests en rate limit cooldowns delen via Redis, en niet elk het token uitgeven aan hetzelfde antwoord.
 
 - Dit wordt alleen van kracht wanneer de deployment wordt uitgevoerd met Redis (`USE_REDIS`). Standaard: `false`.
 - Elke replica behoudt hoe dan ook zijn eigen in-memory cache, vóór de gedeelde cache.
 - `sharedCacheTimeoutMs` (10-5000, standaard 250) begrenst elke lees- of schrijfactie van de gedeelde cache. Een tragere Redis wordt overgeslagen en de opzoekactie gaat door zonder deze.
+- `sharedCacheSlots` (64-1000000, standaard 65536) begrenst het aantal Redis-sleutels dat de gedeelde cache gebruikt. Wordt alleen uit de YAML gelezen.
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -331,37 +320,85 @@ De standaardinstellingen zijn prima voor de meeste implementaties.
 
 ### Chat header chip [#chat-header-chip]
 
-- **Desktop**: de chip bevindt zich aan de linkerkant van de koptekst, naast de andere bedieningselementen aan de linkerkant. Door eroverheen te zweven of erop te focussen, wordt de kaart aan de rechterkant geopend.
-- **Mobiel**: het item staat in het overloopmenu (drie puntjes) van de header en opent een dialoogvenster.
+- **Desktop**: de chip staat links in de header, naast de andere linker bedieningselementen. Hij toont het pull request-pictogram met de CI-stip op de hoek, gevolgd door de titel van de pull request. Door de chip aan te wijzen of te focussen wordt de kaart eronder geopend, en de kaart blijft open zolang de aanwijzer of het toetsenbordfocus zich binnen de kaart bevindt.
+- **Mobile**: there is no chip. The header's overflow (three dots) menu has a `PR #number` entry (`MR !number` on GitLab) that opens the same card in a dialog.
 - De header ververst automatisch: ongeveer elke 20 seconden terwijl controles worden uitgevoerd of de samenvoegbaarheid nog wordt berekend, ongeveer elke 60 seconden in andere gevallen, en helemaal niet zodra een pull request is samengevoegd of gesloten zonder actieve controles.
+
+<ThemeImage
+  light="/images/pull-requests/hdr-ready-light.png"
+  dark="/images/pull-requests/hdr-ready-dark.png"
+  alt="De chatkoptekst-chip voor een open pull request dat kan worden samengevoegd, met geslaagde controles, en de bijbehorende kaart die eronder open staat"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-menu-light.png"
+  dark="/images/pull-requests/mob-menu-dark.png"
+  alt="De PR #1234-vermelding in het overloopmenu van de koptekst op een klein scherm"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-dialog-light.png"
+  dark="/images/pull-requests/mob-dialog-dark.png"
+  alt="De pull request-kaart die in een dialoogvenster op een klein scherm wordt weergegeven"
+/>
 
 ### Zijbalkmarkering [#sidebar-mark]
 
-- Een pull request-icoon met een CI-punt bevindt zich aan het einde van de gespreksrij. Het verschijnt alleen voor gesprekken die een pull request hebben.
-- Hoveren, focus of klikken opent dezelfde kaart rechts van de markering. Het klikken op de markering opent het gesprek niet.
+- Een pull request-icoon met zijn CI-stip staat aan het einde van de gespreksrij. Het verschijnt alleen voor gesprekken die een pull request hebben.
+- Als u met de muis over de rij zweeft, of de markering focust of erop klikt, opent dezelfde kaart rechts van de markering. Door op de markering te klikken, wordt het gesprek niet geopend.
 - De zijbalk voert nooit polls uit. Een rij is zo actueel als de laatste keer dat de lijst werd geladen, en deze ververst wanneer het venster opnieuw focus krijgt en de gegevens ouder zijn dan een minuut.
 - Als een opzoeking mislukt, toont de rij een waarschuwingsicoon met een herstelknop in de kaart, zodat een fout niet wordt aangezien voor "geen pull request".
+
+<ThemeImage
+  light="/images/pull-requests/side-rows-light.png"
+  dark="/images/pull-requests/side-rows-dark.png"
+  alt="Zijbalkrijen met pull request-markeringen: klaar om samen te voegen, conflicten met mislukte controles, een concept met lopende controles en een samengevoegde pull request"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/side-card-light.png"
+  dark="/images/pull-requests/side-card-dark.png"
+  alt="De pull request-kaart die rechts van een zijbalkrij werd geopend"
+/>
 
 ### De kaart [#the-card]
 
 De kaart toont `PR #number` (`MR !number` op GitLab), `+additions` in het groen, `-deletions` in het rood, een **Open in GitHub**, **Open in GitLab** of **Open in Bitbucket** link, de titel en twee badges:
 
-- **Status**: Open, Draft, Merged of Closed.
-- **Checks**: Geslaagd, Mislukt, Wordt uitgevoerd, of geen. Op GitLab is dit de head pipeline, alleen meegeteld wanneer deze is uitgevoerd voor de huidige head commit. Op Bitbucket zijn dit de commit-statussen.
-
-{/* TODO(docs): add the screenshots from LibreChat PRs #16794 and #16815. */}
+- **State**: Open, Conflicts, Draft, Merged of Closed. Conflicts vervangt Open wanneer een open pull request mergeconflicten heeft.
+- **Controles**: Passing, Failing, Running of None. Op GitLab is dit de head-pipeline, alleen geteld wanneer deze is uitgevoerd voor de huidige head-commit. Op Bitbucket zijn dit de commitstatussen.
 
 ### Betekenis van icoon en punt [#icon-and-dot-meaning]
 
-| Situatie | Icoonkleur | CI-punt |
-| --------------------------------------- | ------------------------- | ------------------------------------- |
-| Open, geen conflicten, checks geslaagd  | Groen (klaar om te mergen) | Groen |
-| Open, geen conflicten, geen checks      | Groen | Geen |
-| Open, merge-conflicten                  | Rood (kan niet mergen) | Op basis van checks |
-| Concept (Draft)                         | Neutraal | Op basis van checks |
-| Gemerged of gesloten                    | Neutraal | Geen (oranje terwijl checks nog draaien) |
+| Situatie | Pictogramkleur | CI-stip |
+| -------- | -------------- | ------- |
+| Open, geen conflicten, controles geslaagd | Groen (klaar om samen te voegen) | Groen |
+| Open, geen conflicten, helemaal geen controles | Groen | Geen |
+| Open, samenvoegbaarheid wordt nog berekend | Neutraal | Afhankelijk van controles |
+| Open, samenvoegconflicten | Rood (kan niet worden samengevoegd) | Afhankelijk van controles |
+| Concept | Neutraal | Afhankelijk van controles |
+| Samengevoegd | Paars | Geen |
+| Gesloten | Neutraal | Geen |
 
-CI-puntkleuren: groen voor geslaagd, rood voor mislukt, amber voor lopend, en geen wanneer er geen controles zijn, of wanneer de pull request is samengevoegd of gesloten en er geen controles meer lopen. Een mislukte controle weegt zwaarder dan een die nog loopt. Een rollup met meer controle-runs dan er zijn gelezen, wordt nooit als geslaagd gerapporteerd.
+CI-stippen: groen voor geslaagd, rood voor mislukt, oranje voor bezig. Er is geen stip wanneer er geen controles zijn, of zodra de pull request is samengevoegd of gesloten. Een mislukte controle gaat voor op een controle die nog loopt. Een samenvatting met meer controle-runs dan er zijn gelezen, wordt nooit als geslaagd weergegeven.
+
+<ThemeImage
+  light="/images/pull-requests/hdr-conflict-light.png"
+  dark="/images/pull-requests/hdr-conflict-dark.png"
+  alt="Een open pull request met mergeconflicten: rood pictogram, rode stip voor mislukte controles, en de badges Conflicten en Mislukt"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-draft-light.png"
+  dark="/images/pull-requests/hdr-draft-dark.png"
+  alt="Een conceptpull request: neutraal pictogram, oranje stip terwijl de controles worden uitgevoerd"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-merged-light.png"
+  dark="/images/pull-requests/hdr-merged-dark.png"
+  alt="Een samengevoegde pull request: paars pictogram en geen stip"
+/>
 
 ## Hoe een pull request wordt gematcht [#how-a-pull-request-is-matched]
 
@@ -441,7 +478,7 @@ Beide `/api/convos` routes hieronder vereisen een geauthenticeerde gebruiker en 
 - **200**: `{ "results": [ { "conversationId", "pullRequest" } | { "conversationId", "error": { "code" } } ] }`, in de gevraagde volgorde. Eén mislukte opzoeking verbergt de andere niet.
 - Een ontbrekend token zorgt er alleen voor dat de items die het nodig hadden, falen.
 
-### Accountkoppeling (**In afwachting**) [#account-connection-pending]
+### Accountverbinding [#account-connection]
 
 Deze routes bestaan alleen wanneer `JWT_SECRET` is ingesteld. Alle routes, behalve de callback, vereisen een geauthenticeerde gebruiker.
 
@@ -457,6 +494,6 @@ Deze routes bestaan alleen wanneer `JWT_SECRET` is ingesteld. Alle routes, behal
 - `pullRequestsEnabled` (boolean)
 - `pullRequestsBatchVersion` (`1`, alleen aanwezig wanneer de functie is ingeschakeld)
 - `pullRequestsMaxConcurrentLookups` (getal, alleen aanwezig wanneer de functie is ingeschakeld)
-- `pullRequestsConnect` (`github`, `gitlab` of `bitbucket`, alleen aanwezig wanneer gebruikers hun eigen account kunnen koppelen; **In afwachting**)
+- `pullRequestsConnect` (`github`, `gitlab` of `bitbucket`, alleen aanwezig wanneer gebruikers hun eigen account kunnen koppelen)
 
 Alleen de hierboven vermelde foutcodes zijn stabiel.

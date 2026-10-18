@@ -1617,13 +1617,13 @@ Zmienne zastępcze (fallback) są używane tylko wtedy, gdy `pullRequests.token`
     [
       'BITBUCKET_PULL_REQUEST_TOKEN',
       'string',
-      'Oczekujące. Zapasowy token dostępu do repozytorium, projektu lub obszaru roboczego Bitbucket Cloud z uprawnieniami do odczytu pull requestów i repozytoriów.',
+      'Zapasowy token dostępu do repozytorium, projektu lub obszaru roboczego Bitbucket Cloud z uprawnieniem odczytu pull requestów i repozytoriów.',
       '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      'Zmienna, do której odnosi się `pullRequests.token: "${NAME}"`. Używana również dla `pullRequests.oauth.clientId` oraz `clientSecret` (oczekujące), które również są referencjami.',
+      'Zmienna, do której odwołuje się `pullRequests.token: "${NAME}"`. Używana również w `pullRequests.oauth.clientId` i `clientSecret`, które są również odwołaniami.',
       '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
@@ -1635,7 +1635,7 @@ Zmienne zastępcze (fallback) są używane tylko wtedy, gdy `pullRequests.token`
   ]}
 />
 
-Użytkownicy łączący własne konto (oczekujące) potrzebują `JWT_SECRET`, który podpisuje proces łączenia, oraz `DOMAIN_SERVER`, który tworzy adres URL wywołania zwrotnego `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` (oczekujące) działa tylko przy ustawieniu `USE_REDIS=true`.
+Użytkownicy łączący własne konto potrzebują `JWT_SECRET`, który podpisuje proces połączenia, oraz `DOMAIN_SERVER`, który tworzy adres URL wywołania zwrotnego `<DOMAIN_SERVER>/api/pull-requests/oauth/callback`. `pullRequests.sharedCache` działa tylko wtedy, gdy ustawiono `USE_REDIS=true`.
 
 Żądania dostawcy korzystają z ustawień proxy wdrożenia (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` oraz ich odpowiedników pisanych małymi literami), przy czym `NO_PROXY` jest uwzględniane. Ustawienia te są współdzielone z innym ruchem wychodzącym LibreChat i nie są specyficzne dla tej funkcji.
 

@@ -1618,13 +1618,13 @@ Yedek değişkenler yalnızca `pullRequests.token` ayarlanmadığında kullanıl
     [
       'BITBUCKET_PULL_REQUEST_TOKEN',
       'string',
-      'Beklemede. Pull request\'lere ve depolara okuma erişimi olan yedek Bitbucket Cloud deposu, proje veya çalışma alanı erişim belirteci.',
+      'Bitbucket Cloud için yedek depo, proje veya çalışma alanı erişim belirteci; çekme isteklerini ve depoları okuma erişimiyle.',
       '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      '`pullRequests.token: "${NAME}"` ifadesinin atıfta bulunduğu değişken. Ayrıca referans niteliğinde olan `pullRequests.oauth.clientId` ve `clientSecret` (Beklemede) için de kullanılır.',
+      '`pullRequests.token: "${NAME}"` ifadesinin referans verdiği değişken. Ayrıca `pullRequests.oauth.clientId` ve `clientSecret` için de kullanılır; bunlar da referanstır.',
       '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
@@ -1636,7 +1636,7 @@ Yedek değişkenler yalnızca `pullRequests.token` ayarlanmadığında kullanıl
   ]}
 />
 
-Kendi hesaplarını bağlayan kullanıcılar (Beklemede), bağlantı akışını imzalayan `JWT_SECRET` değerine ve `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` geri çağırma URL'sini oluşturan `DOMAIN_SERVER` değerine ihtiyaç duyar. `pullRequests.sharedCache` (Beklemede) yalnızca `USE_REDIS=true` olduğunda devreye girer.
+Kendi hesabını bağlayan kullanıcıların, bağlantı akışını imzalayan `JWT_SECRET` ile `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` geri çağırma URL'sini oluşturan `DOMAIN_SERVER` değişkenlerine ihtiyacı vardır. `pullRequests.sharedCache` yalnızca `USE_REDIS=true` ayarlandığında etkili olur.
 
 Sağlayıcı istekleri, dağıtımın proxy ayarlarını (`PROXY`, `HTTP_PROXY`, `HTTPS_PROXY`, `NO_PROXY` ve bunların küçük harfli biçimleri) kullanır ve `NO_PROXY` dikkate alınır. Bunlar, diğer LibreChat giden trafiğiyle paylaşılır ve bu özelliğe özel değildir.
 

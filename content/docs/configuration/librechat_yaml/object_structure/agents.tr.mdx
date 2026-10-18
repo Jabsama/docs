@@ -550,14 +550,12 @@ Event Actor detached Action tamamlanması, yerleşik üretim deposundan otomatik
 
 ## pullRequests
 
-{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
-
 Sohbet başlığında ve kenar çubuğunda, bir sohbetin ekli kod çalışma alanı için çekme isteğini (GitLab üzerinde birleştirme isteği) gösterir. Kurulum, davranış ve sorun giderme için [Conversation Pull Requests](/docs/features/pull_requests) bölümüne bakın. Her anahtar isteğe bağlıdır.
 
 Bu özellik, sunucunun bir token ve repository kapsamına sahip olduğu anda etkinleşir veya kullanıcılar kendi hesaplarını `oauth` aracılığıyla bağlayabilirler. Çoğu yönetici yalnızca bir repository kapsamı ve token ayarlar; github.com üzerinde olunmadığında ise bunlara ek olarak `provider` ve `host` bilgilerini yapılandırır. Ayar anahtarlarının varsayılan değerleri yeterlidir.
 
 <Callout type="info" title="Yalnızca librechat.yaml dosyasından oku">
-  `provider`, `host` ve `oauth` yalnızca `librechat.yaml` dosyasından okunur. Bu anahtarların rol, grup, kullanıcı ve kiracı (tenant) yapılandırma geçersiz kılmaları (override) yoksayılır, bu nedenle bir geçersiz kılma işlemi bir belirteci (token) başka bir hizmete yönlendiremez.
+  `provider`, `host`, `oauth` ve `sharedCacheSlots` yalnızca `librechat.yaml` dosyasından okunur. Bu anahtarların rol, grup, kullanıcı ve kiracı (tenant) yapılandırmasındaki geçersiz kılmaları yok sayılır; böylece bir geçersiz kılma, bir belirteci (token) başka bir servise yönlendiremez ve her replika aynı paylaşımlı önbellek yuvalarına erişir.
 </Callout>
 
 <OptionTable
@@ -571,7 +569,7 @@ Bu özellik, sunucunun bir token ve repository kapsamına sahip olduğu anda etk
     [
       'provider',
       'String',
-      '`github` (varsayılan), gitlab.com veya kendi kendine barındırılan bir GitLab üzerinde birleştirme istekleri (merge requests) için `gitlab` veya Bitbucket Cloud için `bitbucket` (Beklemede). Yalnızca YAML dosyasından okunur.',
+      '`github` (varsayılan), gitlab.com veya self-managed GitLab üzerindeki merge request\'ler için `gitlab`, ya da Bitbucket Cloud için `bitbucket`. Yalnızca YAML\'dan okunur.',
       'provider: "gitlab"',
     ],
     [
@@ -589,7 +587,7 @@ Bu özellik, sunucunun bir token ve repository kapsamına sahip olduğu anda etk
     [
       'oauth',
       'Object',
-      'Beklemede. Her kullanıcının kendi hesabını bağlamasına olanak tanır, böylece aramalar o kullanıcının token\'ını, hız sınırını ve depo erişimini kullanır. Sadece YAML dosyasından okur. Aşağıdaki [oauth](#pullrequestsoauth) bölümüne bakın.',
+      'Her kullanıcının kendi hesabını bağlamasına izin verir; böylece sorgular o kullanıcının token\'ını, hız sınırını ve depo erişimini kullanır. Yalnızca YAML\'den okur. Aşağıdaki [oauth](#pullrequestsoauth) bölümüne bakın.',
       'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
@@ -673,14 +671,20 @@ Bu özellik, sunucunun bir token ve repository kapsamına sahip olduğu anda etk
     [
       'sharedCache',
       'Boolean',
-      'Beklemede. Redis aracılığıyla replikalar arasında aranan pull request\'leri ve hız sınırı bekleme sürelerini paylaşır. Yalnızca `USE_REDIS` ile etkinleşir; her iki durumda da her replika kendi bellek içi önbelleğini tutar. Varsayılan: `false`.',
+      'Redis üzerinden çoğaltıcılar (replicas) arasında sorgulanan pull request\'ler ve hız sınırı (rate limit) bekleme sürelerini paylaşın. Yalnızca `USE_REDIS` ile etkili olur; her durumda her çoğaltıcı kendi bellek içi önbelleğini tutar. Varsayılan: `false`.',
       'sharedCache: true',
     ],
     [
       'sharedCacheTimeoutMs',
       'Number',
-      'Beklemede. Paylaşılan bir önbellek okuma veya yazma işleminin, arama işlemi onsuz devam etmeden önce alabileceği en uzun süre (milisaniye cinsinden, 10-5000 arası). Varsayılan: 250.',
+      'En uzun tek bir paylaşılan önbellek okuma veya yazma işleminin, arama önbelleksiz devam etmeden önce alabileceği süre (milisaniye cinsinden, 10-5000). Varsayılan: 250.',
       'sharedCacheTimeoutMs: 250',
+    ],
+    [
+      'sharedCacheSlots',
+      'Number',
+      'Paylaşılan önbelleğin kullandığı en fazla Redis anahtarı; biri sonuçlar, diğeri hız sınırı bekleme süreleri için olmak üzere iki kez (64-1000000). Yeni bir girdi, kendi yuvasındaki mevcut girdinin yerini alır. Yalnızca YAML\'den okunur. Varsayılan: 65536.',
+      'sharedCacheSlots: 65536',
     ],
   ]}
 />
@@ -703,7 +707,7 @@ endpoints:
 
 ### pullRequests.oauth
 
-Beklemede. Her kullanıcının kendi hesabını **Ayarlar > Hesap > Pull request hesabı** altında bağlamasına olanak tanır. Bağlı bir kullanıcının aramaları kendi token'ını kullanır ve `allowedRepositories` kısıtlamasına tabi değildir; hesabını bağlamamış kullanıcılar sunucu token'ını kullanmaya devam eder. Uygulamanın geri çağırma (callback) URL'si olarak `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` adresini kaydedin. GitHub üzerinde, salt okunur Pull requests, Checks ve Contents izinlerine sahip bir GitHub App önerilir. Bkz. [Kullanıcı bazlı hesaplar](/docs/features/pull_requests#per-user-accounts).
+Her kullanıcının kendi hesabını **Ayarlar > Hesap > Pull request hesabı** altında bağlamasına olanak tanır. Bağlı bir kullanıcının sorguları kendi token'ını kullanır ve `allowedRepositories` ile sınırlandırılmaz; bağlanmamış kullanıcılar ise sunucu token'ını kullanmaya devam eder. Uygulamanın geri çağırma URL'si olarak `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` adresini kaydedin. GitHub'da, yalnızca okuma izinlerine sahip (Pull requests, Checks ve Contents) bir GitHub App kullanılması önerilir. Bkz. [Kullanıcıya özel hesaplar](/docs/features/pull_requests#per-user-accounts).
 
 <OptionTable
   options={[

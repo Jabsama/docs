@@ -550,14 +550,12 @@ Penyelesaian Action yang terlepas (detached) dari Event Actor dipilih secara oto
 
 ## pullRequests
 
-{/* Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988) and oauth (#16989, #16990). Delete the Pending markers once each merges. Re-verify defaults and ranges against packages/data-provider/src/config.ts. */}
-
 Menampilkan pull request (merge request di GitLab) untuk workspace kode yang dilampirkan pada percakapan di header obrolan dan sidebar. Lihat [Conversation Pull Requests](/docs/features/pull_requests) untuk pengaturan, perilaku, dan pemecahan masalah. Setiap kunci bersifat opsional.
 
 Fitur ini aktif segera setelah server memiliki token dan cakupan repositori, atau pengguna dapat menghubungkan akun mereka sendiri melalui `oauth`. Sebagian besar administrator hanya mengatur cakupan repositori dan token, ditambah `provider` dan `host` jika tidak menggunakan github.com. Pengaturan bawaan untuk kunci penyetelan sudah memadai.
 
 <Callout type="info" title="Baca dari librechat.yaml saja">
-  `provider`, `host` dan `oauth` dibaca hanya dari `librechat.yaml`. Penggantian konfigurasi (override) untuk Role, group, user, dan tenant pada kunci-kunci ini akan diabaikan, sehingga penggantian tidak dapat mengalihkan token ke layanan lain.
+  `provider`, `host`, `oauth` dan `sharedCacheSlots` hanya dibaca dari `librechat.yaml`. Override konfigurasi per peran, grup, pengguna, dan tenant untuk kunci-kunci ini diabaikan, sehingga override tidak dapat mengarahkan token ke layanan lain, dan setiap replika menggunakan slot cache bersama yang sama.
 </Callout>
 
 <OptionTable
@@ -571,7 +569,7 @@ Fitur ini aktif segera setelah server memiliki token dan cakupan repositori, ata
     [
       'provider',
       'String',
-      '`github` (default), `gitlab` untuk merge request di gitlab.com atau GitLab yang dikelola sendiri, atau `bitbucket` untuk Bitbucket Cloud (Tertunda). Dibaca hanya dari YAML.',
+      '`github` (default), `gitlab` untuk merge request di gitlab.com atau GitLab self-managed, atau `bitbucket` untuk Bitbucket Cloud. Baca hanya dari YAML.',
       'provider: "gitlab"',
     ],
     [
@@ -589,7 +587,7 @@ Fitur ini aktif segera setelah server memiliki token dan cakupan repositori, ata
     [
       'oauth',
       'Object',
-      'Tertunda. Memungkinkan setiap pengguna untuk menghubungkan akun mereka sendiri, sehingga pencarian menggunakan token, batas kecepatan, dan akses repositori pengguna tersebut. Hanya membaca dari YAML. Lihat [oauth](#pullrequestsoauth) di bawah.',
+      'Memungkinkan setiap pengguna menghubungkan akunnya sendiri, sehingga pencarian menggunakan token, batas laju, dan akses repositori milik pengguna tersebut. Baca hanya dari YAML. Lihat [oauth](#pullrequestsoauth) di bawah.',
       'oauth: { clientId: "${GITHUB_PR_OAUTH_CLIENT_ID}", clientSecret: "${GITHUB_PR_OAUTH_CLIENT_SECRET}" }',
     ],
     [
@@ -673,14 +671,20 @@ Fitur ini aktif segera setelah server memiliki token dan cakupan repositori, ata
     [
       'sharedCache',
       'Boolean',
-      'Tertunda. Bagikan pull request yang telah dicari dan cooldown batas kecepatan antar replika melalui Redis. Hanya berlaku jika `USE_REDIS` diaktifkan; setiap replika tetap menyimpan cache dalam memorinya sendiri. Default: `false`.',
+      'Berbagi pull request yang sudah dicari dan periode cooldown rate limit antar replika melalui Redis. Hanya berlaku jika `USE_REDIS` aktif; setiap replika tetap memiliki cache in-memory sendiri dalam kedua kondisi. Default: `false`.',
       'sharedCache: true',
     ],
     [
       'sharedCacheTimeoutMs',
       'Number',
-      'Tertunda. Durasi terlama dalam milidetik yang diizinkan untuk pembacaan atau penulisan cache bersama sebelum pencarian dilanjutkan tanpanya (10-5000). Default: 250.',
+      'Waktu terlama yang boleh dihabiskan satu operasi baca atau tulis cache bersama, dalam milidetik, sebelum pencarian dilanjutkan tanpa cache tersebut (10-5000). Default: 250.',
       'sharedCacheTimeoutMs: 250',
+    ],
+    [
+      'sharedCacheSlots',
+      'Number',
+      'Sebagian besar kunci Redis yang digunakan cache bersama, sekali untuk hasil dan sekali untuk masa tunggu batas laju (64-1000000). Entri baru menggantikan entri yang ada di slotnya. Baca hanya dari YAML. Default: 65536.',
+      'sharedCacheSlots: 65536',
     ],
   ]}
 />
@@ -703,7 +707,7 @@ endpoints:
 
 ### pullRequests.oauth
 
-Tertunda. Memungkinkan setiap pengguna untuk menghubungkan akun mereka sendiri di bawah **Settings > Account > Pull request account**. Pencarian pengguna yang terhubung menggunakan token mereka sendiri dan tidak terikat pada `allowedRepositories`; pengguna yang belum terhubung tetap menggunakan token server. Daftarkan `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` sebagai URL callback aplikasi. Di GitHub, GitHub App dengan izin read-only untuk Pull requests, Checks, dan Contents sangat disarankan. Lihat [Per-user accounts](/docs/features/pull_requests#per-user-accounts).
+Memungkinkan setiap pengguna menghubungkan akun mereka sendiri di bawah **Settings > Account > Pull request account**. Pencarian dari pengguna yang terhubung menggunakan token mereka sendiri dan tidak dibatasi oleh `allowedRepositories`; pengguna yang belum terhubung tetap menggunakan token server. Daftarkan `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` sebagai URL callback aplikasi. Di GitHub, GitHub App dengan izin read-only untuk Pull requests, Checks, dan Contents sangat direkomendasikan. Lihat [Per-user accounts](/docs/features/pull_requests#per-user-accounts).
 
 <OptionTable
   options={[

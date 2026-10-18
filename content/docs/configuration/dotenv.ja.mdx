@@ -1616,13 +1616,13 @@ GitHub、GitLab、またはBitbucket Cloudからの会話のプルリクエス�
     [
       'BITBUCKET_PULL_REQUEST_TOKEN',
       'string',
-      '保留中。プルリクエストおよびリポジトリへの読み取りアクセス権を持つ、フォールバック用のBitbucket Cloudリポジトリ、プロジェクト、またはワークスペースのアクセストークン。',
+      'Bitbucket Cloudのフォールバック用リポジトリ、プロジェクト、またはワークスペースのアクセストークン。プルリクエストとリポジトリへの読み取りアクセス権を持つ必要があります。',
       '# BITBUCKET_PULL_REQUEST_TOKEN=your-read-only-token',
     ],
     [
       'Any name you choose',
       'string',
-      '`pullRequests.token: "${NAME}"` が参照する変数。`pullRequests.oauth.clientId` および `clientSecret`（保留中）にも使用され、これらも参照となります。',
+      '`pullRequests.token: "${NAME}"` が参照する変数。`pullRequests.oauth.clientId` および `clientSecret` も参照であるため、同様に使用されます。',
       '# GITHUB_PR_OAUTH_CLIENT_ID=your-client-id',
     ],
     [
@@ -1634,7 +1634,7 @@ GitHub、GitLab、またはBitbucket Cloudからの会話のプルリクエス�
   ]}
 />
 
-自身の接続アカウントを使用するユーザー（保留中）には、接続フローに署名するための `JWT_SECRET` と、コールバックURL `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` を形成する `DOMAIN_SERVER` が必要です。`pullRequests.sharedCache`（保留中）は `USE_REDIS=true` の場合にのみ有効になります。
+ユーザーが自分のアカウントを接続するには、接続フローの署名に使用される`JWT_SECRET`と、コールバックURL `<DOMAIN_SERVER>/api/pull-requests/oauth/callback` を形成する`DOMAIN_SERVER`が必要です。`pullRequests.sharedCache` は `USE_REDIS=true` の場合にのみ有効になります。
 
 プロバイダーのリクエストは、デプロイメントのプロキシ設定（`PROXY`、`HTTP_PROXY`、`HTTPS_PROXY`、`NO_PROXY`、およびそれらの小文字形式）を使用し、`NO_PROXY` が尊重されます。これらは他の LibreChat のアウトバウンドトラフィックと共有されており、この機能専用のものではありません。
 

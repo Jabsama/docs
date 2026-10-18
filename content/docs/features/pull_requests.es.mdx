@@ -8,10 +8,6 @@ description: >-
 ---
 
 {/*
-  Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988), per-user
-  accounts through `oauth` (#16989) and the "Pull request account" setting (#16990). Delete the
-  Pending markers once each merges to dev, and re-check the schema in
-  packages/data-provider/src/config.ts.
   TODO(maintainer): first release version for each part (do not guess).
   TODO(maintainer): requirement 4 (where an admin sets the workspace environment's repository).
   Add it to "Requirements" once confirmed.
@@ -19,10 +15,10 @@ description: >-
 
 Cuando un chat ejecuta código en un espacio de trabajo adjunto, el trabajador informa la rama de git y el commit en el que se encuentra. LibreChat utiliza esa rama para encontrar la solicitud de extracción (pull request) correspondiente (una solicitud de fusión o merge request en GitLab), con un token almacenado en el servidor o en la cuenta conectada del propio usuario, y la muestra en dos lugares:
 
-- **Encabezado del chat**: un chip con el icono de pull request y un punto de CI. Al pasar el cursor o enfocarlo, se abre una tarjeta.
+- **Encabezado del chat**: un chip con el icono de pull request, su punto de CI y el título del pull request. Al pasar el cursor sobre él o enfocarlo, se abre una tarjeta.
 - **Lista de conversaciones en la barra lateral**: el mismo icono y punto de CI al final de la fila. La fila mantiene el título propio de la conversación; el título de la solicitud de extracción (pull request) aparece solo en la tarjeta.
 
-Las pull requests pueden provenir de GitHub (el predeterminado), GitLab o Bitbucket Cloud (**Pendiente**). Una implementación utiliza un proveedor.
+Las solicitudes de extracción (pull requests) pueden provenir de GitHub (el predeterminado), GitLab o Bitbucket Cloud. Cada implementación utiliza un solo proveedor.
 
 ## Requisitos [#requirements]
 
@@ -42,11 +38,11 @@ La excepción es un `token` que está configurado pero cuya variable de entorno 
 
 `provider` selecciona dónde residen las solicitudes de extracción (pull requests):
 
-| `provider`         | Servicio                                                                                                  | `host` predeterminado |
-| ------------------ | --------------------------------------------------------------------------------------------------------- | --------------------- |
-| `github` (default) | GitHub.com, GitHub Enterprise Server, o un inquilino de residencia de datos de GitHub Enterprise Cloud (`*.ghe.com`) | `github.com`          |
-| `gitlab`           | Merge requests en gitlab.com o una instancia de GitLab autogestionada                                     | `gitlab.com`          |
-| `bitbucket`        | Solo Bitbucket Cloud (**Pendiente**)                                                                      | `bitbucket.org`       |
+| `provider` | Servicio | `host` predeterminado |
+| ------------------ | --------------------------------------------------------------------------------------------------------- | --------------- |
+| `github` (predeterminado) | GitHub.com, GitHub Enterprise Server o un inquilino de residencia de datos de GitHub Enterprise Cloud (`*.ghe.com`) | `github.com` |
+| `gitlab` | Merge requests en gitlab.com o en un GitLab autoalojado | `gitlab.com` |
+| `bitbucket` | Solo Bitbucket Cloud | `bitbucket.org` |
 
 Establezca `host` solo para GitHub Enterprise Server, un inquilino `*.ghe.com` o una instancia de GitLab autohospedada:
 
@@ -86,7 +82,7 @@ El token del servidor se utiliza para cada usuario que no ha conectado su propia
 
 **GitLab**: un token de acceso personal, de grupo o de proyecto con el ámbito `read_api`.
 
-**Bitbucket Cloud** (**Pendiente**): un token de acceso a repositorio, proyecto o espacio de trabajo, enviado como un token de portador (bearer token). LibreChat lee las solicitudes de extracción (pull requests), sus estadísticas de diferencias (diffstat), los estados de sus confirmaciones (commit statuses) y las bases de fusión (merge bases), por lo que debe otorgar acceso de lectura a las solicitudes de extracción y a los repositorios.
+**Bitbucket Cloud**: un token de acceso al repositorio, al proyecto o al espacio de trabajo, enviado como token de portador (bearer token). LibreChat lee las pull requests, su diffstat, los estados de los commits y las merge bases, por lo que debes conceder permisos de lectura para pull requests y repositorios.
 
 ### 3. Proporciona el token a LibreChat [#3-give-librechat-the-token]
 
@@ -97,9 +93,9 @@ LibreChat busca un token en este orden:
 
 | Proveedor | Variables de respaldo, en orden |
 | --------- | --------------------------------------------------------- |
-| GitHub    | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`   |
-| GitLab    | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN`               |
-| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` (**Pendiente**)            |
+| GitHub | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN` |
+| GitLab | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN` |
+| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` |
 
 3. Ningún token en ninguna parte: la función permanece inactiva, a menos que los usuarios puedan conectar sus propias cuentas.
 
@@ -148,7 +144,7 @@ endpoints:
       allowedRepositories: ['platform/*']
 ```
 
-Bitbucket Cloud (**Pendiente**), con `BITBUCKET_PULL_REQUEST_TOKEN` configurado:
+Bitbucket Cloud, con `BITBUCKET_PULL_REQUEST_TOKEN` configurado:
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -161,10 +157,6 @@ endpoints:
 Consulta la referencia de [`pullRequests`](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests) para ver todas las claves.
 
 ## Cuentas por usuario [#per-user-accounts]
-
-<Callout type="important" title="Pendiente: aún no publicado">
-  Las cuentas por usuario son parte de LibreChat-AI/LibreChat#16989 y #16990.
-</Callout>
 
 Con `oauth` configurado, cada usuario puede conectar su propia cuenta de GitHub, GitLab o Bitbucket en **Settings > Account**, bajo **Pull request account**. Sus búsquedas se ejecutarán entonces con su propio token, límite de tasa y acceso al repositorio en lugar de los del servidor.
 
@@ -290,15 +282,12 @@ Guarde y luego copie la **Key** (clave) y el **Secret** (secreto) del consumidor
 
 ## Escalado con réplicas [#scaling-with-replicas]
 
-<Callout type="important" title="Pendiente: aún no publicado">
-  `sharedCache` es parte de LibreChat-AI/LibreChat#16988.
-</Callout>
-
 Cada réplica almacena los resultados en caché en la memoria. Con varias réplicas, establezca `sharedCache: true` para que compartan las solicitudes de extracción consultadas y los tiempos de espera de los límites de tasa a través de Redis, y para que no gasten cada una el token en la misma respuesta.
 
 - Solo surte efecto cuando el despliegue se ejecuta con Redis (`USE_REDIS`). Predeterminado: `false`.
 - Cada réplica mantiene su propia caché en memoria de cualquier manera, por delante de la compartida.
 - `sharedCacheTimeoutMs` (10-5000, valor predeterminado 250) limita cada lectura o escritura en la caché compartida. Si Redis es más lento, se omite y la búsqueda continúa sin él.
+- `sharedCacheSlots` (64-1000000, valor predeterminado 65536) limita la cantidad de claves de Redis que utiliza la caché compartida. Se lee únicamente desde el YAML.
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -331,37 +320,85 @@ Los valores predeterminados son adecuados para la mayoría de las implementacion
 
 ### Chip del encabezado del chat [#chat-header-chip]
 
-- **Desktop**: el chip se sitúa a la izquierda del encabezado, junto a los otros controles izquierdos. Al pasar el cursor o enfocarlo, se abre la tarjeta a su derecha.
-- **Móvil**: la entrada se encuentra en el menú de desbordamiento (tres puntos) del encabezado y abre un diálogo.
+- **Escritorio**: el chip se encuentra a la izquierda del encabezado, junto a los demás controles de la izquierda. Muestra el icono de la solicitud de extracción con el punto de CI en su esquina y, a continuación, el título de la solicitud de extracción. Al pasar el puntero o enfocar el chip, se abre la tarjeta situada debajo de él, y la tarjeta permanece abierta mientras el puntero o el foco del teclado estén dentro de ella.
+- **Móvil**: no hay chip. El menú de desbordamiento (tres puntos) del encabezado tiene una entrada `PR #number` (`MR !number` en GitLab) que abre la misma tarjeta en un cuadro de diálogo.
 - El encabezado se actualiza por sí solo: aproximadamente cada 20 segundos mientras se ejecutan las comprobaciones o se sigue calculando la capacidad de fusión, aproximadamente cada 60 segundos en caso contrario, y no se actualiza en absoluto una vez que una solicitud de extracción (pull request) se ha fusionado o cerrado sin comprobaciones en ejecución.
+
+<ThemeImage
+  light="/images/pull-requests/hdr-ready-light.png"
+  dark="/images/pull-requests/hdr-ready-dark.png"
+  alt="El chip de encabezado del chat para una pull request abierta que puede fusionarse, con las comprobaciones superadas, y su tarjeta abierta debajo de él"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-menu-light.png"
+  dark="/images/pull-requests/mob-menu-dark.png"
+  alt="La entrada del PR #1234 en el menú de desbordamiento del encabezado en una pantalla pequeña"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-dialog-light.png"
+  dark="/images/pull-requests/mob-dialog-dark.png"
+  alt="La tarjeta de solicitud de extracción (pull request) que se muestra en un cuadro de diálogo en una pantalla pequeña"
+/>
 
 ### Marca de la barra lateral [#sidebar-mark]
 
-- Un icono de pull request con un punto de CI se encuentra al final de la fila de la conversación. Solo aparece para las conversaciones que tienen un pull request.
-- Al pasar el cursor, enfocar o hacer clic se abre la misma tarjeta a la derecha de la marca. Hacer clic en la marca no abre la conversación.
+- Un icono de solicitud de extracción con su punto de CI aparece al final de la fila de la conversación. Solo se muestra en las conversaciones que tienen una solicitud de extracción.
+- Al pasar el cursor sobre cualquier parte de la fila, al enfocar o hacer clic en la marca, se abre la misma tarjeta a la derecha de la marca. Al hacer clic en la marca no se abre la conversación.
 - La barra lateral nunca realiza sondeos. Una fila está tan actualizada como la última vez que se cargó la lista, y se refresca cuando la ventana recupera el foco y sus datos tienen más de un minuto de antigüedad.
 - Si una búsqueda falla, la fila muestra un icono de advertencia con un botón de reintento en su tarjeta, de modo que un fallo no se confunda con "sin solicitud de extracción" (no pull request).
+
+<ThemeImage
+  light="/images/pull-requests/side-rows-light.png"
+  dark="/images/pull-requests/side-rows-dark.png"
+  alt="Filas de la barra lateral con marcas de solicitudes de extracción: lista para fusionar, conflictos con comprobaciones fallidas, un borrador con comprobaciones en ejecución y una solicitud de extracción fusionada"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/side-card-light.png"
+  dark="/images/pull-requests/side-card-dark.png"
+  alt="La tarjeta de la solicitud de extracción se abrió a la derecha de una fila de la barra lateral"
+/>
 
 ### La tarjeta [#the-card]
 
 La tarjeta muestra `PR #number` (`MR !number` en GitLab), `+additions` en verde, `-deletions` en rojo, un enlace de **Open in GitHub**, **Open in GitLab** o **Open in Bitbucket**, el título y dos insignias:
 
-- **Estado**: Open, Draft, Merged o Closed.
-- **Checks**: Aprobado, Fallido, En ejecución o ninguno. En GitLab, este es el pipeline principal, contado solo cuando se ejecutó para el commit principal actual. En Bitbucket, son los estados del commit.
-
-{/* TODO(docs): add the screenshots from LibreChat PRs #16794 and #16815. */}
+- **Estado**: Open, Conflicts, Draft, Merged o Closed. Conflicts reemplaza a Open cuando una pull request abierta tiene conflictos de fusión.
+- **Checks**: Passing, Failing, Running o None. En GitLab, esto corresponde al pipeline principal (head pipeline), contabilizado solo cuando se ejecutó para el commit actual de la cabeza. En Bitbucket, corresponde a los estados de commit (commit statuses).
 
 ### Significado del icono y el punto [#icon-and-dot-meaning]
 
 | Situación | Color del icono | Punto de CI |
-| --------------------------------------- | ------------------------- | ------------------------------------- |
+| --------- | --------------- | ----------- |
 | Abierto, sin conflictos, comprobaciones superadas | Verde (listo para fusionar) | Verde |
 | Abierto, sin conflictos, sin comprobaciones | Verde | Ninguno |
-| Abierto, conflictos de fusión | Rojo (no se puede fusionar) | Según comprobaciones |
-| Borrador | Neutral | Según comprobaciones |
-| Fusionado o cerrado | Neutral | Ninguno (ámbar mientras las comprobaciones siguen ejecutándose) |
+| Abierto, la capacidad de fusión aún se está calculando | Neutral | Según las comprobaciones |
+| Abierto, con conflictos de fusión | Rojo (no se puede fusionar) | Según las comprobaciones |
+| Borrador | Neutral | Según las comprobaciones |
+| Fusionado | Morado | Ninguno |
+| Cerrado | Neutral | Ninguno |
 
-Colores de los puntos de CI: verde para aprobado, rojo para fallido, ámbar para en ejecución, y ninguno cuando no hay comprobaciones, o cuando la solicitud de extracción (pull request) está fusionada o cerrada y no hay comprobaciones en ejecución. Una comprobación fallida tiene prioridad sobre una que aún está en ejecución. Un resumen con más ejecuciones de comprobación de las que se leyeron nunca se reporta como aprobado.
+El punto de CI tiene colores: verde para las comprobaciones que pasan, rojo para las que fallan y ámbar para las que se están ejecutando. No aparece ningún punto cuando no hay comprobaciones o una vez que la solicitud de extracción se ha fusionado o cerrado. Una comprobación fallida tiene prioridad sobre una que aún se está ejecutando. Un resumen con más ejecuciones de comprobaciones de las que se han leído nunca se muestra como aprobado.
+
+<ThemeImage
+  light="/images/pull-requests/hdr-conflict-light.png"
+  dark="/images/pull-requests/hdr-conflict-dark.png"
+  alt="Una solicitud de extracción abierta con conflictos de fusión: ícono rojo, punto rojo para verificaciones fallidas y las insignias Conflictos y Fallidas"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-draft-light.png"
+  dark="/images/pull-requests/hdr-draft-dark.png"
+  alt="Un pull request en borrador: icono neutro, punto ámbar mientras se ejecutan las comprobaciones"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-merged-light.png"
+  dark="/images/pull-requests/hdr-merged-dark.png"
+  alt="Un pull request fusionado: icono morado y sin punto"
+/>
 
 ## Cómo se hace coincidir una pull request [#how-a-pull-request-is-matched]
 
@@ -441,7 +478,7 @@ Ambas rutas `/api/convos` a continuación requieren un usuario autenticado y tie
 - **200**: `{ "results": [ { "conversationId", "pullRequest" } | { "conversationId", "error": { "code" } } ] }`, en el orden solicitado. Una búsqueda fallida no oculta las demás.
 - Un token faltante solo hace fallar las entradas que lo necesitaban.
 
-### Conexión de cuenta (**Pendiente**) [#account-connection-pending]
+### Conexión de cuenta [#account-connection]
 
 Estas rutas solo existen cuando `JWT_SECRET` está configurado. Todas, excepto la de callback, requieren un usuario autenticado.
 
@@ -457,6 +494,6 @@ Estas rutas solo existen cuando `JWT_SECRET` está configurado. Todas, excepto l
 - `pullRequestsEnabled` (booleano)
 - `pullRequestsBatchVersion` (`1`, presente solo con la función activada)
 - `pullRequestsMaxConcurrentLookups` (número, presente solo con la función activada)
-- `pullRequestsConnect` (`github`, `gitlab` o `bitbucket`, presente solo cuando los usuarios pueden conectar su propia cuenta; **Pendiente**)
+- `pullRequestsConnect` (`github`, `gitlab` o `bitbucket`, presente solo cuando los usuarios pueden conectar su propia cuenta)
 
 Solo los códigos de error enumerados anteriormente son estables.

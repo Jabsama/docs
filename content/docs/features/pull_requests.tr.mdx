@@ -8,10 +8,6 @@ description: >-
 ---
 
 {/*
-  Pending items: Bitbucket Cloud (LibreChat-AI/LibreChat#16987), sharedCache (#16988), per-user
-  accounts through `oauth` (#16989) and the "Pull request account" setting (#16990). Delete the
-  Pending markers once each merges to dev, and re-check the schema in
-  packages/data-provider/src/config.ts.
   TODO(maintainer): first release version for each part (do not guess).
   TODO(maintainer): requirement 4 (where an admin sets the workspace environment's repository).
   Add it to "Requirements" once confirmed.
@@ -19,10 +15,10 @@ description: >-
 
 Bir sohbet, ekli bir çalışma alanında kod çalıştırdığında, worker bulunduğu git dalını ve commit'ini raporlar. LibreChat, sunucuda tutulan veya kullanıcının kendi bağlı hesabındaki bir token ile eşleşen çekme isteğini (GitLab üzerinde birleştirme isteği) bulmak için bu dalı kullanır ve bunu iki yerde gösterir:
 
-- **Sohbet başlığı**: pull request simgesi ve bir CI noktası içeren bir çip. Üzerine gelindiğinde veya odaklanıldığında bir kart açılır.
+- **Sohbet başlığı**: Pull request simgesi, CI noktası ve pull request başlığını içeren bir çip. Üzerine gelindiğinde veya odaklanıldığında bir kart açılır.
 - **Kenar çubuğu konuşma listesi**: satırın sonunda aynı simge ve CI noktası bulunur. Satır, konuşmanın kendi başlığını korur; çekme isteği (pull request) başlığı yalnızca kartta görünür.
 
-Pull request'ler GitHub (varsayılan), GitLab veya Bitbucket Cloud (**Beklemede**) üzerinden gelebilir. Bir deployment yalnızca bir sağlayıcı kullanır.
+Pull request'ler varsayılan olarak GitHub'dan, GitLab'dan veya Bitbucket Cloud'dan gelebilir. Bir dağıtım yalnızca tek bir sağlayıcı kullanır.
 
 ## Gereksinimler [#requirements]
 
@@ -42,11 +38,11 @@ Bunun istisnası, `token` ayarlanmış ancak ortam değişkeni boş veya eksik o
 
 `provider` çekme isteklerinin nerede barınacağını seçer:
 
-| `provider`         | Hizmet                                                                                                    | Varsayılan `host` |
-| ------------------ | --------------------------------------------------------------------------------------------------------- | ----------------- |
-| `github` (varsayılan) | GitHub.com, GitHub Enterprise Server veya bir GitHub Enterprise Cloud veri yerleşimi kiracısı (`*.ghe.com`) | `github.com`      |
-| `gitlab`           | gitlab.com üzerindeki birleştirme istekleri (merge requests) veya kendi kendine barındırılan GitLab        | `gitlab.com`      |
-| `bitbucket`        | Yalnızca Bitbucket Cloud (**Beklemede**)                                                                  | `bitbucket.org`   |
+| `provider` | Hizmet | Varsayılan `host` |
+| ------------------ | --------------------------------------------------------------------------------------------------------- | --------------- |
+| `github` (varsayılan) | GitHub.com, GitHub Enterprise Server veya bir GitHub Enterprise Cloud veri ikamet kiracısı (`*.ghe.com`) | `github.com` |
+| `gitlab` | gitlab.com üzerindeki veya kendi barındırdığınız bir GitLab üzerindeki birleştirme istekleri | `gitlab.com` |
+| `bitbucket` | Yalnızca Bitbucket Cloud | `bitbucket.org` |
 
 `host` değerini yalnızca GitHub Enterprise Server, bir `*.ghe.com` kiracısı veya kendi kendine barındırılan bir GitLab için ayarlayın:
 
@@ -86,7 +82,7 @@ Sunucu token'ı, kendi hesabını bağlamamış olan her kullanıcı için kulla
 
 **GitLab**: `read_api` kapsamına sahip bir kişisel, grup veya proje erişim belirteci (access token).
 
-**Bitbucket Cloud** (**Beklemede**): bir depo, proje veya çalışma alanı erişim belirteci, bearer belirteci olarak gönderilir. LibreChat; çekme isteklerini (pull requests), bunların diffstat'lerini, commit durumlarını ve birleştirme temellerini (merge bases) okur, bu nedenle çekme istekleri ve depolar için okuma erişimi verin.
+**Bitbucket Cloud**: Bearer token olarak gönderilen bir depo, proje veya çalışma alanı erişim belirteci. LibreChat; çekme isteklerini, bunların diffstat bilgilerini, commit durumlarını ve merge base değerlerini okur; bu nedenle çekme isteklerine ve depolara okuma erişimi verin.
 
 ### 3. LibreChat'e token'ı verin [#3-give-librechat-the-token]
 
@@ -95,11 +91,11 @@ LibreChat bir token'ı şu sırayla arar:
 1. `token: "${MY_VAR}"` ifadesi `librechat.yaml` içindedir. Bu bir ortam değişkeni **referansıdır**; YAML dosyasının kendisi hiçbir zaman token'ın değerini tutmaz ve doğrudan yazılan bir token şema tarafından reddedilir.
 2. Eğer `token` ayarlanmamışsa, bu ortam değişkenlerinden ayarlanan ilki kullanılır:
 
-| Sağlayıcı | Sırasıyla yedek değişkenler |
-| --------- | --------------------------------------------------------- |
-| GitHub    | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN`   |
-| GitLab    | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN`               |
-| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` (**Beklemede**)              |
+| Sağlayıcı | Yedek değişkenler, sırasıyla |
+| --------- | ---------------------------- |
+| GitHub    | `GITHUB_PULL_REQUEST_TOKEN`, `GITHUB_TOKEN`, `GH_TOKEN` |
+| GitLab    | `GITLAB_PULL_REQUEST_TOKEN`, `GITLAB_TOKEN` |
+| Bitbucket | `BITBUCKET_PULL_REQUEST_TOKEN` |
 
 3. Hiçbir yerde token yok: kullanıcılar kendi hesaplarını bağlamadıkça özellik devre dışı kalır.
 
@@ -148,7 +144,7 @@ endpoints:
       allowedRepositories: ['platform/*']
 ```
 
-Bitbucket Cloud (**Beklemede**), `BITBUCKET_PULL_REQUEST_TOKEN` ayarlanmış şekilde:
+Bitbucket Cloud, `BITBUCKET_PULL_REQUEST_TOKEN` ayarlanmış olarak:
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -161,10 +157,6 @@ endpoints:
 Her bir anahtar için [`pullRequests` referansına](/docs/configuration/librechat_yaml/object_structure/agents#pullrequests) bakın.
 
 ## Kullanıcı bazlı hesaplar [#per-user-accounts]
-
-<Callout type="important" title="Beklemede: henüz yayınlanmadı">
-  Kullanıcı bazlı hesaplar, LibreChat-AI/LibreChat#16989 ve #16990'ın bir parçasıdır.
-</Callout>
 
 `oauth` ayarlandığında, her kullanıcı kendi GitHub, GitLab veya Bitbucket hesabını **Ayarlar > Hesap** bölümünde, **Pull request hesabı** altında bağlayabilir. Bu durumda aramaları, sunucununki yerine kendi belirteçleri (token), hız sınırları ve depo erişim hakları ile gerçekleştirilir.
 
@@ -290,15 +282,12 @@ Kaydedin, ardından tüketicinin **Key** ve **Secret** değerlerini `oauth.clien
 
 ## Replikalar ile ölçeklendirme [#scaling-with-replicas]
 
-<Callout type="important" title="Beklemede: henüz yayınlanmadı">
-  `sharedCache`, LibreChat-AI/LibreChat#16988'in bir parçasıdır.
-</Callout>
-
 Her kopya sonuçları bellekte önbelleğe alır. Birden fazla kopya olduğunda, `sharedCache: true` ayarını yapın; böylece Redis aracılığıyla aranan çekme isteklerini (pull requests) ve hız sınırı bekleme sürelerini paylaşırlar ve her biri aynı yanıt için token harcamaz.
 
 - Yalnızca dağıtım Redis (`USE_REDIS`) ile çalıştığında geçerli olur. Varsayılan: `false`.
 - Her kopya, paylaşılan önbelleğin önünde, her iki durumda da kendi bellek içi önbelleğini tutar.
 - `sharedCacheTimeoutMs` (10-5000, varsayılan 250), her paylaşılan önbellek okuma veya yazma işlemini sınırlandırır. Daha yavaş bir Redis atlanır ve arama işlemi onsuz devam eder.
+- `sharedCacheSlots` (64-1000000, varsayılan 65536) paylaşımlı önbelleğin kullandığı Redis anahtarlarının sayısını sınırlar. Yalnızca YAML'den okunur.
 
 ```yaml filename="librechat.yaml"
 endpoints:
@@ -331,37 +320,85 @@ Varsayılan ayarlar çoğu dağıtım için uygundur.
 
 ### Sohbet başlığı çipi [#chat-header-chip]
 
-- **Desktop**: çip, başlığın solunda, diğer sol kontrollerin yanında yer alır. Üzerine gelindiğinde veya odaklanıldığında, sağındaki kart açılır.
-- **Mobil**: giriş, başlığın taşma (üç nokta) menüsündedir ve bir iletişim kutusu açar.
+- **Masaüstü**: Çip, başlığın sol tarafında, diğer sol taraftaki kontrollerin yanında yer alır. Pull request simgesini ve köşesinde CI noktasını, ardından pull request başlığını gösterir. Üzerine gelindiğinde veya odaklanıldığında, altında kart açılır; imleç veya klavye odağı kartın içinde olduğu sürece kart açık kalır.
+- **Mobil**: Çip yoktur. Başlıktaki taşma (üç nokta) menüsünde, aynı kartı bir iletişim kutusunda açan bir `PR #number` girişi (GitLab'de `MR !number`) bulunur.
 - Üst bilgi kendiliğinden yenilenir: kontroller çalışırken veya birleştirilebilirlik durumu hesaplanırken yaklaşık her 20 saniyede bir, aksi durumlarda yaklaşık her 60 saniyede bir; bir pull request birleştirildiğinde veya hiçbir kontrol çalışmıyorken kapatıldığında ise hiç yenilenmez.
+
+<ThemeImage
+  light="/images/pull-requests/hdr-ready-light.png"
+  dark="/images/pull-requests/hdr-ready-dark.png"
+  alt="Birleştirilebilir, kontrolleri geçen açık bir pull request için sohbet başlığındaki çip ve altında açık olan kartı"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-menu-light.png"
+  dark="/images/pull-requests/mob-menu-dark.png"
+  alt="PR #1234 girişi, küçük ekranda başlığın taşma menüsünde"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/mob-dialog-light.png"
+  dark="/images/pull-requests/mob-dialog-dark.png"
+  alt="Küçük bir ekranda bir iletişim kutusunda gösterilen çekme isteği kartı"
+/>
 
 ### Kenar çubuğu işareti [#sidebar-mark]
 
-- Sohbet satırının sonunda CI noktası olan bir pull request simgesi bulunur. Bu simge, yalnızca bir pull request içeren sohbetler için görünür.
-- Üzerine gelme, odaklanma veya tıklama, işaretin sağındaki aynı kartı açar. İşarete tıklamak konuşmayı açmaz.
+- Bir çekme isteği (pull request) simgesi ve CI noktası, konuşma satırının sonunda yer alır. Yalnızca çekme isteği bulunan konuşmalar için görünür.
+- Satırın herhangi bir yerinin üzerine gelindiğinde, işarete odaklanıldığında veya tıklandığında, işaretin sağında aynı kart açılır. İşarete tıklamak sohbeti açmaz.
 - Kenar çubuğu asla yoklama (poll) yapmaz. Bir satır, listenin en son yüklendiği an kadar günceldir ve pencere yeniden odak kazandığında ve verileri bir dakikadan eskiyse yenilenir.
 - Bir arama başarısız olursa, satır kartında bir uyarı simgesi ve yeniden deneme düğmesi gösterilir; böylece bir hata "çekme isteği yok" şeklinde yanlış anlaşılmaz.
+
+<ThemeImage
+  light="/images/pull-requests/side-rows-light.png"
+  dark="/images/pull-requests/side-rows-dark.png"
+  alt="Pull request işaretli kenar çubuğu satırları: birleştirmeye hazır, başarısız kontrollerle çakışmalar, çalışan kontrollere sahip bir taslak ve birleştirilmiş bir pull request"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/side-card-light.png"
+  dark="/images/pull-requests/side-card-dark.png"
+  alt="Kenar çubuğu satırının sağına açılan pull request kartı"
+/>
 
 ### Kart [#the-card]
 
 The card shows `PR #number` (`MR !number` on GitLab), `+additions` in green, `-deletions` in red, an **Open in GitHub**, **Open in GitLab** or **Open in Bitbucket** link, the title, and two badges:
 
-- **Durum**: Open, Draft, Merged veya Closed.
-- **Checks**: Başarılı (Passing), Başarısız (Failing), Çalışıyor (Running) veya hiçbiri. GitLab üzerinde bu, yalnızca mevcut ana commit için çalıştığında sayılan ana pipeline'dır. Bitbucket üzerinde ise commit durumlarıdır.
-
-{/* TODO(docs): add the screenshots from LibreChat PRs #16794 and #16815. */}
+- **Durum**: Open, Conflicts, Draft, Merged veya Closed. Açık bir pull request'te birleştirme çakışmaları olduğunda Conflicts, Open yerine gösterilir.
+- **Kontroller**: Passing, Failing, Running veya None. GitLab'da bu, yalnızca mevcut head commit için çalıştırılmış olması durumunda sayılan head pipeline'dır. Bitbucket'ta ise commit durumlarıdır.
 
 ### Simge ve nokta anlamları [#icon-and-dot-meaning]
 
-| Durum | İkon rengi | CI noktası |
-| --------------------------------------- | ------------------------- | ------------------------------------- |
-| Açık, çakışma yok, kontroller başarılı | Yeşil (birleştirmeye hazır) | Yeşil |
+| Durum | Simge rengi | CI noktası |
+| ----- | ----------- | ---------- |
+| Açık, çakışma yok, kontroller geçiyor | Yeşil (birleştirmeye hazır) | Yeşil |
 | Açık, çakışma yok, hiç kontrol yok | Yeşil | Yok |
+| Açık, birleştirilebilirlik hâlâ hesaplanıyor | Nötr | Kontrollere göre |
 | Açık, birleştirme çakışmaları var | Kırmızı (birleştirilemez) | Kontrollere göre |
 | Taslak | Nötr | Kontrollere göre |
-| Birleştirildi veya kapatıldı | Nötr | Yok (kontroller devam ederken kehribar rengi) |
+| Birleştirildi | Mor | Yok |
+| Kapatıldı | Nötr | Yok |
 
-CI nokta renkleri: başarılı olduğunda yeşil, başarısız olduğunda kırmızı, çalışıyor olduğunda kehribar rengi; herhangi bir kontrol olmadığında veya çekme isteği birleştirildiğinde ya da kapatıldığında ve hiçbir kontrol çalışmaya devam etmediğinde ise renk yoktur. Başarısız bir kontrol, hala çalışmakta olan bir kontrolden daha önceliklidir. Okunandan daha fazla kontrol çalıştıran bir toplu işlem, asla başarılı olarak raporlanmaz.
+CI noktalarının renkleri: geçen için yeşil, başarısız olan için kırmızı, çalışmakta olan için kehribar. Hiçbir kontrol yoksa veya pull request birleştirildiğinde ya da kapatıldığında nokta gösterilmez. Başarısız bir kontrol, hâlâ çalışmakta olan bir kontrole göre önceliklidir. Okunandan daha fazla kontrol çalıştırması içeren bir özet asla geçti olarak raporlanmaz.
+
+<ThemeImage
+  light="/images/pull-requests/hdr-conflict-light.png"
+  dark="/images/pull-requests/hdr-conflict-dark.png"
+  alt="Çakışmaları olan açık bir pull request: kırmızı simge, başarısız kontroller için kırmızı nokta ve Çakışmalar ile Başarısız rozetleri"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-draft-light.png"
+  dark="/images/pull-requests/hdr-draft-dark.png"
+  alt="Taslak çekme isteği: nötr simge, kontroller çalışırken sarı nokta"
+/>
+
+<ThemeImage
+  light="/images/pull-requests/hdr-merged-light.png"
+  dark="/images/pull-requests/hdr-merged-dark.png"
+  alt="Birleştirilmiş bir pull request: mor simge ve nokta yok"
+/>
 
 ## Bir pull request nasıl eşleştirilir [#how-a-pull-request-is-matched]
 
@@ -441,7 +478,7 @@ Aşağıdaki her iki `/api/convos` rotası da kimliği doğrulanmış bir kullan
 - **200**: `{ "results": [ { "conversationId", "pullRequest" } | { "conversationId", "error": { "code" } } ] }`, talep edilen sırada. Başarısız olan bir arama, diğerlerini gizlemez.
 - Eksik bir token yalnızca ona ihtiyaç duyan girdilerin başarısız olmasına neden olur.
 
-### Hesap bağlantısı (**Beklemede**) [#account-connection-pending]
+### Hesap bağlantısı [#account-connection]
 
 Bu rotalar yalnızca `JWT_SECRET` ayarlandığında mevcuttur. Geri çağırma (callback) dışındakilerin tümü kimliği doğrulanmış bir kullanıcı gerektirir.
 
@@ -457,6 +494,6 @@ Bu rotalar yalnızca `JWT_SECRET` ayarlandığında mevcuttur. Geri çağırma (
 - `pullRequestsEnabled` (boole değeri)
 - `pullRequestsBatchVersion` (`1`, yalnızca özellik açıkken mevcuttur)
 - `pullRequestsMaxConcurrentLookups` (sayı, yalnızca özellik açıkken mevcuttur)
-- `pullRequestsConnect` (`github`, `gitlab` veya `bitbucket`, yalnızca kullanıcılar kendi hesaplarını bağlayabildiğinde mevcuttur; **Beklemede**)
+- `pullRequestsConnect` (`github`, `gitlab` veya `bitbucket`, yalnızca kullanıcıların kendi hesaplarını bağlayabildiği durumlarda mevcuttur)
 
 Yalnızca yukarıda listelenen hata kodları kararlıdır.
