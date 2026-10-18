@@ -15,6 +15,16 @@ description: >-
 
 Docker Desktop được khuyến nghị cho hầu hết người dùng. Đối với các cài đặt trên máy chủ từ xa, hãy xem [Hướng dẫn triển khai Docker trên Ubuntu](/docs/remote/docker_linux).
 
+### Yêu cầu hệ thống [#system-requirements]
+
+LibreChat không tự chạy các mô hình AI; nó gửi yêu cầu đến các nhà cung cấp mà bạn đã cấu hình, vì vậy không cần GPU.
+
+LibreChat của bạn cần ít nhất 1 GiB RAM và 1 vCPU cho các container, giống với [yêu cầu tối thiểu](/docs/remote#minimum-requirements) trên máy chủ. Tệp Docker Compose mặc định khởi động MongoDB, Meilisearch (tìm kiếm cuộc trò chuyện) và RAG API cùng với cơ sở dữ liệu PostgreSQL/pgvector (tìm kiếm tệp) bên cạnh LibreChat. Tệp này cũng định nghĩa bảng quản trị, bảng này chỉ khởi động sau khi `ADMIN_PANEL_SESSION_SECRET` được thiết lập trong `.env` (xem [Admin Panel](/docs/features/admin_panel)). Khi mọi thứ đang chạy, hãy đảm bảo Docker có sẵn ít nhất 2 GB bộ nhớ để hoạt động ổn định hơn.
+
+Nếu bạn sử dụng Docker Desktop, ứng dụng này chạy các container bên trong máy ảo riêng của nó, vì vậy máy tính của bạn cũng phải đáp ứng các yêu cầu của Docker Desktop. Tại thời điểm viết tài liệu này, các yêu cầu tối thiểu là 4 GB RAM hệ thống trên [macOS](https://docs.docker.com/desktop/setup/install/mac-install/) và [Linux](https://docs.docker.com/desktop/setup/install/linux/), 8 GB trên [Windows](https://docs.docker.com/desktop/setup/install/windows-install/), cùng với hỗ trợ ảo hóa phần cứng. Hãy kiểm tra các trang liên kết để biết yêu cầu hiện hành. Dung lượng bộ nhớ dành cho container được thiết lập trong [cài đặt tài nguyên](https://docs.docker.com/desktop/settings-and-maintenance/settings/) của Docker Desktop trên macOS, Linux và Windows với Hyper-V; còn với backend WSL 2 trên Windows, dung lượng này được thiết lập trên máy ảo WSL 2 thay thế (xem [hướng dẫn WSL của Docker](https://docs.docker.com/desktop/features/wsl/best-practices/)). Docker Engine được cài đặt trực tiếp trên Linux sẽ chạy container trên máy chủ và không có máy ảo riêng biệt.
+
+Nếu bạn kết nối LibreChat với các mô hình chạy trên cùng một máy, chẳng hạn như [Ollama](/docs/configuration/librechat_yaml/ai_endpoints/ollama), hãy chọn cấu hình phần cứng phù hợp với mô hình bạn sử dụng. Môi trường chạy mô hình đó cần bộ nhớ lớn hơn nhiều, và thường cần GPU, so với LibreChat.
+
 <Callout type="warn" title="Máy Mac Apple Silicon (dòng M)">
 
 Các máy tính Mac sử dụng bộ vi xử lý Apple Silicon (M1, M2, M3, M4) không hỗ trợ tập lệnh AVX, vốn là yêu cầu bắt buộc đối với image MongoDB mặc định được sử dụng trong thiết lập Docker Compose của LibreChat. Nếu bạn đang sử dụng máy Mac dòng M, MongoDB sẽ bị treo khi khởi động.

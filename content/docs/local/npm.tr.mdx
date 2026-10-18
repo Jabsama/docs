@@ -15,6 +15,8 @@ description: npm kullanarak LibreChat'i yerel olarak nasıl kurarsınız
 - MongoDB (Atlas veya Community Server)
   - [MongoDB Atlas](/docs/configuration/mongodb/mongodb_atlas)
   - [MongoDB Community Server](/docs/configuration/mongodb/mongodb_community)
+- LibreChat'i çalıştırmak için en az 1 GiB RAM ve 1 vCPU gerekir. Daha fazla hizmet ekledğinizde veya modelleri yerel olarak çalıştırdığınızda nelere dikkat etmeniz gerektiği için [Sistem Gereksinimleri](/docs/local/docker#system-requirements) bölümüne bakın.
+  - Kaynak koddan ön yüzü derlemek (`npm run frontend`, bunu `npm run reinstall` da çalıştırır) çalıştırmaktan çok daha fazla bellek gerektirir: istemci derlemesi Node.js'in 8 GB'a kadar heap kullanmasına izin verir. Düşük belleğe sahip bir makinede, bunun yerine hazır derlenmiş [Docker](/docs/local/docker) imajlarını kullanın.
 
 `nvm` kullanıyorsanız, önerilen Node.js sürümünü yükleyip seçin ve ardından npm'i güncelleyin:
 

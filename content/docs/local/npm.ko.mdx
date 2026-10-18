@@ -15,6 +15,8 @@ description: npm을 사용하여 로컬에 LibreChat을 설치하는 방법
 - MongoDB (Atlas 또는 Community Server)
   - [MongoDB Atlas](/docs/configuration/mongodb/mongodb_atlas)
   - [MongoDB Community Server](/docs/configuration/mongodb/mongodb_community)
+- LibreChat를 실행하려면 최소 1 GiB RAM과 1 vCPU가 필요합니다. 서비스를 추가하거나 모델을 로컬에서 실행할 때 준비해야 할 사항은 [시스템 요구 사항](/docs/local/docker#system-requirements)을 참고하세요.
+  - 소스에서 프론트엔드를 빌드하는 작업(`npm run frontend`이며, `npm run reinstall`도 이 명령을 실행합니다)에는 실행할 때보다 훨씬 많은 메모리가 필요합니다. 클라이언트 빌드는 Node.js가 최대 8GB의 힙 메모리를 사용하도록 허용합니다. 메모리가 적은 머신에서는 대신 미리 빌드된 [Docker](/docs/local/docker) 이미지를 사용하세요.
 
 `nvm`을 사용하는 경우, 권장되는 Node.js 버전을 설치 및 선택한 다음 npm을 업데이트하세요:
 

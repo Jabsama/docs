@@ -15,6 +15,8 @@ Para a maioria dos cenários, o Docker Compose é o método de instalação reco
 - MongoDB (Atlas ou Community Server)
   - [MongoDB Atlas](/docs/configuration/mongodb/mongodb_atlas)
   - [MongoDB Community Server](/docs/configuration/mongodb/mongodb_community)
+- Pelo menos 1 GiB de RAM e 1 vCPU para executar o LibreChat. Consulte [Requisitos do Sistema](/docs/local/docker#system-requirements) para saber o que planejar ao adicionar mais serviços ou executar modelos localmente.
+  - Compilar o frontend a partir do código-fonte (`npm run frontend`, que também é executado por `npm run reinstall`) exige bem mais memória do que executá-lo: o build do cliente permite que o Node.js use até 8 GB de heap. Em uma máquina com pouca memória, use as imagens [Docker](/docs/local/docker) pré-compiladas.
 
 Se você usa o `nvm`, instale e selecione a versão recomendada do Node.js, então atualize o npm:
 

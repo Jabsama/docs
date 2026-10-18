@@ -13,6 +13,16 @@ description: Dockerを使用してLibreChatをローカルにインストール�
 
 ほとんどのユーザーには Docker Desktop が推奨されます。リモートサーバーへのインストールについては、[Ubuntu Docker Deployment Guide](/docs/remote/docker_linux) を参照してください。
 
+### システム要件 [#system-requirements]
+
+LibreChat は AI モデルそのものを実行するわけではなく、設定されたプロバイダーにリクエストを送信するため、GPU は必要ありません。
+
+LibreChatのコンテナには、少なくとも1 GiBのRAMと1 vCPUが必要です。これはサーバーの場合と同じ[最小要件](/docs/remote#minimum-requirements)です。デフォルトのDocker Composeファイルは、LibreChatと並行して、MongoDB、Meilisearch(会話検索)、そしてPostgreSQL/pgvectorデータベース(ファイル検索)を備えたRAG APIを起動します。また、管理パネルの定義も含まれており、`.env`で`ADMIN_PANEL_SESSION_SECRET`が設定された場合にのみ起動します([管理パネル](/docs/features/admin_panel)を参照)。すべてのサービスが稼働している状態で、より快適に動作させるため、Dockerに少なくとも2 GBのメモリを割り当ててください。
+
+Docker Desktopを使用する場合、コンテナはDocker Desktop独自の仮想マシン内で実行されるため、お使いのコンピュータもDocker Desktopの要件を満たしている必要があります。執筆時点では、要件は[macOS](https://docs.docker.com/desktop/setup/install/mac-install/)と[Linux](https://docs.docker.com/desktop/setup/install/linux/)で最低4 GBのシステムRAM、[Windows](https://docs.docker.com/desktop/setup/install/windows-install/)で8 GBのシステムRAMに加え、ハードウェア仮想化が必要です。最新の要件は、リンク先のページで確認してください。コンテナが使用できるメモリは、macOS、Linux、およびHyper-Vを使用するWindowsでは、Docker Desktopの[リソース設定](https://docs.docker.com/desktop/settings-and-maintenance/settings/)で設定します。WSL 2バックエンドを使用するWindowsでは、代わりにWSL 2仮想マシンで設定します(詳細は[DockerのWSLガイダンス](https://docs.docker.com/desktop/features/wsl/best-practices/)を参照してください)。Linux上に直接インストールされたDocker Engineはホスト上でコンテナを実行するため、別個の仮想マシンはありません。
+
+LibreChat を同じマシン上で動作しているモデル(たとえば [Ollama](/docs/configuration/librechat_yaml/ai_endpoints/ollama))に接続する場合は、選択するモデルに合わせてハードウェアの規模を決めてください。そのモデルの実行環境は、LibreChat 本体よりもはるかに多くのメモリを必要とし、多くの場合 GPU も必要になります。
+
 <Callout type="warn" title="Apple Silicon (Mシリーズ) Mac">
 
 Apple Silicon (M1, M2, M3, M4) プロセッサを搭載したMacコンピュータは、LibreChatのDocker Compose設定で使用されるデフォルトのMongoDBイメージで必要とされるAVX命令をサポートしていません。MシリーズのMacを使用している場合、MongoDBは起動時にクラッシュします。

@@ -15,6 +15,16 @@ Pour la plupart des scénarios, Docker Compose est la méthode d'installation re
 
 Docker Desktop est recommandé pour la plupart des utilisateurs. Pour les installations sur serveur distant, consultez le [Guide de déploiement Docker sur Ubuntu](/docs/remote/docker_linux).
 
+### Configuration système requise [#system-requirements]
+
+LibreChat n'exécute pas lui-même les modèles d'IA ; il envoie des requêtes aux fournisseurs que vous configurez, il n'a donc pas besoin de GPU.
+
+LibreChat, les conteneurs ont besoin d'au moins 1 GiB de RAM et 1 vCPU, soit la même [configuration minimale](/docs/remote#minimum-requirements) que sur un serveur. Le fichier Docker Compose par défaut démarre MongoDB, Meilisearch (recherche de conversations) et l'API RAG avec une base de données PostgreSQL/pgvector (recherche de fichiers) en complément de LibreChat. Il définit également le panneau d'administration, qui ne démarre qu'une fois `ADMIN_PANEL_SESSION_SECRET` défini dans `.env` (voir [Panneau d'administration](/docs/features/admin_panel)). Avec l'ensemble des services en cours d'exécution, mettez au moins 2 Go de mémoire à la disposition de Docker pour un fonctionnement plus fluide.
+
+Si vous utilisez Docker Desktop, celui-ci exécute les conteneurs dans sa propre machine virtuelle. Votre ordinateur doit donc également satisfaire aux exigences de Docker Desktop. Au moment de la rédaction de ce document, celles-ci sont d'au moins 4 Go de RAM système sur [macOS](https://docs.docker.com/desktop/setup/install/mac-install/) et [Linux](https://docs.docker.com/desktop/setup/install/linux/), et 8 Go sur [Windows](https://docs.docker.com/desktop/setup/install/windows-install/), ainsi que la prise en charge de la virtualisation matérielle. Consultez les pages liées pour connaître les exigences actuelles. La mémoire disponible pour les conteneurs se configure dans les [paramètres de ressources](https://docs.docker.com/desktop/settings-and-maintenance/settings/) de Docker Desktop sur macOS, Linux et Windows avec Hyper-V. Avec le backend WSL 2 de Windows, elle se configure plutôt sur la machine virtuelle WSL 2 (voir les [recommandations de Docker concernant WSL](https://docs.docker.com/desktop/features/wsl/best-practices/)). Docker Engine installé directement sur Linux exécute les conteneurs sur l'hôte et n'utilise pas de machine virtuelle séparée.
+
+Si vous connectez LibreChat à des modèles exécutés sur la même machine, comme [Ollama](/docs/configuration/librechat_yaml/ai_endpoints/ollama), dimensionnez le matériel en fonction du modèle que vous choisissez. Le moteur d'exécution du modèle nécessite bien plus de mémoire, et souvent un GPU, que LibreChat lui-même.
+
 <Callout type="warn" title="Macs avec Apple Silicon (série M)">
 
 Les ordinateurs Mac équipés de processeurs Apple Silicon (M1, M2, M3, M4) ne prennent pas en charge les instructions AVX, qui sont requises par l'image MongoDB par défaut utilisée dans la configuration Docker Compose de LibreChat. Si vous utilisez un Mac de la série M, MongoDB plantera au démarrage.

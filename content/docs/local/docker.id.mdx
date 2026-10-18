@@ -15,6 +15,16 @@ Untuk sebagian besar skenario, Docker Compose adalah metode instalasi yang direk
 
 Docker Desktop direkomendasikan untuk sebagian besar pengguna. Untuk instalasi server jarak jauh, lihat [Panduan Deployment Docker Ubuntu](/docs/remote/docker_linux).
 
+### Persyaratan Sistem [#system-requirements]
+
+LibreChat tidak menjalankan model AI sendiri; ia mengirimkan permintaan ke penyedia yang Anda konfigurasi, sehingga tidak memerlukan GPU.
+
+Kontainer LibreChat memerlukan setidaknya 1 GiB RAM dan 1 vCPU, sama dengan [minimum](/docs/remote#minimum-requirements) pada server. File Docker Compose default memulai MongoDB, Meilisearch (pencarian percakapan), dan RAG API dengan database PostgreSQL/pgvector (pencarian file) bersama LibreChat. File ini juga mendefinisikan panel admin, yang hanya akan berjalan setelah `ADMIN_PANEL_SESSION_SECRET` diatur di `.env` (lihat [Admin Panel](/docs/features/admin_panel)). Dengan semua layanan berjalan, sediakan setidaknya 2 GB memori untuk Docker agar operasinya lebih lancar.
+
+Jika Anda menggunakan Docker Desktop, aplikasi ini menjalankan container di dalam mesin virtual miliknya sendiri, sehingga komputer Anda juga harus memenuhi persyaratan Docker Desktop. Saat tulisan ini dibuat, persyaratan tersebut adalah minimal 4 GB RAM sistem di [macOS](https://docs.docker.com/desktop/setup/install/mac-install/) dan [Linux](https://docs.docker.com/desktop/setup/install/linux/), dan 8 GB di [Windows](https://docs.docker.com/desktop/setup/install/windows-install/), ditambah virtualisasi perangkat keras. Periksa halaman yang ditautkan untuk persyaratan terbaru. Memori yang tersedia untuk container diatur di [pengaturan sumber daya](https://docs.docker.com/desktop/settings-and-maintenance/settings/) Docker Desktop pada macOS, Linux, dan Windows dengan Hyper-V; dengan backend WSL 2 di Windows, memori diatur pada mesin virtual WSL 2 (lihat [panduan WSL dari Docker](https://docs.docker.com/desktop/features/wsl/best-practices/)). Docker Engine yang dipasang langsung di Linux menjalankan container di host dan tidak memiliki mesin virtual terpisah.
+
+Jika Anda menghubungkan LibreChat ke model yang berjalan di mesin yang sama, seperti [Ollama](/docs/configuration/librechat_yaml/ai_endpoints/ollama), sesuaikan perangkat keras dengan model yang Anda pilih. Runtime model tersebut membutuhkan memori jauh lebih besar, dan seringkali GPU, dibandingkan dengan LibreChat itu sendiri.
+
 <Callout type="warn" title="Mac Apple Silicon (seri-M)">
 
 Komputer Mac dengan prosesor Apple Silicon (M1, M2, M3, M4) tidak mendukung instruksi AVX, yang diperlukan oleh image MongoDB default yang digunakan dalam pengaturan Docker Compose LibreChat. Jika Anda menggunakan Mac seri M, MongoDB akan mengalami crash saat dijalankan.

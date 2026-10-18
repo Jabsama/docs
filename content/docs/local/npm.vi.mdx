@@ -15,6 +15,8 @@ description: Cách cài đặt LibreChat cục bộ bằng npm
 - MongoDB (Atlas hoặc Community Server)
   - [MongoDB Atlas](/docs/configuration/mongodb/mongodb_atlas)
   - [MongoDB Community Server](/docs/configuration/mongodb/mongodb_community)
+- Tối thiểu 1 GiB RAM và 1 vCPU để chạy LibreChat. Xem [Yêu cầu hệ thống](/docs/local/docker#system-requirements) để biết những gì cần chuẩn bị khi bạn thêm các dịch vụ khác hoặc chạy mô hình cục bộ.
+  - Việc build frontend từ mã nguồn (`npm run frontend`, lệnh mà `npm run reinstall` cũng chạy) cần nhiều bộ nhớ hơn đáng kể so với khi chỉ chạy ứng dụng: quá trình build client cho phép Node.js sử dụng heap tối đa 8 GB. Trên máy có bộ nhớ thấp, hãy sử dụng các image [Docker](/docs/local/docker) đã được build sẵn thay thế.
 
 Nếu bạn sử dụng `nvm`, hãy cài đặt và chọn phiên bản Node.js được khuyến nghị, sau đó cập nhật npm:
 

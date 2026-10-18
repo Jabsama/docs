@@ -16,6 +16,16 @@ description: >-
 
 Çoğu kullanıcı için Docker Desktop önerilir. Uzak sunucu kurulumları için [Ubuntu Docker Deployment Guide](/docs/remote/docker_linux) bölümüne bakın.
 
+### Sistem Gereksinimleri [#system-requirements]
+
+LibreChat kendisi yapay zeka modellerini çalıştırmaz; yapılandırdığınız sağlayıcılara istek gönderir, bu nedenle bir GPU'ya ihtiyaç duymaz.
+
+LibreChat'in konteynerleri en az 1 GiB RAM ve 1 vCPU gerektirir; bu, bir sunucudaki [minimum gereksinimlerle](/docs/remote#minimum-requirements) aynıdır. Varsayılan Docker Compose dosyası, LibreChat ile birlikte MongoDB, Meilisearch (konuşma araması) ve PostgreSQL/pgvector veritabanına sahip RAG API'yi (dosya araması) başlatır. Ayrıca yönetici panelini tanımlar; bu panel yalnızca `.env` dosyasında `ADMIN_PANEL_SESSION_SECRET` ayarlandığında başlar (bkz. [Yönetici Paneli](/docs/features/admin_panel)). Her şey çalışırken, daha sorunsuz bir işleyiş için Docker'a en az 2 GB bellek ayırın.
+
+Docker Desktop kullanıyorsanız, konteynerler kendi sanal makinesi içinde çalışır; bu nedenle bilgisayarınızın da Docker Desktop'ın gereksinimlerini karşılaması gerekir. Bu yazının yazıldığı tarih itibarıyla bunlar, [macOS](https://docs.docker.com/desktop/setup/install/mac-install/) ve [Linux](https://docs.docker.com/desktop/setup/install/linux/) için en az 4 GB sistem RAM'i, [Windows](https://docs.docker.com/desktop/setup/install/windows-install/) için 8 GB RAM'dir ve ayrıca donanım sanallaştırması gerekir. Güncel gereksinimler için bağlantılı sayfaları kontrol edin. Konteynerlerin kullanabileceği bellek, macOS, Linux ve Hyper-V kullanan Windows'ta Docker Desktop'ın [kaynak ayarları](https://docs.docker.com/desktop/settings-and-maintenance/settings/) üzerinden belirlenir; Windows WSL 2 arka ucu kullanılıyorsa bunun yerine WSL 2 sanal makinesi üzerinden ayarlanır (bkz. [Docker'ın WSL kılavuzu](https://docs.docker.com/desktop/features/wsl/best-practices/)). Doğrudan Linux'a kurulan Docker Engine ise konteynerleri ana makinede çalıştırır ve ayrı bir sanal makineye sahip değildir.
+
+LibreChat'i aynı makinede çalışan modellere bağlarsanız, örneğin [Ollama](/docs/configuration/librechat_yaml/ai_endpoints/ollama), donanımı seçtiğiniz modele göre boyutlandırın. Bu model çalışma ortamı, LibreChat'ten çok daha fazla bellek ve çoğu zaman bir GPU gerektirir.
+
 <Callout type="warn" title="Apple Silicon (M-serisi) Mac'ler">
 
 Apple Silicon (M1, M2, M3, M4) işlemcili Mac bilgisayarlar, LibreChat'in Docker Compose kurulumunda kullanılan varsayılan MongoDB imajı için gerekli olan AVX komutlarını desteklemez. M serisi bir Mac kullanıyorsanız, MongoDB başlangıçta çökecektir.

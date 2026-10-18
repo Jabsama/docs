@@ -13,6 +13,16 @@ description: 如何使用 Docker 在本地安装 LibreChat、验证您的设置�
 
 对于大多数用户，推荐使用 Docker Desktop。对于远程服务器安装，请参阅 [Ubuntu Docker 部署指南](/docs/remote/docker_linux)。
 
+### 系统要求 [#system-requirements]
+
+LibreChat 本身不运行 AI 模型,它会将请求发送到您配置的服务提供商,因此不需要 GPU。
+
+LibreChat 的容器至少需要 1 GiB 内存和 1 vCPU,与服务器上的[最低要求](/docs/remote#minimum-requirements)相同。默认的 Docker Compose 文件会在启动 LibreChat 的同时,启动 MongoDB、Meilisearch(会话搜索)以及带有 PostgreSQL/pgvector 数据库的 RAG API(文件搜索)。它还定义了管理面板,但只有在 `.env` 中设置了 `ADMIN_PANEL_SESSION_SECRET` 后才会启动(参见[管理面板](/docs/features/admin_panel))。所有服务都运行时,为 Docker 分配至少 2 GB 内存,可以让运行更加流畅。
+
+如果您使用 Docker Desktop,它会在自己的虚拟机中运行容器,因此您的计算机也必须满足 Docker Desktop 的要求。撰写本文时,这些要求包括:在 [macOS](https://docs.docker.com/desktop/setup/install/mac-install/) 和 [Linux](https://docs.docker.com/desktop/setup/install/linux/) 上至少需要 4 GB 系统内存,在 [Windows](https://docs.docker.com/desktop/setup/install/windows-install/) 上需要 8 GB,并且需要启用硬件虚拟化。请查阅相关链接页面以获取最新要求。在 macOS、Linux 以及使用 Hyper-V 的 Windows 上,容器可用的内存在 Docker Desktop 的[资源设置](https://docs.docker.com/desktop/settings-and-maintenance/settings/)中配置;而使用 Windows WSL 2 后端时,则需要在 WSL 2 虚拟机上进行设置(参见 [Docker 的 WSL 指南](https://docs.docker.com/desktop/features/wsl/best-practices/))。直接安装在 Linux 上的 Docker Engine 会在主机上运行容器,没有单独的虚拟机。
+
+如果您将 LibreChat 连接到在同一台机器上运行的模型,例如 [Ollama](/docs/configuration/librechat_yaml/ai_endpoints/ollama),请根据您所选模型来配置硬件。该模型运行时所需的内存远多于 LibreChat 本身,通常还需要 GPU。
+
 <Callout type="warn" title="Apple Silicon (M系列) Mac">
 
 搭载 Apple Silicon (M1, M2, M3, M4) 处理器的 Mac 电脑不支持 AVX 指令集，而 LibreChat 的 Docker Compose 设置中所使用的默认 MongoDB 镜像需要该指令集。如果您使用的是 M 系列芯片的 Mac，MongoDB 将会在启动时崩溃。

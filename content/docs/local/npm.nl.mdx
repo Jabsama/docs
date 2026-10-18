@@ -15,6 +15,8 @@ Voor de meeste scenario's is Docker Compose de aanbevolen installatiemethode van
 - MongoDB (Atlas of Community Server)
   - [MongoDB Atlas](/docs/configuration/mongodb/mongodb_atlas)
   - [MongoDB Community Server](/docs/configuration/mongodb/mongodb_community)
+- Minimaal 1 GiB RAM en 1 vCPU om LibreChat te draaien. Zie [Systeemvereisten](/docs/local/docker#system-requirements) voor waar je rekening mee moet houden wanneer je meer services toevoegt of modellen lokaal draait.
+  - Het bouwen van de frontend vanuit de broncode (`npm run frontend`, wat `npm run reinstall` ook uitvoert) vereist veel meer geheugen dan het draaien ervan: de client-build staat Node.js toe tot 8 GB heap te gebruiken. Gebruik op een machine met weinig geheugen in plaats daarvan de vooraf gebouwde [Docker](/docs/local/docker)-images.
 
 Als je `nvm` gebruikt, installeer en selecteer dan de aanbevolen Node.js-versie en update vervolgens npm:
 

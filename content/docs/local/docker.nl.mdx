@@ -15,6 +15,16 @@ Voor de meeste scenario's is Docker Compose de aanbevolen installatiemethode van
 
 Docker Desktop wordt aanbevolen voor de meeste gebruikers. Voor installaties op externe servers, zie de [Ubuntu Docker Deployment Guide](/docs/remote/docker_linux).
 
+### Systeemvereisten [#system-requirements]
+
+LibreChat draait zelf geen AI-modellen; het stuurt verzoeken naar de providers die je configureert, dus het heeft geen GPU nodig.
+
+LibreChat's containers hebben minimaal 1 GiB RAM en 1 vCPU nodig, dezelfde [minimumvereisten](/docs/remote#minimum-requirements) als op een server. Het standaard Docker Compose-bestand start MongoDB, Meilisearch (gesprekszoekfunctie) en de RAG API met een PostgreSQL/pgvector-database (bestandszoekfunctie) naast LibreChat. Het definieert ook het beheerdersdashboard, dat pas start wanneer `ADMIN_PANEL_SESSION_SECRET` is ingesteld in `.env` (zie [Admin Panel](/docs/features/admin_panel)). Wanneer alles draait, zorg dan voor minimaal 2 GB geheugen voor Docker voor een soepelere werking.
+
+Als je Docker Desktop gebruikt, draait het containers binnen de eigen virtuele machine, dus je computer moet ook voldoen aan de vereisten van Docker Desktop. Op het moment van schrijven zijn dat minimaal 4 GB systeemgeheugen op [macOS](https://docs.docker.com/desktop/setup/install/mac-install/) en [Linux](https://docs.docker.com/desktop/setup/install/linux/), en 8 GB op [Windows](https://docs.docker.com/desktop/setup/install/windows-install/), plus hardwarevirtualisatie. Raadpleeg de gekoppelde pagina's voor de actuele vereisten. Het geheugen dat beschikbaar is voor containers wordt ingesteld in de [resource-instellingen](https://docs.docker.com/desktop/settings-and-maintenance/settings/) van Docker Desktop op macOS, Linux en Windows met Hyper-V. Bij de Windows WSL 2-backend wordt het ingesteld op de WSL 2-virtuele machine (zie [de WSL-richtlijnen van Docker](https://docs.docker.com/desktop/features/wsl/best-practices/)). Docker Engine die rechtstreeks op Linux is geïnstalleerd, draait containers op de host zelf en heeft geen aparte virtuele machine.
+
+Als je LibreChat koppelt aan modellen die op dezelfde machine draaien, zoals [Ollama](/docs/configuration/librechat_yaml/ai_endpoints/ollama), dimensioneer dan de hardware op basis van het model dat je kiest. Die modelruntime heeft veel meer geheugen nodig, en vaak een GPU, dan LibreChat zelf.
+
 <Callout type="warn" title="Apple Silicon (M-serie) Macs">
 
 Mac-computers met Apple Silicon (M1, M2, M3, M4) processors ondersteunen geen AVX-instructies, die vereist zijn door de standaard MongoDB-image die wordt gebruikt in de Docker Compose-setup van LibreChat. Als je een Mac uit de M-serie gebruikt, zal MongoDB crashen bij het opstarten.

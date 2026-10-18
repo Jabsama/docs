@@ -15,6 +15,8 @@ Für die meisten Szenarien ist Docker Compose aufgrund seiner Einfachheit, Benut
 - MongoDB (Atlas oder Community Server)
   - [MongoDB Atlas](/docs/configuration/mongodb/mongodb_atlas)
   - [MongoDB Community Server](/docs/configuration/mongodb/mongodb_community)
+- Mindestens 1 GiB RAM und 1 vCPU, um LibreChat auszuführen. Siehe [Systemanforderungen](/docs/local/docker#system-requirements) für die Planung, wenn Sie weitere Dienste hinzufügen oder Modelle lokal ausführen.
+  - Das Erstellen des Frontends aus dem Quellcode (`npm run frontend`, das auch `npm run reinstall` ausführt) benötigt deutlich mehr Arbeitsspeicher als das bloße Ausführen: Der Client-Build erlaubt Node.js bis zu 8 GB Heap. Verwenden Sie auf einem Rechner mit wenig Arbeitsspeicher stattdessen die vorgefertigten [Docker](/docs/local/docker)-Images.
 
 Wenn Sie `nvm` verwenden, installieren und wählen Sie die empfohlene Node.js-Version aus und aktualisieren Sie dann npm:
 
