@@ -683,7 +683,7 @@ La fonctionnalité est activée dès que le serveur dispose d'un jeton et d'une 
     [
       'sharedCacheSlots',
       'Number',
-      'La plupart des clés Redis utilisées par le cache partagé, une fois pour les résultats et une fois pour les délais de limitation de débit (64-1000000). Une nouvelle entrée remplace celle de son emplacement. Lecture uniquement depuis le YAML. Valeur par défaut : 65536.',
+      'Nombre maximal de clés Redis utilisées par le cache partagé pour les résultats, et de nouveau pour les délais de récupération des limites de débit (64-1000000). Une nouvelle entrée remplace celle présente dans son emplacement. Lecture uniquement depuis le YAML. Valeur par défaut : 65536.',
       'sharedCacheSlots: 65536',
     ],
   ]}

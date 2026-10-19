@@ -37,19 +37,29 @@ git clone https://github.com/LibreChat-AI/LibreChat.git
 
 ## Langkah 3. Jalankan Aplikasi [#step-3-run-the-app]
 
-1. **Arahkan ke Direktori Proyek**
+1. **Navigasikan ke Direktori Proyek**: Buka terminal di folder `LibreChat` yang Anda clone atau ekstrak pada Langkah 1. Jika Anda menggunakan Git:
 
-2. **Buat dan Konfigurasi File .env**:
-   - Salin isi dari `.env.example` ke file baru bernama `.env`.
-   - Isi nilai-nilai yang diperlukan.
-      - Untuk konfigurasi lingkungan yang mendalam, lihat [.env File Configuration Guide](/docs/configuration/dotenv).
+   ```bash
+   cd LibreChat
+   ```
 
-3. **Jalankan Aplikasi**:
-   - Jalankan perintah berikut:
+2. **Buat File .env**: Salin `.env.example` ke file baru bernama `.env`:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Di Windows, gunakan `copy .env.example .env` jika `cp` tidak tersedia.
+
+   Nilai default berfungsi langsung untuk pengaturan lokal dasar. Untuk konfigurasi lingkungan yang lebih mendalam, lihat [Panduan Konfigurasi File .env](/docs/configuration/dotenv).
+
+3. **Jalankan Aplikasi**: Pastikan Docker Desktop sedang berjalan, lalu jalankan:
 
    ```bash
    docker compose up -d
    ```
+
+   Peluncuran pertama mengunduh image Docker dan mungkin memakan waktu beberapa menit. Peluncuran berikutnya jauh lebih cepat. Jika sebuah container berhenti tepat setelah dijalankan, lihat [bagian pemecahan masalah pada panduan Docker](/docs/local/docker#troubleshooting).
 
 ## Langkah 4. Mulai Mengobrol [#step-4-start-chatting]
 

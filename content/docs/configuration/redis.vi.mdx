@@ -15,7 +15,7 @@ Hướng dẫn này bao gồm cách cấu hình Redis để lưu trữ bộ nh�
 - [Cấu hình bảo mật](#security-configuration)
 - [Tùy chọn nâng cao](#advanced-options)
 - [Khôi phục sau lỗi chuyển đổi dự phòng bản sao](#replica-failover-recovery)
-- [Health Checks](#health-checks)
+- [Kiểm tra tình trạng hoạt động](#health-checks)
 - [Tối ưu hóa hiệu năng](#performance-tuning)
 - [Các ví dụ về cấu hình](#configuration-examples)
 - [Luồng có thể tiếp tục](#resumable-streams)
@@ -238,19 +238,19 @@ REDIS_READONLY_RECOVERY_INTERVAL=5000
 
 Khoảng thời gian này giúp debounce (chống rung) các nỗ lực kết nối lại trong một đợt ghi thất bại. Các client Redis Cluster được loại trừ vì chúng sử dụng cấu trúc liên kết cụm (cluster topology) và cơ chế xử lý chuyển hướng (redirect handling) gốc.
 
-### Health Checks [#health-checks]
+### Kiểm tra tình trạng hoạt động (Health Checks) [#health-checks]
 
-LibreChat serves three probe endpoints. Only `/readyz` reflects Redis:
+LibreChat cung cấp ba endpoint probe. Chỉ `/readyz` phản ánh trạng thái của Redis:
 
-| Endpoint | Returns `200 OK` | Returns `503 NOT_READY` |
+| Endpoint | Trả về `200 OK` | Trả về `503 NOT_READY` |
 | --- | --- | --- |
-| `/livez` | Whenever the process is serving requests | Never |
-| `/health` | Whenever the process is serving requests | Never |
-| `/readyz` | After startup completes and, with `USE_REDIS=true`, while Redis is connected | Before startup completes, or while Redis is enabled but disconnected |
+| `/livez` | Bất cứ khi nào tiến trình đang phục vụ các yêu cầu | Không bao giờ |
+| `/health` | Bất cứ khi nào tiến trình đang phục vụ các yêu cầu | Không bao giờ |
+| `/readyz` | Sau khi quá trình khởi động hoàn tất và, khi `USE_REDIS=true`, trong khi Redis đang được kết nối | Trước khi quá trình khởi động hoàn tất, hoặc khi Redis được bật nhưng chưa được kết nối |
 
-When Redis restarts, fails over, or becomes unreachable for longer than the client's retry window, requests that depend on it (sign-in, sessions, rate limits) fail until the connection returns. During that time `/readyz` answers `503`, so a load balancer or Kubernetes readiness probe stops routing traffic to the instance. It returns to `200` as soon as Redis reconnects, without a restart. With Redis enabled, every Redis client must be connected; for a Redis Cluster, that includes every primary node.
+Khi Redis khởi động lại, chuyển đổi dự phòng (failover) hoặc không thể truy cập trong khoảng thời gian dài hơn cửa sổ thử lại (retry window) của client, các yêu cầu phụ thuộc vào Redis (đăng nhập, phiên làm việc, giới hạn tần suất) sẽ thất bại cho đến khi kết nối được khôi phục. Trong thời gian đó, `/readyz` trả về `503`, do đó load balancer hoặc readiness probe của Kubernetes sẽ ngừng định tuyến lưu lượng đến instance. Endpoint này trả về `200` ngay khi Redis kết nối lại, mà không cần khởi động lại. Khi Redis được bật, mọi Redis client phải được kết nối; đối với Redis Cluster, điều này bao gồm tất cả các node primary.
 
-Point readiness checks at `/readyz` and liveness checks at `/livez`. Keep Redis out of the liveness check: a liveness probe that fails during a Redis outage restarts every pod at once and cannot bring Redis back.
+Hướng dẫn kiểm tra tính sẵn sàng (readiness) tới `/readyz` và kiểm tra tính sống (liveness) tới `/livez`. Không đưa Redis vào kiểm tra liveness: nếu probe liveness thất bại khi Redis gặp sự cố, mọi pod sẽ bị khởi động lại cùng lúc và điều đó không thể khôi phục Redis.
 
 ```yaml
 livenessProbe:
@@ -265,7 +265,7 @@ readinessProbe:
   failureThreshold: 3
 ```
 
-`/readyz` does not wait out short reconnects on its own, so use `failureThreshold` to decide how long an outage lasts before traffic is withdrawn.
+`/readyz` không tự chờ qua các lần kết nối lại ngắn hạn, vì vậy hãy dùng `failureThreshold` để quyết định một sự cố kéo dài bao lâu trước khi lưu lượng bị rút khỏi.
 
 ### Bộ nhớ đệm trong bộ nhớ có chọn lọc (Selective In-Memory Caching) [#selective-in-memory-caching]
 

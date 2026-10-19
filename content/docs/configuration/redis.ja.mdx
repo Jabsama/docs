@@ -13,7 +13,7 @@ description: LibreChatにおけるキャッシュ、セッションストレー�
 - [セキュリティ設定](#security-configuration)
 - [高度なオプション](#advanced-options)
 - [レプリカフェイルオーバーリカバリ](#replica-failover-recovery)
-- [Health Checks](#health-checks)
+- [ヘルスチェック](#health-checks)
 - [パフォーマンスチューニング](#performance-tuning)
 - [設定例](#configuration-examples)
 - [再開可能なストリーム](#resumable-streams)
@@ -236,19 +236,19 @@ REDIS_READONLY_RECOVERY_INTERVAL=5000
 
 この間隔は、書き込み失敗が連続して発生した際の再接続試行をデバウンス（抑制）します。Redis Clusterクライアントは、ネイティブのクラスター・トポロジーとリダイレクト処理を使用するため、対象外となります。
 
-### Health Checks [#health-checks]
+### ヘルスチェック [#health-checks]
 
-LibreChat serves three probe endpoints. Only `/readyz` reflects Redis:
+LibreChat は 3 つのプローブ用エンドポイントを提供します。Redis の状態を反映するのは `/readyz` のみです。
 
-| Endpoint | Returns `200 OK` | Returns `503 NOT_READY` |
+| エンドポイント | `200 OK` を返す条件 | `503 NOT_READY` を返す条件 |
 | --- | --- | --- |
-| `/livez` | Whenever the process is serving requests | Never |
-| `/health` | Whenever the process is serving requests | Never |
-| `/readyz` | After startup completes and, with `USE_REDIS=true`, while Redis is connected | Before startup completes, or while Redis is enabled but disconnected |
+| `/livez` | プロセスがリクエストを処理できている間はいつでも | 返すことはない |
+| `/health` | プロセスがリクエストを処理できている間はいつでも | 返すことはない |
+| `/readyz` | 起動処理が完了した後、かつ `USE_REDIS=true` の場合は Redis に接続されている間 | 起動処理が完了する前、または Redis が有効なのに切断されている間 |
 
-When Redis restarts, fails over, or becomes unreachable for longer than the client's retry window, requests that depend on it (sign-in, sessions, rate limits) fail until the connection returns. During that time `/readyz` answers `503`, so a load balancer or Kubernetes readiness probe stops routing traffic to the instance. It returns to `200` as soon as Redis reconnects, without a restart. With Redis enabled, every Redis client must be connected; for a Redis Cluster, that includes every primary node.
+Redisが再起動、フェイルオーバー、またはクライアントの再試行期間を超えて到達不能になると、Redisに依存するリクエスト(サインイン、セッション、レート制限)は、接続が復旧するまで失敗します。この間、`/readyz`は`503`を返すため、ロードバランサーやKubernetesのreadinessプローブはそのインスタンスへのトラフィックのルーティングを停止します。Redisに再接続されると、再起動なしで直ちに`200`に戻ります。Redisが有効な場合、すべてのRedisクライアントが接続されている必要があります。Redis Clusterの場合、これにはすべてのプライマリノードが含まれます。
 
-Point readiness checks at `/readyz` and liveness checks at `/livez`. Keep Redis out of the liveness check: a liveness probe that fails during a Redis outage restarts every pod at once and cannot bring Redis back.
+readiness チェックは `/readyz`、liveness チェックは `/livez` に向けてください。liveness チェックには Redis を含めないでください。Redis の障害中に liveness プローブが失敗すると、すべての Pod が同時に再起動されてしまい、Redis を復旧させることはできません。
 
 ```yaml
 livenessProbe:
@@ -263,7 +263,7 @@ readinessProbe:
   failureThreshold: 3
 ```
 
-`/readyz` does not wait out short reconnects on its own, so use `failureThreshold` to decide how long an outage lasts before traffic is withdrawn.
+`/readyz` は短時間の再接続を自動的には待機しないため、トラフィックを切り離すまでの障害継続時間は `failureThreshold` によって決定してください。
 
 ### 選択的インメモリキャッシング [#selective-in-memory-caching]
 

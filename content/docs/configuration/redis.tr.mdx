@@ -15,7 +15,7 @@ Bu kılavuz, LibreChat içinde önbelleğe alma ve oturum depolama için Redis'i
 - [Güvenlik Yapılandırması](#security-configuration)
 - [Gelişmiş Seçenekler](#advanced-options)
 - [Replica Failover Recovery](#replica-failover-recovery)
-- [Health Checks](#health-checks)
+- [Sağlık Kontrolleri](#health-checks)
 - [Performans Ayarı](#performance-tuning)
 - [Yapılandırma Örnekleri](#configuration-examples)
 - [Devam Ettirilebilir Akışlar](#resumable-streams)
@@ -238,19 +238,19 @@ REDIS_READONLY_RECOVERY_INTERVAL=5000
 
 Aralık, başarısız yazma işlemlerinin yoğun olduğu durumlarda yeniden bağlanma denemelerini geciktirir (debounce). Redis Cluster istemcileri, yerel küme topolojisini ve yönlendirme yönetimini kullandıkları için bu kapsamın dışındadır.
 
-### Health Checks [#health-checks]
+### Sağlık Kontrolleri [#health-checks]
 
-LibreChat serves three probe endpoints. Only `/readyz` reflects Redis:
+LibreChat üç adet probe endpoint'i sunar. Yalnızca `/readyz` Redis durumunu yansıtır:
 
-| Endpoint | Returns `200 OK` | Returns `503 NOT_READY` |
+| Endpoint | `200 OK` döndürür | `503 NOT_READY` döndürür |
 | --- | --- | --- |
-| `/livez` | Whenever the process is serving requests | Never |
-| `/health` | Whenever the process is serving requests | Never |
-| `/readyz` | After startup completes and, with `USE_REDIS=true`, while Redis is connected | Before startup completes, or while Redis is enabled but disconnected |
+| `/livez` | Süreç istekleri sunduğu sürece | Hiçbir zaman |
+| `/health` | Süreç istekleri sunduğu sürece | Hiçbir zaman |
+| `/readyz` | Başlatma tamamlandıktan sonra ve `USE_REDIS=true` ise, Redis bağlı olduğu sürece | Başlatma tamamlanmadan önce veya Redis etkin olmasına rağmen bağlantısı kesilmişken |
 
-When Redis restarts, fails over, or becomes unreachable for longer than the client's retry window, requests that depend on it (sign-in, sessions, rate limits) fail until the connection returns. During that time `/readyz` answers `503`, so a load balancer or Kubernetes readiness probe stops routing traffic to the instance. It returns to `200` as soon as Redis reconnects, without a restart. With Redis enabled, every Redis client must be connected; for a Redis Cluster, that includes every primary node.
+Redis yeniden başlatıldığında, arıza yaşadığında veya istemcinin yeniden deneme süresinden daha uzun bir süre erişilemez olduğunda, buna bağlı istekler (oturum açma, oturumlar, hız sınırları) bağlantı geri gelene kadar başarısız olur. Bu süre boyunca `/readyz` `503` yanıtı verir, bu nedenle bir yük dengeleyici veya Kubernetes hazırlık probu trafiği o örneğe yönlendirmeyi durdurur. Redis yeniden bağlandığı anda, yeniden başlatma gerekmeden `200` yanıtına geri döner. Redis etkinleştirildiğinde, her Redis istemcisinin bağlı olması gerekir; bir Redis Cluster için bu, her primary düğümü kapsar.
 
-Point readiness checks at `/readyz` and liveness checks at `/livez`. Keep Redis out of the liveness check: a liveness probe that fails during a Redis outage restarts every pod at once and cannot bring Redis back.
+Hazır olma kontrollerini `/readyz` adresine, canlılık kontrollerini `/livez` adresine yönlendirin. Redis'i canlılık kontrolünün dışında tutun: Redis kesintisi sırasında başarısız olan bir canlılık probu tüm pod'ları aynı anda yeniden başlatır ve Redis'in geri gelmesini sağlayamaz.
 
 ```yaml
 livenessProbe:
@@ -265,7 +265,7 @@ readinessProbe:
   failureThreshold: 3
 ```
 
-`/readyz` does not wait out short reconnects on its own, so use `failureThreshold` to decide how long an outage lasts before traffic is withdrawn.
+`/readyz` kısa süreli yeniden bağlanmaları kendi başına beklemez; bu nedenle bir kesintinin ne kadar sürdüğünde trafiğin geri çekileceğine karar vermek için `failureThreshold` değerini kullanın.
 
 ### Seçici Bellek İçi Önbelleğe Alma [#selective-in-memory-caching]
 

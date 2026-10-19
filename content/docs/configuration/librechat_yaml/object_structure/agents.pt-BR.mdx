@@ -683,7 +683,7 @@ O recurso é ativado assim que o servidor possui um token e um escopo de reposit
     [
       'sharedCacheSlots',
       'Number',
-      'A maioria das chaves do Redis que o cache compartilhado utiliza, uma vez para resultados e outra para períodos de espera de limite de taxa (64-1000000). Uma nova entrada substitui a que está no seu slot. Leia apenas do YAML. Padrão: 65536.',
+      'Número máximo de chaves Redis que o cache compartilhado usa para resultados e, novamente, para os períodos de espera de limite de taxa (64-1000000). Uma nova entrada substitui a que estiver em seu slot. Lido somente a partir do YAML. Padrão: 65536.',
       'sharedCacheSlots: 65536',
     ],
   ]}

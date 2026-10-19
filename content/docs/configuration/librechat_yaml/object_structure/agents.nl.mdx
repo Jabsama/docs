@@ -683,7 +683,7 @@ De functie is ingeschakeld zodra de server een token en een repository-scope hee
     [
       'sharedCacheSlots',
       'Number',
-      'Meeste Redis-sleutels die de gedeelde cache gebruikt, één keer voor resultaten en één keer voor afkoelperiodes van snelheidslimieten (64-1000000). Een nieuw item vervangt het item in zijn slot. Lees alleen uit de YAML. Standaard: 65536.',
+      'Maximaal aantal Redis-sleutels dat de gedeelde cache gebruikt voor resultaten, en opnieuw voor afkoelperiodes van snelheidslimieten (64-1000000). Een nieuwe invoer vervangt die in zijn slot. Alleen uit de YAML lezen. Standaard: 65536.',
       'sharedCacheSlots: 65536',
     ],
   ]}

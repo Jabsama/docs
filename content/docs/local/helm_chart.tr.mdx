@@ -65,7 +65,7 @@ Tam Secret manifest'ini `librechat-credentials.yaml` olarak, hedeflenen namespac
 kubectl apply -f librechat-credentials.yaml
 ```
 
-4. Point the probes at the dedicated endpoints. The chart's default probes use `/health`, which stays `200` while Redis is down, so a pod that cannot sign anyone in keeps receiving traffic. Override them in your values file so readiness follows Redis and liveness does not:
+4. Probları özel endpoint'lere yönlendirin. Chart'ın varsayılan probları `/health` kullanır; Redis çalışmazken bu endpoint `200` döndürmeye devam eder, dolayısıyla kullanıcı oturumu açamayan bir pod trafik almaya devam eder. Readiness'ın Redis'i takip etmesi ve liveness'ın bunu takip etmemesi için bunları values dosyanızda geçersiz kılın:
 
 ```yaml
 livenessProbe:
@@ -78,7 +78,7 @@ readinessProbe:
     port: 3080
 ```
 
-See [Redis health checks](/docs/configuration/redis#health-checks) for what each endpoint reports.
+Bu uç noktaların neler bildirdiği için [Redis sağlık kontrolleri](/docs/configuration/redis#health-checks) bölümüne bakın.
 
 ## Helm Chart Kurulumu [#install-helm-chart]
 

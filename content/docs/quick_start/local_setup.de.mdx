@@ -37,19 +37,29 @@ git clone https://github.com/LibreChat-AI/LibreChat.git
 
 ## Schritt 3. Die App ausführen [#step-3-run-the-app]
 
-1. **Navigieren Sie zum Projektverzeichnis**
+1. **Zum Projektverzeichnis wechseln**: Öffne ein Terminal im Ordner `LibreChat`, den du in Schritt 1 geklont oder entpackt hast. Wenn du Git verwendet hast:
 
-2. **Erstellen und Konfigurieren der .env Datei**:
-   - Kopieren Sie den Inhalt von `.env.example` in eine neue Datei namens `.env`.
-   - Tragen Sie alle erforderlichen Werte ein.
-      - Für eine detaillierte Umgebungskonfiguration siehe den [.env File Configuration Guide](/docs/configuration/dotenv).
+   ```bash
+   cd LibreChat
+   ```
 
-3. **Starten der Anwendung**:
-   - Führen Sie den folgenden Befehl aus:
+2. **Erstelle die .env-Datei**: Kopiere `.env.example` in eine neue Datei namens `.env`:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   Verwenden Sie unter Windows `copy .env.example .env`, falls `cp` nicht verfügbar ist.
+
+   Die Standardwerte funktionieren für ein einfaches lokales Setup sofort. Eine ausführliche Konfiguration der Umgebung finden Sie im [.env File Configuration Guide](/docs/configuration/dotenv).
+
+3. **Anwendung starten**: Stelle sicher, dass Docker Desktop läuft, und führe dann aus:
 
    ```bash
    docker compose up -d
    ```
+
+   Der erste Start lädt die Docker-Images herunter und kann einige Minuten dauern. Nachfolgende Starts sind deutlich schneller. Falls ein Container direkt nach dem Start stoppt, siehe den [Abschnitt zur Fehlerbehebung im Docker-Leitfaden](/docs/local/docker#troubleshooting).
 
 ## Schritt 4. Chatten beginnen [#step-4-start-chatting]
 

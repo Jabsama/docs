@@ -683,7 +683,7 @@ La función se activa tan pronto como el servidor tiene un token y un ámbito de
     [
       'sharedCacheSlots',
       'Number',
-      'Mayoría de las claves de Redis que usa la caché compartida, una para los resultados y otra para los tiempos de espera de los límites de tasa (64-1000000). Una nueva entrada reemplaza a la que ocupa su posición. Leer solo desde el YAML. Valor predeterminado: 65536.',
+      'Número máximo de claves de Redis que la caché compartida usa para los resultados, y de nuevo para los tiempos de espera de límite de velocidad (64-1000000). Una nueva entrada reemplaza la que está en su ranura. Se lee solo desde el YAML. Valor predeterminado: 65536.',
       'sharedCacheSlots: 65536',
     ],
   ]}

@@ -15,7 +15,7 @@ Deze handleiding beschrijft hoe je Redis configureert voor caching en sessieopsl
 - [Beveiligingsconfiguratie](#security-configuration)
 - [Geavanceerde opties](#advanced-options)
 - [Replica Failover Recovery](#replica-failover-recovery)
-- [Health Checks](#health-checks)
+- [Gezondheidscontroles](#health-checks)
 - [Performance Tuning](#performance-tuning)
 - [Configuratievoorbeelden](#configuration-examples)
 - [Resumable Streams](#resumable-streams)
@@ -240,17 +240,17 @@ Het interval debounced herverbindingspogingen tijdens een reeks mislukte schrijf
 
 ### Health Checks [#health-checks]
 
-LibreChat serves three probe endpoints. Only `/readyz` reflects Redis:
+LibreChat biedt drie probe-endpoints. Alleen `/readyz` geeft de status van Redis weer:
 
-| Endpoint | Returns `200 OK` | Returns `503 NOT_READY` |
+| Endpoint | Geeft `200 OK` terug | Geeft `503 NOT_READY` terug |
 | --- | --- | --- |
-| `/livez` | Whenever the process is serving requests | Never |
-| `/health` | Whenever the process is serving requests | Never |
-| `/readyz` | After startup completes and, with `USE_REDIS=true`, while Redis is connected | Before startup completes, or while Redis is enabled but disconnected |
+| `/livez` | Zolang het proces verzoeken beantwoordt | Nooit |
+| `/health` | Zolang het proces verzoeken beantwoordt | Nooit |
+| `/readyz` | Nadat het opstarten is voltooid en, met `USE_REDIS=true`, zolang Redis is verbonden | Voordat het opstarten is voltooid, of zolang Redis is ingeschakeld maar niet verbonden |
 
-When Redis restarts, fails over, or becomes unreachable for longer than the client's retry window, requests that depend on it (sign-in, sessions, rate limits) fail until the connection returns. During that time `/readyz` answers `503`, so a load balancer or Kubernetes readiness probe stops routing traffic to the instance. It returns to `200` as soon as Redis reconnects, without a restart. With Redis enabled, every Redis client must be connected; for a Redis Cluster, that includes every primary node.
+Wanneer Redis opnieuw wordt opgestart, uitvalt of langer dan het hervraagvenster van de client onbereikbaar is, falen verzoeken die ervan afhankelijk zijn (inloggen, sessies, snelheidsbeperkingen) totdat de verbinding terugkeert. Gedurende die tijd antwoordt `/readyz` met `503`, waardoor een load balancer of Kubernetes readiness probe stopt met het doorsturen van verkeer naar de instantie. Het keert terug naar `200` zodra Redis opnieuw verbinding maakt, zonder herstart. Wanneer Redis is ingeschakeld, moet elke Redis-client verbonden zijn; voor een Redis Cluster betekent dit dat elke primaire node verbonden moet zijn.
 
-Point readiness checks at `/readyz` and liveness checks at `/livez`. Keep Redis out of the liveness check: a liveness probe that fails during a Redis outage restarts every pod at once and cannot bring Redis back.
+Richt readiness-controles op `/readyz` en liveness-controles op `/livez`. Houd Redis buiten de liveness-controle: een liveness-probe die faalt tijdens een Redis-storing herstart alle pods tegelijk en kan Redis niet weer herstellen.
 
 ```yaml
 livenessProbe:
@@ -265,7 +265,7 @@ readinessProbe:
   failureThreshold: 3
 ```
 
-`/readyz` does not wait out short reconnects on its own, so use `failureThreshold` to decide how long an outage lasts before traffic is withdrawn.
+`/readyz` wacht zelf niet tot korte herverbindingen voorbij zijn, dus gebruik `failureThreshold` om te bepalen hoe lang een storing mag duren voordat het verkeer wordt teruggetrokken.
 
 ### Selectieve In-Memory Caching [#selective-in-memory-caching]
 

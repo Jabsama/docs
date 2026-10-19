@@ -683,7 +683,7 @@ Funkcja jest włączona, gdy tylko serwer posiada token i zakres repozytorium (r
     [
       'sharedCacheSlots',
       'Number',
-      'Większość kluczy Redis używanych przez wspólną pamięć podręczną, raz dla wyników i raz dla okresów oczekiwania na limit żądań (64-1000000). Nowy wpis zastępuje ten znajdujący się w jego slocie. Odczyt tylko z pliku YAML. Domyślnie: 65536.',
+      'Maksymalna liczba kluczy Redis, których używa wspólna pamięć podręczna na wyniki oraz na okresy oczekiwania limitów żądań (64-1000000). Nowy wpis zastępuje ten znajdujący się w jego slocie. Odczyt wyłącznie z pliku YAML. Domyślnie: 65536.',
       'sharedCacheSlots: 65536',
     ],
   ]}

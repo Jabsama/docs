@@ -64,7 +64,7 @@ stringData:
 kubectl apply -f librechat-credentials.yaml
 ```
 
-4. Point the probes at the dedicated endpoints. The chart's default probes use `/health`, which stays `200` while Redis is down, so a pod that cannot sign anyone in keeps receiving traffic. Override them in your values file so readiness follows Redis and liveness does not:
+4. 将探针指向专用端点。该 Chart 的默认探针使用 `/health`,即使 Redis 不可用,它仍返回 `200`,因此无法完成登录的 Pod 仍会持续接收流量。请在 values 文件中覆盖这些探针,使就绪探针依据 Redis 状态判断,而存活探针则不受其影响:
 
 ```yaml
 livenessProbe:
@@ -77,7 +77,7 @@ readinessProbe:
     port: 3080
 ```
 
-See [Redis health checks](/docs/configuration/redis#health-checks) for what each endpoint reports.
+请参阅 [Redis 健康检查](/docs/configuration/redis#health-checks) 了解每个端点的报告内容。
 
 ## 安装 Helm Chart [#install-helm-chart]
 

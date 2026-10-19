@@ -683,7 +683,7 @@ Die Funktion ist aktiviert, sobald der Server über ein Token und einen Reposito
     [
       'sharedCacheSlots',
       'Number',
-      'Die meisten Redis-Schlüssel, die der gemeinsame Cache verwendet, einmal für Ergebnisse und einmal für Abklingzeiten von Ratenbegrenzungen (64–1000000). Ein neuer Eintrag ersetzt den Eintrag in seinem Slot. Nur aus der YAML lesen. Standard: 65536.',
+      'Maximale Anzahl an Redis-Schlüsseln, die der gemeinsame Cache für Ergebnisse und anschließend für Abklingzeiten von Ratenbegrenzungen verwendet (64–1000000). Ein neuer Eintrag ersetzt den Eintrag in seinem Slot. Wird nur aus der YAML gelesen. Standard: 65536.',
       'sharedCacheSlots: 65536',
     ],
   ]}

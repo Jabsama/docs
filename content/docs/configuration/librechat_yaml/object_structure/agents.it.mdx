@@ -683,7 +683,7 @@ La funzionalità è attiva non appena il server dispone di un token e di uno sco
     [
       'sharedCacheSlots',
       'Number',
-      'La maggior parte delle chiavi Redis utilizzate dalla cache condivisa, una volta per i risultati e una volta per i tempi di attesa dei limiti di frequenza (64-1000000). Una nuova voce sostituisce quella presente nel suo slot. Leggi solo dal YAML. Valore predefinito: 65536.',
+      'Numero massimo di chiavi Redis che la cache condivisa utilizza per i risultati, e di nuovo per i tempi di attesa dei limiti di frequenza (64-1000000). Una nuova voce sostituisce quella nella sua posizione. Leggi solo dal YAML. Predefinito: 65536.',
       'sharedCacheSlots: 65536',
     ],
   ]}

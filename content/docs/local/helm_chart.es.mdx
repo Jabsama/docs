@@ -64,7 +64,7 @@ Guarde el manifiesto Secret completo como `librechat-credentials.yaml`, utilizan
 kubectl apply -f librechat-credentials.yaml
 ```
 
-4. Point the probes at the dedicated endpoints. The chart's default probes use `/health`, which stays `200` while Redis is down, so a pod that cannot sign anyone in keeps receiving traffic. Override them in your values file so readiness follows Redis and liveness does not:
+4. Apunta las sondas a los endpoints dedicados. Las sondas predeterminadas del chart usan `/health`, que sigue devolviendo `200` mientras Redis está caído, por lo que un pod que no puede autenticar a nadie seguirá recibiendo tráfico. Sobrescríbelas en tu archivo de valores para que la readiness dependa de Redis y la liveness no:
 
 ```yaml
 livenessProbe:
@@ -77,7 +77,7 @@ readinessProbe:
     port: 3080
 ```
 
-See [Redis health checks](/docs/configuration/redis#health-checks) for what each endpoint reports.
+Consulta [Comprobaciones de estado de Redis](/docs/configuration/redis#health-checks) para ver lo que informa cada endpoint.
 
 ## Instalar Helm Chart [#install-helm-chart]
 

@@ -15,7 +15,7 @@ Esta guía cubre cómo configurar Redis para el almacenamiento en caché y de se
 - [Configuración de seguridad](#security-configuration)
 - [Opciones avanzadas](#advanced-options)
 - [Recuperación por conmutación por error de réplica](#replica-failover-recovery)
-- [Health Checks](#health-checks)
+- [Comprobaciones de estado](#health-checks)
 - [Ajuste de rendimiento](#performance-tuning)
 - [Ejemplos de configuración](#configuration-examples)
 - [Flujos reanudables](#resumable-streams)
@@ -238,19 +238,19 @@ REDIS_READONLY_RECOVERY_INTERVAL=5000
 
 El intervalo aplica *debounce* a los intentos de reconexión durante una ráfaga de escrituras fallidas. Los clientes de Redis Cluster están excluidos porque utilizan topología de clúster nativa y manejo de redirecciones.
 
-### Health Checks [#health-checks]
+### Verificaciones de estado [#health-checks]
 
-LibreChat serves three probe endpoints. Only `/readyz` reflects Redis:
+LibreChat expone tres endpoints de sondeo. Solo `/readyz` refleja el estado de Redis:
 
-| Endpoint | Returns `200 OK` | Returns `503 NOT_READY` |
+| Endpoint | Devuelve `200 OK` | Devuelve `503 NOT_READY` |
 | --- | --- | --- |
-| `/livez` | Whenever the process is serving requests | Never |
-| `/health` | Whenever the process is serving requests | Never |
-| `/readyz` | After startup completes and, with `USE_REDIS=true`, while Redis is connected | Before startup completes, or while Redis is enabled but disconnected |
+| `/livez` | Siempre que el proceso esté atendiendo solicitudes | Nunca |
+| `/health` | Siempre que el proceso esté atendiendo solicitudes | Nunca |
+| `/readyz` | Después de completar el inicio y, con `USE_REDIS=true`, mientras Redis esté conectado | Antes de completar el inicio, o mientras Redis esté habilitado pero desconectado |
 
-When Redis restarts, fails over, or becomes unreachable for longer than the client's retry window, requests that depend on it (sign-in, sessions, rate limits) fail until the connection returns. During that time `/readyz` answers `503`, so a load balancer or Kubernetes readiness probe stops routing traffic to the instance. It returns to `200` as soon as Redis reconnects, without a restart. With Redis enabled, every Redis client must be connected; for a Redis Cluster, that includes every primary node.
+Cuando Redis se reinicia, sufre una conmutación por error o queda inaccesible durante más tiempo que la ventana de reintentos del cliente, las solicitudes que dependen de él (inicio de sesión, sesiones, límites de frecuencia) fallan hasta que se restablece la conexión. Durante ese tiempo, `/readyz` responde `503`, de modo que un balanceador de carga o una sonda de disponibilidad de Kubernetes deja de enviar tráfico a la instancia. Vuelve a `200` en cuanto Redis se reconecta, sin necesidad de reiniciar. Con Redis habilitado, todos los clientes de Redis deben estar conectados; en el caso de un Redis Cluster, esto incluye a todos los nodos primarios.
 
-Point readiness checks at `/readyz` and liveness checks at `/livez`. Keep Redis out of the liveness check: a liveness probe that fails during a Redis outage restarts every pod at once and cannot bring Redis back.
+Apunte las comprobaciones de disponibilidad (readiness) a `/readyz` y las comprobaciones de vida (liveness) a `/livez`. No incluya Redis en la comprobación de vida: una sonda de liveness que falla durante una caída de Redis reinicia todos los pods a la vez y no puede restablecer Redis.
 
 ```yaml
 livenessProbe:
@@ -265,7 +265,7 @@ readinessProbe:
   failureThreshold: 3
 ```
 
-`/readyz` does not wait out short reconnects on its own, so use `failureThreshold` to decide how long an outage lasts before traffic is withdrawn.
+`/readyz` no espera por sí solo a que se restablezcan las desconexiones breves, por lo que debes usar `failureThreshold` para decidir cuánto tiempo puede durar una interrupción antes de que se retire el tráfico.
 
 ### Almacenamiento en caché selectivo en memoria [#selective-in-memory-caching]
 

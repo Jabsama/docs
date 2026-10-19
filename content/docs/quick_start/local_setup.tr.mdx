@@ -37,19 +37,29 @@ git clone https://github.com/LibreChat-AI/LibreChat.git
 
 ## Adım 3. Uygulamayı Çalıştırın [#step-3-run-the-app]
 
-1. **Proje Dizinine Gidin**
+1. **Proje Dizinine Gidin**: Adım 1'de klonladığınız veya çıkardığınız `LibreChat` klasöründe bir terminal açın. Git kullandıysanız:
 
-2. **.env Dosyası Oluşturma ve Yapılandırma**:
-   - `.env.example` dosyasının içeriğini `.env` adında yeni bir dosyaya kopyalayın.
-   - Gerekli değerleri doldurun.
-      - Kapsamlı bir ortam yapılandırması için [.env File Configuration Guide](/docs/configuration/dotenv) bölümüne bakın.
+   ```bash
+   cd LibreChat
+   ```
 
-3. **Uygulamayı Başlatın**:
-   - Aşağıdaki komutu çalıştırın:
+2. **.env Dosyasını Oluşturun**: `.env.example` dosyasını `.env` adlı yeni bir dosyaya kopyalayın:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+   On Windows, use `copy .env.example .env` if `cp` is not available.
+
+   Varsayılan değerler, temel bir yerel kurulum için kutudan çıktığı gibi çalışır. Ayrıntılı ortam yapılandırması için [.env Dosyası Yapılandırma Kılavuzu](/docs/configuration/dotenv) bölümüne bakın.
+
+3. **Uygulamayı Başlatın**: Docker Desktop'ın çalıştığından emin olun, ardından şunu çalıştırın:
 
    ```bash
    docker compose up -d
    ```
+
+   İlk başlatma Docker imajlarını indirir ve birkaç dakika sürebilir. Sonraki başlatmalar çok daha hızlıdır. Bir container başlatıldıktan hemen sonra duruyorsa, [Docker kılavuzu sorun giderme bölümüne](/docs/local/docker#troubleshooting) bakın.
 
 ## Adım 4. Sohbet Etmeye Başlayın [#step-4-start-chatting]
 
