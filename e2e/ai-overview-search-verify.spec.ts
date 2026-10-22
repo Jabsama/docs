@@ -8,7 +8,9 @@ test.describe('AI Overview search guidance', () => {
   }) => {
     await page.goto(PAGE)
     const main = page.locator('main')
-    await expect(main.getByRole('heading', { name: 'Searching', exact: true })).toBeVisible()
+    const heading = main.locator('h2[id="searching"]')
+    await expect(heading).toBeVisible()
+    await expect(heading).toHaveText('Searching')
     await expect(main).toContainText('open the + palette in the message composer')
     await expect(main).toContainText('enable the Web Search capability in the Agent Builder')
     await expect(main).toContainText('needs both a search provider and a scraper')
