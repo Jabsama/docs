@@ -44,6 +44,20 @@ test.describe('AI Overview search guidance', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Message Search' })).toBeVisible()
   })
 
+  test('@scenario:ai-overview-file-search-explained file search names the composer, agents and the RAG API it relies on', async ({
+    page,
+  }) => {
+    await page.goto(PAGE)
+    const main = page.locator('main')
+    await expect(main).toContainText('In a regular chat, select File Search from the + palette')
+    await expect(main).toContainText('enable the File Search capability in the Agent Builder')
+    await expect(main).toContainText('relies on the RAG API, which your admin sets up')
+    const rag = main.getByRole('link', { name: 'RAG API (Chat with Files)', exact: true })
+    await expect(rag).toHaveAttribute('href', /\/docs\/features\/rag_api$/)
+    await rag.click()
+    await expect(page).toHaveURL(/\/docs\/features\/rag_api$/)
+  })
+
   test('@scenario:ai-overview-conversation-search-explained conversation search points to the sidebar and its Meilisearch condition', async ({
     page,
   }) => {
