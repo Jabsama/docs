@@ -51,11 +51,28 @@ test.describe('AI Overview search guidance', () => {
     const main = page.locator('main')
     await expect(main).toContainText('In a regular chat, select File Search from the + palette')
     await expect(main).toContainText('enable the File Search capability in the Agent Builder')
-    await expect(main).toContainText('relies on the RAG API, which your admin sets up')
+    await expect(main).toContainText('using the RAG API, which your admin deploys')
     const rag = main.getByRole('link', { name: 'RAG API (Chat with Files)', exact: true })
     await expect(rag).toHaveAttribute('href', /\/docs\/features\/rag_api$/)
     await rag.click()
     await expect(page).toHaveURL(/\/docs\/features\/rag_api$/)
+  })
+
+  test('@scenario:ai-overview-missing-search-option-explained a reader missing Web Search or File Search learns the capability and role gates and where to look', async ({
+    page,
+  }) => {
+    await page.goto(PAGE)
+    const main = page.locator('main')
+    await expect(main).toContainText(
+      'which includes turning on the web_search or file_search agent capability and giving your role the matching permission',
+    )
+    const setting = main.getByRole('link', { name: 'fileSearch interface setting', exact: true })
+    await expect(setting).toHaveAttribute(
+      'href',
+      /\/docs\/configuration\/librechat_yaml\/object_structure\/interface#filesearch$/,
+    )
+    await setting.click()
+    await expect(page.locator('[id="filesearch"]')).toHaveCount(1)
   })
 
   test('@scenario:ai-overview-conversation-search-explained conversation search points to the sidebar and its Meilisearch condition', async ({
