@@ -146,28 +146,29 @@ Il browser applica le stesse regole al tema che riceve e registra `[DeploymentTh
 
 ### Colori [#colors]
 
-I colori utilizzano gli stessi nomi di token del motore dei temi: `rgb-` seguito dal token, come `rgb-surface-primary`, `rgb-text-primary`, `rgb-border-medium`, `rgb-accent-primary` o `rgb-status-error-subtle`. L'elenco completo dei 130 token è `themeColorTokens` in [`packages/data-provider/src/theme.ts`](https://github.com/LibreChat-AI/LibreChat/blob/dev/packages/data-provider/src/theme.ts), che viene letto sia dal server che dal browser, e ogni token è descritto nell'interfaccia `IThemeRGB` in [`packages/client/src/theme/types/index.ts`](https://github.com/LibreChat-AI/LibreChat/blob/dev/packages/client/src/theme/types/index.ts).
+I colori utilizzano gli stessi nomi di token del motore dei temi: `rgb-` seguito dal token, ad esempio `rgb-surface-primary`, `rgb-text-primary`, `rgb-border-medium`, `rgb-accent-primary` o `rgb-status-error-subtle`. L'elenco completo dei 169 token è `themeColorTokens` in [`packages/data-provider/src/theme.ts`](https://github.com/LibreChat-AI/LibreChat/blob/dev/packages/data-provider/src/theme.ts), che viene letto sia dal server sia dal browser, e ogni token è descritto nell'interfaccia `IThemeRGB` in [`packages/client/src/theme/types/index.ts`](https://github.com/LibreChat-AI/LibreChat/blob/dev/packages/client/src/theme/types/index.ts).
 
 Oltre alle palette di superficie, testo, bordo, stato e sintassi, questi ruoli consentono a un tema di ridefinire lo stile di specifici stati di interazione e componenti:
 
-| Ruolo | Token | Pitture |
+| Ruolo | Token | Applicazione |
 | --- | --- | --- |
-| Focus | `rgb-focus-outline`, `rgb-focus-control` | Il contorno di focus della tastiera in tutta l'app e l'anello di focus dei controlli condivisi |
-| Premuto | `rgb-surface-pressed`, `rgb-surface-inverted-pressed` | Controlli neutri e invertiti quando premuti |
-| Invertito e fisso | `rgb-surface-inverted`, `rgb-surface-inverted-hover`, `rgb-text-inverted`, `rgb-surface-fixed`, `rgb-surface-fixed-hover`, `rgb-text-fixed` | Controlli disegnati con i colori della modalità opposta e controlli che mantengono un colore fisso in entrambe le modalità |
-| Disabilitato | `rgb-surface-disabled`, `rgb-text-disabled`, `rgb-border-disabled` | Controlli disabilitati, quando `disabledStyle` è `fill` (vedi [Appearance](#appearance)) |
-| Bordo controllo | `rgb-border-control` | Il bordo di input, trigger di selezione e slot per codici monouso, tenuto separato dai separatori discreti perché richiede un contrasto 3:1 |
-| Campi | `rgb-border-field-focus`, `rgb-field-fill`, `rgb-field-text` | Il bordo di un campo focalizzato quando `fieldFocusStyle` è `border` (segue `rgb-focus-control`), il riempimento di un campo quando `fieldFillStyle` è `fill` (segue `rgb-surface-primary`) e il valore digitato (segue `rgb-text-primary`) |
-| Pulsante primario | `rgb-button-primary`, `rgb-button-primary-hover` | Il riempimento e l'hover del pulsante primario; seguono `rgb-surface-inverted` e `rgb-surface-inverted-hover`, che le caselle di controllo e gli interruttori continuano a utilizzare |
+| Focus | `rgb-focus-outline`, `rgb-focus-control` | Il contorno di focus da tastiera in tutta l'app e l'anello di focus dei controlli condivisi |
+| Premuto | `rgb-surface-pressed`, `rgb-surface-inverted-pressed` | Controlli neutri e invertiti mentre sono premuti |
+| Invertito e fisso | `rgb-surface-inverted`, `rgb-surface-inverted-hover`, `rgb-text-inverted`, `rgb-surface-fixed`, `rgb-surface-fixed-hover`, `rgb-text-fixed` | Controlli disegnati con i colori della modalità opposta e controlli che mantengono un colore in entrambe le modalità |
+| Disabilitato | `rgb-surface-disabled`, `rgb-text-disabled`, `rgb-border-disabled` | Controlli disabilitati, quando `disabledStyle` è `fill` (vedi [Aspetto](#appearance)) |
+| Bordo del controllo | `rgb-border-control` | Il bordo di input, trigger dei select e slot per codici monouso, tenuto separato dai separatori discreti perché richiede un contrasto di 3:1 |
+| Campi | `rgb-border-field-focus`, `rgb-field-fill`, `rgb-field-text` | Il bordo di un campo in focus quando `fieldFocusStyle` è `border` (segue `rgb-focus-control`), il riempimento di un campo quando `fieldFillStyle` è `fill` (segue `rgb-surface-primary`) e il valore digitato (segue `rgb-text-primary`) |
+| Checkbox | `rgb-checkbox-fill` | Il riempimento di una checkbox non selezionata quando `checkboxFillStyle` è `fill` (segue `rgb-surface-primary`) |
+| Pulsante primario | `rgb-button-primary`, `rgb-button-primary-hover` | Il riempimento e lo stato hover del Button primario; seguono `rgb-surface-inverted` e `rgb-surface-inverted-hover`, che continuano a essere usati da checkbox e switch |
 | Inchiostri | `rgb-dialog-title`, `rgb-badge-label` | Titoli delle finestre di dialogo ed etichette dei badge; entrambi seguono `rgb-text-primary` |
-| Scrim | `rgb-surface-overlay` | Il colore dietro le finestre di dialogo; la sua intensità è impostata dalle opacità dello scrim in [Appearance](#appearance) |
-| Sovrapposizione media | `rgb-surface-media-overlay`, `rgb-text-on-media` | Scrim, chip e barre di avanzamento disegnati sopra le immagini dell'utente (lightbox, anteprima immagine, caricamenti in corso) e il testo su di essi. I temi in bundle li mantengono in bianco e nero in entrambe le modalità |
-| Avatar | `rgb-avatar-fill`, `rgb-avatar-text`, `rgb-avatar-placeholder`, `rgb-avatar-edge` | Il riempimento e il glifo dell'avatar utente predefinito (il glifo segue `rgb-text-primary`), lo sfondo dietro un avatar di un agente o assistente in caricamento o trasparente (segue `rgb-surface-secondary` in modalità chiara e `rgb-surface-tertiary` in quella scura) e il bordo sottile attorno all'avatar predefinito |
-| Riquadri file | `rgb-file-document`, `rgb-file-sheet`, `rgb-file-code`, `rgb-file-artifact`, `rgb-file-audio`, `rgb-file-video`, `rgb-file-generic`, `rgb-file-ink` | Un riempimento per ogni tipo di file e il glifo disegnato su ogni riquadro |
-| Illustrazione | `rgb-illustration-subtle`, `rgb-illustration`, `rgb-illustration-strong` | Le tre tonalità delle illustrazioni nell'app, come l'illustrazione della zona di rilascio file |
-| Interruttore | `rgb-switch-unchecked`, `rgb-switch-thumb` | La traccia dell'interruttore non selezionato e la manopola in entrambi gli stati |
+| Velo | `rgb-surface-overlay` | Il colore dietro le finestre di dialogo; la sua intensità è definita dalle opacità del velo in [Aspetto](#appearance) |
+| Overlay sui media | `rgb-surface-media-overlay`, `rgb-text-on-media` | Velature, chip e indicatori di avanzamento disegnati sulle immagini dell'utente (lightbox, anteprima immagini, caricamenti in corso) e il testo su di essi. I temi predefiniti li mantengono in bianco e nero in entrambe le modalità |
+| Avatar | `rgb-avatar-fill`, `rgb-avatar-text`, `rgb-avatar-placeholder`, `rgb-avatar-edge` | Riempimento e glifo dell'avatar utente predefinito (il glifo segue `rgb-text-primary`), lo sfondo dietro un avatar di agente o assistente in caricamento o trasparente (segue `rgb-surface-secondary` in modalità chiara e `rgb-surface-tertiary` in modalità scura) e il sottile bordo attorno all'avatar predefinito |
+| Icone file | `rgb-file-document`, `rgb-file-sheet`, `rgb-file-code`, `rgb-file-artifact`, `rgb-file-audio`, `rgb-file-video`, `rgb-file-generic`, `rgb-file-ink` | Un riempimento per ogni tipo di file e il glifo disegnato su ogni riquadro |
+| Illustrazione | `rgb-illustration-subtle`, `rgb-illustration`, `rgb-illustration-strong` | Le tre tonalità delle illustrazioni dell'app, come l'illustrazione dell'area di trascinamento dei file |
+| Switch | `rgb-switch-unchecked`, `rgb-switch-thumb` | La traccia dello switch non attivo e il cursore in entrambi gli stati |
 | Tabella | `rgb-table-header-text`, `rgb-table-header-fill` | Nomi delle colonne e riempimento opaco di un'intestazione di tabella fissa |
-| Serie grafici | `rgb-series-1` fino a `rgb-series-8` | Colori categorici dei grafici, in ordine |
+| Serie del grafico | `rgb-series-1` fino a `rgb-series-8` | Colori categorici dei grafici, in ordine |
 
 Ogni valore è una tripletta `R G B` semplice con ogni canale da `0` a `255`, ad esempio `'255 255 255'`. I valori esadecimali e `rgb(...)` vengono rifiutati. Racchiudere il valore tra virgolette affinché YAML lo legga come una stringa.
 
@@ -177,38 +178,39 @@ Alcuni token seguono un token correlato che hai impostato quando li ometti, in m
 
 I valori di Appearance sono impostati **per modalità** e una modalità che ne è priva utilizza i valori predefiniti riportati di seguito. I valori predefiniti sono gli stessi in entrambe le modalità, ad eccezione di `menuShadow` e `tooltipShadow`, che sono più marcati nella modalità scura, e `buttonNeutralBorderOpacity`, che è opaco nella modalità scura. Per modificare la forma in entrambe le modalità, ripeti i valori sotto `light` e `dark`, come nell'esempio precedente.
 
-| Chiave | Controlli | Predefinito |
+| Chiave | Controlla | Predefinito |
 | --- | --- | --- |
-| `controlRadius` | Raggio d'angolo dei controlli come pulsanti e input | `0.75rem` |
+| `controlRadius` | Raggio degli angoli dei controlli come pulsanti e campi di input | `0.75rem` |
 | `roundControlRadius` | Raggio dei controlli completamente arrotondati | `9999px` |
 | `surfaceRadius` | Raggio delle superfici come schede e menu | `1rem` |
 | `largeSurfaceRadius` | Raggio delle superfici grandi come le finestre di dialogo | `1.5rem` |
-| `menuRadius` | Raggio d'angolo dei pannelli dei menu | `0.7rem` |
-| `menuPanelRadius` | Raggio d'angolo del menu di selezione del modello, delle schede al passaggio del mouse e dei menu del compositore; segue `radiusXl` quando non impostato | `0.75rem` |
-| `popoverRadius` | Raggio d'angolo dei popover del compositore, come le liste di prompt, abilità e menzioni; segue `radius2xl` quando non impostato | `1rem` |
-| `composerActionRadius` | Raggio d'angolo dei pulsanti di invio e stop del compositore e degli altri suoi pulsanti di azione rotondi; segue `roundControlRadius` quando non impostato | `9999px` |
-| `tooltipRadius` | Raggio d'angolo dei tooltip | `0.275rem` |
-| `tooltipPaddingX` | Spaziatura interna orizzontale dei tooltip | `0.5rem` |
-| `tooltipPaddingY` | Spaziatura interna verticale dei tooltip | `0.25rem` |
+| `menuRadius` | Raggio degli angoli dei pannelli dei menu | `0.7rem` |
+| `menuPanelRadius` | Raggio degli angoli del menu di selezione del modello, delle schede al passaggio del mouse e dei menu del compositore; segue `radiusXl` se non impostato | `0.75rem` |
+| `popoverRadius` | Raggio degli angoli dei popover del compositore, come gli elenchi di prompt, skill e menzioni; segue `radius2xl` se non impostato | `1rem` |
+| `composerActionRadius` | Raggio degli angoli dei pulsanti di invio e interruzione del compositore e degli altri pulsanti d'azione rotondi; segue `roundControlRadius` se non impostato | `9999px` |
+| `compactPanelRadius` | Raggio degli angoli del pannello del selettore di intervallo di date; segue `radiusLg` se non impostato | `0.5rem` |
+| `tooltipRadius` | Raggio degli angoli dei tooltip | `0.275rem` |
+| `tooltipPaddingX` | Padding orizzontale interno dei tooltip | `0.5rem` |
+| `tooltipPaddingY` | Padding verticale dei tooltip | `0.25rem` |
 | `tooltipTextSize` | Dimensione del carattere del testo dei tooltip | `1rem` |
-| `tabRadius` | Raggio d'angolo dei trigger delle schede | `0.185rem` |
+| `tabRadius` | Raggio degli angoli dei trigger delle schede | `0.185rem` |
 | `tabMinWidth` | Larghezza minima di un trigger di scheda | `100px` |
-| `listMinWidth` | Larghezza minima di una lista Select; `0` la dimensiona in base al suo trigger | `8rem` |
-| `listMaxHeight` | Altezza dopo la quale una lista Select scorre | `24rem` |
-| `radiusSm` | Il passaggio `rounded-sm` utilizzato in tutta l'app | `calc(0.5rem - 4px)` |
-| `radiusMd` | Il passaggio `rounded-md` | `calc(0.5rem - 2px)` |
-| `radiusLg` | Il passaggio `rounded-lg` | `0.5rem` |
-| `radiusXl` | Il passaggio `rounded-xl` | `0.75rem` |
-| `radius2xl` | Il passaggio `rounded-2xl` | `1rem` |
-| `radius3xl` | Il passaggio `rounded-3xl` | `1.5rem` |
+| `listMinWidth` | Larghezza minima di un elenco Select; `0` lo dimensiona in base al suo trigger | `8rem` |
+| `listMaxHeight` | Altezza oltre la quale un elenco Select scorre | `24rem` |
+| `radiusSm` | Il passo `rounded-sm` usato in tutta l'app | `calc(0.5rem - 4px)` |
+| `radiusMd` | Il passo `rounded-md` | `calc(0.5rem - 2px)` |
+| `radiusLg` | Il passo `rounded-lg` | `0.5rem` |
+| `radiusXl` | Il passo `rounded-xl` | `0.75rem` |
+| `radius2xl` | Il passo `rounded-2xl` | `1rem` |
+| `radius3xl` | Il passo `rounded-3xl` | `1.5rem` |
 | `controlHeight` | Altezza dei controlli standard | `2.25rem` |
-| `controlPaddingX` | Spaziatura interna orizzontale dei controlli a dimensione tema; segue `spaceNormal` quando non impostato | `0.75rem` |
-| `buttonPaddingX` | Spaziatura interna orizzontale della dimensione predefinita del pulsante | `1rem` |
-| `controlGap` | Spazio tra l'icona e l'etichetta di un controllo; segue `spaceCompact` quando non impostato | `0.375rem` |
+| `controlPaddingX` | Padding orizzontale dei controlli dimensionati dal tema; segue `spaceNormal` se non impostato | `0.75rem` |
+| `buttonPaddingX` | Padding orizzontale della dimensione predefinita del pulsante | `1rem` |
+| `controlGap` | Spazio tra l'icona e l'etichetta di un controllo; segue `spaceCompact` se non impostato | `0.375rem` |
 | `iconSize` | Dimensione delle icone standard (`size-theme-icon`) | `1rem` |
 | `iconSizeMd` | Dimensione delle icone medie (`size-theme-icon-md`) | `1.25rem` |
 | `iconSizeLg` | Dimensione delle icone grandi, come il pulsante di chiusura di una finestra di dialogo (`size-theme-icon-lg`) | `1.5rem` |
-| `controlFontWeight` | Spessore dell'etichetta dei controlli a dimensione tema | `500` |
+| `controlFontWeight` | Spessore dell'etichetta dei controlli dimensionati dal tema | `500` |
 | `buttonHeight` | Altezza del pulsante predefinito | `2.5rem` |
 | `buttonHeightSm` | Altezza del pulsante `sm` | `2.25rem` |
 | `buttonHeightXs` | Altezza del pulsante `xs` | `1.75rem` |
@@ -216,77 +218,79 @@ I valori di Appearance sono impostati **per modalità** e una modalità che ne �
 | `buttonHeightCompact` | Altezza dei pulsanti compatti | `2rem` |
 | `iconButtonSizeSm` | Larghezza e altezza del pulsante `icon-sm` | `2rem` |
 | `fieldHeight` | Altezza dei campi del modulo | `2.5rem` |
-| `fieldHeightLg` | Altezza dei campi del modulo grandi, come gli input del titolo | `3rem` |
+| `fieldHeightLg` | Altezza dei campi del modulo grandi, come i campi del titolo | `3rem` |
 | `authFieldHeight` | Altezza dei campi con etichetta mobile nelle pagine di accesso | `2.75rem` |
-| `authButtonHeight` | Altezza dei pulsanti di invio delle pagine di accesso | `3rem` |
-| `authControlRadius` | Raggio d'angolo dei campi di accesso e dei pulsanti di invio; segue `radius2xl` quando non impostato | `1rem` |
-| `authActionHeight` | Altezza delle altre azioni di accesso, i pulsanti di verifica a due fattori e di continuazione del ripristino della password; quando non impostato, segue `authButtonHeight` se il tema lo imposta e `buttonHeight` altrimenti, quindi il valore predefinito corrisponde a `buttonHeight` | `2.5rem` |
-| `authActionRadius` | Raggio d'angolo di quelle altre azioni di accesso; quando non impostato, segue `authControlRadius` se il tema lo imposta e `radiusLg` altrimenti, quindi il valore predefinito corrisponde a `radiusLg` | `0.5rem` |
-| `fieldPaddingY` | Spaziatura interna verticale dei campi del modulo | `0.5rem` |
-| `fieldFocusStyle` | Come un campo focalizzato mostra il focus: `ring` disegna l'anello di focus, `border` scambia il bordo del campo con `rgb-border-field-focus` | `ring` |
-| `fieldFillStyle` | Se i campi rimangono `transparent` o dipingono `rgb-field-fill` (`fill`) | `transparent` |
-| `labelSize` | Dimensione del carattere delle etichette dei campi; segue `textSm` quando non impostato | `0.875rem` |
-| `labelLeading` | Altezza della riga delle etichette dei campi | `1` |
+| `authButtonHeight` | Altezza dei pulsanti di invio nelle pagine di accesso | `3rem` |
+| `authControlRadius` | Raggio degli angoli dei campi e dei pulsanti di invio della pagina di accesso; segue `radius2xl` se non impostato | `1rem` |
+| `authActionHeight` | Altezza delle altre azioni della pagina di accesso, i pulsanti di verifica a due fattori e di continuazione del reset della password; se non impostato, segue `authButtonHeight` se il tema lo imposta, altrimenti `buttonHeight`, quindi il valore predefinito coincide con `buttonHeight` | `2.5rem` |
+| `authActionRadius` | Raggio degli angoli di quelle altre azioni di accesso; se non impostato, segue `authControlRadius` se il tema lo imposta, altrimenti `radiusLg`, quindi il valore predefinito coincide con `radiusLg` | `0.5rem` |
+| `fieldPaddingY` | Padding verticale dei campi del modulo | `0.5rem` |
+| `fieldFocusStyle` | Come un campo in focus mostra il focus: `ring` disegna l'anello di messa a fuoco, `border` cambia il bordo del campo in `rgb-border-field-focus` | `ring` |
+| `fieldFillStyle` | Se i campi restano `transparent` o dipingono `rgb-field-fill` (`fill`) | `transparent` |
+| `labelSize` | Dimensione del carattere delle etichette dei campi; segue `textSm` se non impostato | `0.875rem` |
+| `labelLeading` | Altezza di riga delle etichette dei campi | `1` |
 | `labelFontWeight` | Spessore delle etichette dei campi; `inherit` mantiene lo spessore del testo circostante | `inherit` |
-| `focusRingWidth` | Larghezza del contorno di focus della tastiera | `2px` |
-| `focusRingOffset` | Distanza del contorno di focus dal bordo dell'elemento | `2px` |
+| `focusRingWidth` | Larghezza del contorno di messa a fuoco da tastiera | `2px` |
+| `focusRingOffset` | Distanza del contorno di messa a fuoco dal bordo dell'elemento | `2px` |
 | `switchWidth` | Larghezza dell'interruttore | `2.75rem` |
-| `switchHeight` | Altezza dell'interruttore; la manopola è questa meno il bordo di 4px della traccia | `1.5rem` |
+| `switchHeight` | Altezza dell'interruttore; il pomello è questo valore meno il bordo di 4px del binario | `1.5rem` |
 | `checkboxSize` | Dimensione della casella di controllo e del suo segno di spunta | `1rem` |
-| `tableCellSpaceY` | Spaziatura interna verticale delle celle della tabella | `1rem` |
+| `checkboxRadius` | Raggio degli angoli della casella di controllo; segue `radiusSm` se non impostato | `calc(0.5rem - 4px)` |
+| `checkboxFillStyle` | Se una casella non selezionata resta `transparent` o dipinge `rgb-checkbox-fill` (`fill`), che segue `rgb-surface-primary`; una casella selezionata mantiene `rgb-surface-inverted` | `transparent` |
+| `tableCellSpaceY` | Padding verticale delle celle della tabella | `1rem` |
 | `tableRowStroke` | Spessore della linea tra le righe della tabella | `0px` |
-| `spaceCompact` | Passaggio di spaziatura compatto | `0.375rem` |
-| `spaceNormal` | Passaggio di spaziatura normale | `0.75rem` |
-| `disabledStyle` | Come appaiono i controlli disabilitati: `dim` li attenua al 50% di opacità, `fill` li dipinge con i ruoli di colore disabilitati | `dim` |
-| `fontFamily` | Famiglia di caratteri dell'interfaccia utente (`font-sans`) | `Inter, sans-serif` |
-| `monoFontFamily` | Famiglia di caratteri del codice (`font-mono`) | `'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, 'Cascadia Mono', 'Liberation Mono', Consolas, monospace` |
-| `displayFontFamily` | Titoli e titoli delle finestre di dialogo (`font-display`); segue `fontFamily` quando non impostato | `Inter, sans-serif` |
-| `textXs` | La dimensione `text-xs` | `0.75rem` |
-| `textSm` | La dimensione `text-sm` | `0.875rem` |
-| `textBase` | La dimensione `text-base` | `1rem` |
-| `textLg` | La dimensione `text-lg` | `1.125rem` |
-| `textXl` | La dimensione `text-xl` | `1.25rem` |
-| `text2xl` | La dimensione `text-2xl` | `1.5rem` |
-| `text3xl` | La dimensione `text-3xl` | `1.875rem` |
-| `text3xs` | La dimensione `text-3xs` (10px per impostazione predefinita) | `0.625rem` |
-| `text2xs` | La dimensione `text-2xs` (11px per impostazione predefinita) | `0.6875rem` |
-| `text1xs` | La dimensione `text-1xs` (13px per impostazione predefinita) | `0.8125rem` |
-| `text1sm` | La dimensione `text-1sm` (15px per impostazione predefinita) | `0.9375rem` |
-| `leadingXs` | Altezza della riga abbinata a `text-xs` | `calc(1 / 0.75)` |
-| `leadingSm` | Altezza della riga abbinata a `text-sm` | `calc(1.25 / 0.875)` |
-| `leadingBase` | Altezza della riga abbinata a `text-base` | `calc(1.5 / 1)` |
-| `leadingLg` | Altezza della riga abbinata a `text-lg` | `calc(1.75 / 1.125)` |
-| `leadingXl` | Altezza della riga abbinata a `text-xl` | `calc(1.75 / 1.25)` |
-| `leading2xl` | Altezza della riga abbinata a `text-2xl` | `calc(2 / 1.5)` |
-| `leading3xl` | Altezza della riga abbinata a `text-3xl` | `calc(2.25 / 1.875)` |
-| `inlineCodeWeight` | Spessore del codice in linea nei messaggi | `600` |
-| `dialogStroke` | Larghezza del tratto del bordo della finestra di dialogo | `0px` |
-| `dialogPaddingX` | Spaziatura interna orizzontale delle finestre di dialogo | `1.5rem` |
+| `spaceCompact` | Passo di spaziatura compatta | `0.375rem` |
+| `spaceNormal` | Passo di spaziatura normale | `0.75rem` |
+| `disabledStyle` | Aspetto dei controlli disabilitati: `dim` li sbiadisce al 50% di opacità, `fill` li dipinge con i ruoli di colore disabilitato | `dim` |
+| `fontFamily` | Famiglia di font dell'interfaccia (`font-sans`) | `Inter, sans-serif` |
+| `monoFontFamily` | Famiglia di font per il codice (`font-mono`) | `'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, 'Cascadia Mono', 'Liberation Mono', Consolas, monospace` |
+| `displayFontFamily` | Titoli e titoli delle finestre di dialogo (`font-display`); segue `fontFamily` se non impostato | `Inter, sans-serif` |
+| `textXs` | Dimensione `text-xs` | `0.75rem` |
+| `textSm` | Dimensione `text-sm` | `0.875rem` |
+| `textBase` | Dimensione `text-base` | `1rem` |
+| `textLg` | Dimensione `text-lg` | `1.125rem` |
+| `textXl` | Dimensione `text-xl` | `1.25rem` |
+| `text2xl` | Dimensione `text-2xl` | `1.5rem` |
+| `text3xl` | Dimensione `text-3xl` | `1.875rem` |
+| `text3xs` | Dimensione `text-3xs` (10px per impostazione predefinita) | `0.625rem` |
+| `text2xs` | Dimensione `text-2xs` (11px per impostazione predefinita) | `0.6875rem` |
+| `text1xs` | Dimensione `text-1xs` (13px per impostazione predefinita) | `0.8125rem` |
+| `text1sm` | Dimensione `text-1sm` (15px per impostazione predefinita) | `0.9375rem` |
+| `leadingXs` | Altezza di riga abbinata a `text-xs` | `calc(1 / 0.75)` |
+| `leadingSm` | Altezza di riga abbinata a `text-sm` | `calc(1.25 / 0.875)` |
+| `leadingBase` | Altezza di riga abbinata a `text-base` | `calc(1.5 / 1)` |
+| `leadingLg` | Altezza di riga abbinata a `text-lg` | `calc(1.75 / 1.125)` |
+| `leadingXl` | Altezza di riga abbinata a `text-xl` | `calc(1.75 / 1.25)` |
+| `leading2xl` | Altezza di riga abbinata a `text-2xl` | `calc(2 / 1.5)` |
+| `leading3xl` | Altezza di riga abbinata a `text-3xl` | `calc(2.25 / 1.875)` |
+| `inlineCodeWeight` | Spessore del codice inline nei messaggi | `600` |
+| `dialogStroke` | Spessore del bordo della finestra di dialogo | `0px` |
+| `dialogPaddingX` | Padding orizzontale delle finestre di dialogo | `1.5rem` |
 | `dialogHeaderGap` | Spazio tra il titolo e la descrizione di una finestra di dialogo | `0.375rem` |
-| `dialogTitleSize` | Dimensione del carattere dei titoli delle finestre di dialogo; segue `textLg` quando non impostato | `1.125rem` |
-| `dialogTitleLeading` | Altezza della riga dei titoli delle finestre di dialogo | `1` |
+| `dialogTitleSize` | Dimensione del carattere dei titoli delle finestre di dialogo; segue `textLg` se non impostato | `1.125rem` |
+| `dialogTitleLeading` | Altezza di riga dei titoli delle finestre di dialogo | `1` |
 | `dialogTitleFontWeight` | Spessore dei titoli delle finestre di dialogo | `600` |
-| `dialogTitleFontFamily` | Famiglia di caratteri dei titoli delle finestre di dialogo; segue `displayFontFamily` quando non impostato | `Inter, sans-serif` |
-| `scrimOpacity` | Forza dello sfondo oscurato dietro le finestre di dialogo standard | `0.8` |
-| `alertScrimOpacity` | Forza dello sfondo oscurato dietro le finestre di dialogo di conferma | `0.9` |
-| `modalScrimOpacity` | Forza dello sfondo oscurato dietro le altre finestre di dialogo modali | `0.65` |
+| `dialogTitleFontFamily` | Famiglia di font dei titoli delle finestre di dialogo; segue `displayFontFamily` se non impostato | `Inter, sans-serif` |
+| `scrimOpacity` | Intensità dello sfondo oscurato dietro le finestre di dialogo standard | `0.8` |
+| `alertScrimOpacity` | Intensità dello sfondo oscurato dietro le finestre di conferma | `0.9` |
+| `modalScrimOpacity` | Intensità dello sfondo oscurato dietro le altre finestre modali | `0.65` |
 | `buttonNeutralBorderOpacity` | Opacità del bordo del pulsante neutro | Chiaro: `0.1`; scuro: `1` |
-| `elevationSurface` | Ombra delle superfici del tema sollevate | `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
+| `elevationSurface` | Ombra delle superfici rialzate del tema | `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
 | `elevationDrag` | Ombra di un badge mentre viene trascinato | `0 10px 25px rgb(0 0 0 / 0.1)` |
-| `shadow2xs` | Il passaggio `shadow-2xs` | `0 1px rgb(0 0 0 / 0.05)` |
-| `shadowXs` | Il passaggio `shadow-xs` | `0 1px 2px 0 rgb(0 0 0 / 0.05)` |
-| `shadowSm` | Il passaggio `shadow-sm` e `shadow` semplice | `0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)` |
-| `shadowMd` | Il passaggio `shadow-md` | `0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)` |
-| `shadowLg` | Il passaggio `shadow-lg` | `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
-| `shadowXl` | Il passaggio `shadow-xl` | `0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)` |
-| `shadow2xl` | Il passaggio `shadow-2xl` | `0 25px 50px -12px rgb(0 0 0 / 0.25)` |
-| `menuShadow` | Ombra dei pannelli dei menu; in modalità chiara, segue `shadowLg` quando non impostato | Chiaro: `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)`; scuro: `0 10px 15px -3px rgb(0 0 0 / 0.25), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
+| `shadow2xs` | Passo `shadow-2xs` | `0 1px rgb(0 0 0 / 0.05)` |
+| `shadowXs` | Passo `shadow-xs` | `0 1px 2px 0 rgb(0 0 0 / 0.05)` |
+| `shadowSm` | Passo `shadow-sm` e `shadow` semplice | `0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)` |
+| `shadowMd` | Passo `shadow-md` | `0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)` |
+| `shadowLg` | Passo `shadow-lg` | `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
+| `shadowXl` | Passo `shadow-xl` | `0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)` |
+| `shadow2xl` | Passo `shadow-2xl` | `0 25px 50px -12px rgb(0 0 0 / 0.25)` |
+| `menuShadow` | Ombra dei pannelli dei menu; in modalità chiara segue `shadowLg` se non impostato | Chiaro: `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)`; scuro: `0 10px 15px -3px rgb(0 0 0 / 0.25), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
 | `tooltipShadow` | Ombra dei tooltip | Chiaro: `0 2px 4px 0 rgb(0 0 0 / 0.25)`; scuro: `0 1px 2px 0 rgb(0 0 0 / 0.35)` |
-| `motionFast` | Durata delle transizioni veloci | `150ms` |
+| `motionFast` | Durata delle transizioni rapide | `150ms` |
 | `motionNormal` | Durata delle transizioni normali | `200ms` |
-| `chromeBorderAlpha` | Quanto del colore del bordo mantengono i contorni dei controlli e dei chip; `0` li nasconde senza spostare nulla | `1` |
-| `insetBorderAlpha` | Quanto del colore del bordo mantengono le linee sottili all'interno di una superficie con tratto; `0` le nasconde | `1` |
-| `destructiveStyle` | Come vengono dipinte le azioni distruttive: `fill` usa la superficie distruttiva solida, `soft` una sua sfumatura | `fill` |
+| `chromeBorderAlpha` | Quanto del colore del bordo mantengono i contorni di controlli e chip; `0` li nasconde senza spostare nulla | `1` |
+| `insetBorderAlpha` | Quanto del colore del bordo mantengono le linee sottili all'interno di una superficie con contorno; `0` le nasconde | `1` |
+| `destructiveStyle` | Come vengono dipinte le azioni distruttive: `fill` usa la superficie distruttiva piena, `soft` una sua tonalità attenuata | `fill` |
 
 I valori predefiniti riproducono l'aspetto di LibreChat, quindi un tema che non imposta nessuna di queste chiavi non modifica alcuna forma.
 
@@ -303,6 +307,7 @@ Valori accettati:
 - **`disabledStyle`:** `dim` o `fill`.
 - **`fieldFocusStyle`:** `ring` o `border`.
 - **`fieldFillStyle`:** `transparent` o `fill`.
+- **`checkboxFillStyle`:** `transparent` o `fill`.
 - **Spessori dei font (`controlFontWeight`, `dialogTitleFontWeight`, `inlineCodeWeight`):** un numero intero da `1` a `1000`. `labelFontWeight` accetta anche `inherit`.
 - **Altezze delle righe (i passaggi `leading*`, `labelLeading` e `dialogTitleLeading`):** un numero senza unità (come `1.5`), un singolo `calc()` che divide due numeri (come `calc(1.25 / 0.875)`) o una lunghezza.
 - **Opacità scrim, `buttonNeutralBorderOpacity`, `chromeBorderAlpha` e `insetBorderAlpha`:** un numero da `0` a `1`.

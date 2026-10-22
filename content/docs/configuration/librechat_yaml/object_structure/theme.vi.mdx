@@ -145,28 +145,29 @@ Trình duyệt áp dụng các quy tắc tương tự cho theme mà nó nhận �
 
 ### Màu sắc [#colors]
 
-Màu sắc sử dụng cùng tên token với công cụ chủ đề: `rgb-` theo sau là tên token, ví dụ như `rgb-surface-primary`, `rgb-text-primary`, `rgb-border-medium`, `rgb-accent-primary` hoặc `rgb-status-error-subtle`. Danh sách đầy đủ gồm 130 token là `themeColorTokens` trong [`packages/data-provider/src/theme.ts`](https://github.com/LibreChat-AI/LibreChat/blob/dev/packages/data-provider/src/theme.ts), được cả máy chủ và trình duyệt đọc, và mỗi token được mô tả trong giao diện `IThemeRGB` tại [`packages/client/src/theme/types/index.ts`](https://github.com/LibreChat-AI/LibreChat/blob/dev/packages/client/src/theme/types/index.ts).
+Màu sắc sử dụng cùng tên token như theme engine: `rgb-` theo sau là token, chẳng hạn `rgb-surface-primary`, `rgb-text-primary`, `rgb-border-medium`, `rgb-accent-primary` hoặc `rgb-status-error-subtle`. Danh sách đầy đủ 169 token là `themeColorTokens` trong [`packages/data-provider/src/theme.ts`](https://github.com/LibreChat-AI/LibreChat/blob/dev/packages/data-provider/src/theme.ts), được cả server lẫn trình duyệt đọc, và mỗi token được mô tả trong interface `IThemeRGB` tại [`packages/client/src/theme/types/index.ts`](https://github.com/LibreChat-AI/LibreChat/blob/dev/packages/client/src/theme/types/index.ts).
 
 Ngoài các bảng màu bề mặt, văn bản, đường viền, trạng thái và cú pháp, các vai trò này cho phép một chủ đề tùy chỉnh lại các trạng thái tương tác và thành phần cụ thể:
 
-| Vai trò | Tokens | Paints |
+| Vai trò | Token | Tô màu |
 | --- | --- | --- |
-| Focus | `rgb-focus-outline`, `rgb-focus-control` | Đường viền focus bàn phím trên toàn ứng dụng và vòng focus của các điều khiển được chia sẻ |
-| Pressed | `rgb-surface-pressed`, `rgb-surface-inverted-pressed` | Các điều khiển trung tính và đảo ngược khi được nhấn |
-| Inverted and fixed | `rgb-surface-inverted`, `rgb-surface-inverted-hover`, `rgb-text-inverted`, `rgb-surface-fixed`, `rgb-surface-fixed-hover`, `rgb-text-fixed` | Các điều khiển được vẽ bằng màu của chế độ đối diện và các điều khiển giữ nguyên một màu trong cả hai chế độ |
-| Disabled | `rgb-surface-disabled`, `rgb-text-disabled`, `rgb-border-disabled` | Các điều khiển bị vô hiệu hóa, khi `disabledStyle` là `fill` (xem [Appearance](#appearance)) |
-| Control border | `rgb-border-control` | Cạnh của các ô nhập liệu, trình kích hoạt chọn và các ô mã dùng một lần, được giữ tách biệt với các dải phân cách tĩnh vì cần độ tương phản 3:1 |
-| Fields | `rgb-border-field-focus`, `rgb-field-fill`, `rgb-field-text` | Cạnh của trường khi được focus nếu `fieldFocusStyle` là `border` (theo `rgb-focus-control`), màu nền của trường nếu `fieldFillStyle` là `fill` (theo `rgb-surface-primary`), và giá trị đã nhập (theo `rgb-text-primary`) |
-| Primary button | `rgb-button-primary`, `rgb-button-primary-hover` | Màu nền và trạng thái hover của nút chính; tuân theo `rgb-surface-inverted` và `rgb-surface-inverted-hover`, mà các hộp kiểm và công tắc vẫn tiếp tục sử dụng |
-| Inks | `rgb-dialog-title`, `rgb-badge-label` | Tiêu đề hộp thoại và nhãn huy hiệu; cả hai đều tuân theo `rgb-text-primary` |
-| Scrim | `rgb-surface-overlay` | Màu phía sau các hộp thoại; độ đậm nhạt được thiết lập bởi độ mờ scrim trong [Appearance](#appearance) |
-| Media overlay | `rgb-surface-media-overlay`, `rgb-text-on-media` | Các lớp phủ, chip và thanh tiến trình được vẽ trên hình ảnh của người dùng (lightbox, xem trước hình ảnh, tải lên đang thực hiện) và văn bản trên đó. Các chủ đề đi kèm giữ chúng ở màu đen và trắng trong cả hai chế độ |
-| Avatar | `rgb-avatar-fill`, `rgb-avatar-text`, `rgb-avatar-placeholder`, `rgb-avatar-edge` | Màu nền và biểu tượng của avatar người dùng mặc định (biểu tượng tuân theo `rgb-text-primary`), phông nền phía sau avatar đại lý hoặc trợ lý đang tải hoặc trong suốt (tuân theo `rgb-surface-secondary` ở chế độ sáng và `rgb-surface-tertiary` ở chế độ tối), và đường viền mảnh xung quanh avatar mặc định |
-| File tiles | `rgb-file-document`, `rgb-file-sheet`, `rgb-file-code`, `rgb-file-artifact`, `rgb-file-audio`, `rgb-file-video`, `rgb-file-generic`, `rgb-file-ink` | Một màu nền cho mỗi loại tệp và biểu tượng được vẽ trên mỗi ô |
-| Illustration | `rgb-illustration-subtle`, `rgb-illustration`, `rgb-illustration-strong` | Ba tông màu của hình minh họa trong ứng dụng, chẳng hạn như hình minh họa của vùng thả tệp |
-| Switch | `rgb-switch-unchecked`, `rgb-switch-thumb` | Đường ray công tắc khi chưa chọn và nút gạt ở cả hai trạng thái |
-| Table | `rgb-table-header-text`, `rgb-table-header-fill` | Tên cột và màu nền đục của tiêu đề bảng cố định |
-| Chart series | `rgb-series-1` đến `rgb-series-8` | Màu sắc biểu đồ phân loại, theo thứ tự |
+| Tiêu điểm | `rgb-focus-outline`, `rgb-focus-control` | Viền tiêu điểm bàn phím trên toàn ứng dụng và vòng tiêu điểm của các điều khiển dùng chung |
+| Đang nhấn | `rgb-surface-pressed`, `rgb-surface-inverted-pressed` | Các điều khiển trung tính và đảo màu khi đang được nhấn |
+| Đảo màu và cố định | `rgb-surface-inverted`, `rgb-surface-inverted-hover`, `rgb-text-inverted`, `rgb-surface-fixed`, `rgb-surface-fixed-hover`, `rgb-text-fixed` | Các điều khiển được vẽ bằng màu của chế độ đối lập, và các điều khiển giữ một màu ở cả hai chế độ |
+| Vô hiệu hóa | `rgb-surface-disabled`, `rgb-text-disabled`, `rgb-border-disabled` | Các điều khiển bị vô hiệu hóa, khi `disabledStyle` là `fill` (xem [Giao diện](#appearance)) |
+| Viền điều khiển | `rgb-border-control` | Cạnh của ô nhập liệu, nút chọn dropdown và các ô mã dùng một lần, được tách biệt khỏi đường phân cách nhẹ vì cần độ tương phản 3:1 |
+| Trường nhập | `rgb-border-field-focus`, `rgb-field-fill`, `rgb-field-text` | Cạnh của trường nhập đang được focus khi `fieldFocusStyle` là `border` (theo `rgb-focus-control`), nền của trường nhập khi `fieldFillStyle` là `fill` (theo `rgb-surface-primary`), và giá trị đã nhập (theo `rgb-text-primary`) |
+| Hộp kiểm | `rgb-checkbox-fill` | Nền của hộp kiểm chưa chọn khi `checkboxFillStyle` là `fill` (theo `rgb-surface-primary`) |
+| Nút chính | `rgb-button-primary`, `rgb-button-primary-hover` | Nền và màu khi di chuột qua của nút Button chính; theo `rgb-surface-inverted` và `rgb-surface-inverted-hover`, là các màu mà hộp kiểm và công tắc vẫn đang sử dụng |
+| Màu chữ | `rgb-dialog-title`, `rgb-badge-label` | Tiêu đề hộp thoại và nhãn huy hiệu; cả hai đều theo `rgb-text-primary` |
+| Lớp phủ nền | `rgb-surface-overlay` | Màu nền phía sau hộp thoại; độ đậm được đặt bởi độ mờ lớp phủ trong [Giao diện](#appearance) |
+| Lớp phủ phương tiện | `rgb-surface-media-overlay`, `rgb-text-on-media` | Lớp phủ, chip và thanh tiến trình được vẽ trên hình ảnh của người dùng (lightbox, xem trước hình ảnh, tệp tải lên đang xử lý), và văn bản trên các thành phần này. Các chủ đề đi kèm giữ chúng ở màu đen và trắng ở cả hai chế độ |
+| Ảnh đại diện | `rgb-avatar-fill`, `rgb-avatar-text`, `rgb-avatar-placeholder`, `rgb-avatar-edge` | Nền và biểu tượng của ảnh đại diện người dùng mặc định (biểu tượng theo `rgb-text-primary`), nền phía sau ảnh đại diện của agent hoặc trợ lý đang tải hoặc trong suốt (theo `rgb-surface-secondary` ở chế độ sáng và `rgb-surface-tertiary` ở chế độ tối), và đường viền mảnh quanh ảnh đại diện mặc định |
+| Ô tệp | `rgb-file-document`, `rgb-file-sheet`, `rgb-file-code`, `rgb-file-artifact`, `rgb-file-audio`, `rgb-file-video`, `rgb-file-generic`, `rgb-file-ink` | Một màu nền cho mỗi loại tệp, và biểu tượng được vẽ trên mọi ô tệp |
+| Minh họa | `rgb-illustration-subtle`, `rgb-illustration`, `rgb-illustration-strong` | Ba tông màu của hình minh họa trong ứng dụng, chẳng hạn như hình minh họa của vùng thả tệp |
+| Công tắc | `rgb-switch-unchecked`, `rgb-switch-thumb` | Đường rãnh của công tắc khi chưa bật, và nút gạt ở cả hai trạng thái |
+| Bảng | `rgb-table-header-text`, `rgb-table-header-fill` | Tên cột, và màu nền đặc của tiêu đề bảng được ghim |
+| Chuỗi biểu đồ | `rgb-series-1` đến `rgb-series-8` | Các màu biểu đồ phân loại, theo thứ tự |
 
 Mỗi giá trị là một bộ ba `R G B` thuần túy với mỗi kênh từ `0` đến `255`, ví dụ: `'255 255 255'`. Các giá trị Hex và `rgb(...)` sẽ bị từ chối. Hãy đặt giá trị trong dấu ngoặc kép để YAML đọc nó dưới dạng chuỗi.
 
@@ -178,114 +179,117 @@ Các giá trị giao diện được thiết lập **theo từng chế độ**, 
 
 | Khóa | Điều khiển | Mặc định |
 | --- | --- | --- |
-| `controlRadius` | Bán kính góc của các điều khiển như nút và ô nhập liệu | `0.75rem` |
-| `roundControlRadius` | Bán kính của các điều khiển được bo tròn hoàn toàn | `9999px` |
+| `controlRadius` | Bán kính bo góc của các điều khiển như nút và ô nhập | `0.75rem` |
+| `roundControlRadius` | Bán kính của các điều khiển bo tròn hoàn toàn | `9999px` |
 | `surfaceRadius` | Bán kính của các bề mặt như thẻ và menu | `1rem` |
 | `largeSurfaceRadius` | Bán kính của các bề mặt lớn như hộp thoại | `1.5rem` |
-| `menuRadius` | Bán kính góc của các bảng menu | `0.7rem` |
-| `menuPanelRadius` | Bán kính góc của menu chọn model, thẻ hover và menu của trình soạn thảo; tuân theo `radiusXl` khi không được thiết lập | `0.75rem` |
-| `popoverRadius` | Bán kính góc của các popover trong trình soạn thảo, như danh sách gợi ý, kỹ năng và đề cập; tuân theo `radius2xl` khi không được thiết lập | `1rem` |
-| `composerActionRadius` | Bán kính góc của các nút gửi và dừng trong trình soạn thảo cùng các nút hành động tròn khác; tuân theo `roundControlRadius` khi không được thiết lập | `9999px` |
-| `tooltipRadius` | Bán kính góc của chú giải công cụ (tooltip) | `0.275rem` |
-| `tooltipPaddingX` | Khoảng đệm ngang của chú giải công cụ | `0.5rem` |
-| `tooltipPaddingY` | Khoảng đệm dọc của chú giải công cụ | `0.25rem` |
-| `tooltipTextSize` | Kích thước phông chữ của văn bản chú giải công cụ | `1rem` |
-| `tabRadius` | Bán kính góc của các tab kích hoạt | `0.185rem` |
-| `tabMinWidth` | Chiều rộng tối thiểu của một tab kích hoạt | `100px` |
-| `listMinWidth` | Chiều rộng tối thiểu của danh sách Select; `0` sẽ định kích thước theo phần tử kích hoạt | `8rem` |
+| `menuRadius` | Bán kính bo góc của các bảng menu | `0.7rem` |
+| `menuPanelRadius` | Bán kính bo góc của menu chọn mô hình, thẻ di chuột và các menu của khung soạn thảo; theo `radiusXl` khi không đặt | `0.75rem` |
+| `popoverRadius` | Bán kính bo góc của các popover trong khung soạn thảo, như danh sách prompt, kỹ năng và đề cập; theo `radius2xl` khi không đặt | `1rem` |
+| `composerActionRadius` | Bán kính bo góc của các nút gửi và dừng trong khung soạn thảo cùng các nút hành động tròn khác; theo `roundControlRadius` khi không đặt | `9999px` |
+| `compactPanelRadius` | Bán kính bo góc của bảng chọn khoảng ngày; theo `radiusLg` khi không đặt | `0.5rem` |
+| `tooltipRadius` | Bán kính bo góc của tooltip | `0.275rem` |
+| `tooltipPaddingX` | Padding ngang bên trong của tooltip | `0.5rem` |
+| `tooltipPaddingY` | Padding dọc của tooltip | `0.25rem` |
+| `tooltipTextSize` | Cỡ chữ của nội dung tooltip | `1rem` |
+| `tabRadius` | Bán kính bo góc của các nút tab | `0.185rem` |
+| `tabMinWidth` | Chiều rộng tối thiểu của một nút tab | `100px` |
+| `listMinWidth` | Chiều rộng tối thiểu của danh sách Select; `0` sẽ định kích thước theo nút kích hoạt | `8rem` |
 | `listMaxHeight` | Chiều cao mà sau đó danh sách Select sẽ cuộn | `24rem` |
-| `radiusSm` | Bước `rounded-sm` được sử dụng trên toàn ứng dụng | `calc(0.5rem - 4px)` |
-| `radiusMd` | Bước `rounded-md` | `calc(0.5rem - 2px)` |
-| `radiusLg` | Bước `rounded-lg` | `0.5rem` |
-| `radiusXl` | Bước `rounded-xl` | `0.75rem` |
-| `radius2xl` | Bước `rounded-2xl` | `1rem` |
-| `radius3xl` | Bước `rounded-3xl` | `1.5rem` |
+| `radiusSm` | Mức `rounded-sm` được dùng trong toàn ứng dụng | `calc(0.5rem - 4px)` |
+| `radiusMd` | Mức `rounded-md` | `calc(0.5rem - 2px)` |
+| `radiusLg` | Mức `rounded-lg` | `0.5rem` |
+| `radiusXl` | Mức `rounded-xl` | `0.75rem` |
+| `radius2xl` | Mức `rounded-2xl` | `1rem` |
+| `radius3xl` | Mức `rounded-3xl` | `1.5rem` |
 | `controlHeight` | Chiều cao của các điều khiển tiêu chuẩn | `2.25rem` |
-| `controlPaddingX` | Khoảng đệm ngang của các điều khiển theo kích thước chủ đề; tuân theo `spaceNormal` khi không được thiết lập | `0.75rem` |
-| `buttonPaddingX` | Khoảng đệm ngang của kích thước Nút mặc định | `1rem` |
-| `controlGap` | Khoảng cách giữa biểu tượng và nhãn của điều khiển; tuân theo `spaceCompact` khi không được thiết lập | `0.375rem` |
-| `iconSize` | Kích thước của các biểu tượng tiêu chuẩn (`size-theme-icon`) | `1rem` |
-| `iconSizeMd` | Kích thước của các biểu tượng trung bình (`size-theme-icon-md`) | `1.25rem` |
-| `iconSizeLg` | Kích thước của các biểu tượng lớn, như nút đóng hộp thoại (`size-theme-icon-lg`) | `1.5rem` |
-| `controlFontWeight` | Độ đậm của nhãn cho các điều khiển theo kích thước chủ đề | `500` |
-| `buttonHeight` | Chiều cao của Nút mặc định | `2.5rem` |
-| `buttonHeightSm` | Chiều cao của Nút `sm` | `2.25rem` |
-| `buttonHeightXs` | Chiều cao của Nút `xs` | `1.75rem` |
-| `buttonHeightLg` | Chiều cao của Nút `lg` | `2.75rem` |
-| `buttonHeightCompact` | Chiều cao của các Nút nhỏ gọn | `2rem` |
-| `iconButtonSizeSm` | Chiều rộng và chiều cao của Nút `icon-sm` | `2rem` |
+| `controlPaddingX` | Padding ngang bên trong của các điều khiển theo kích thước giao diện; theo `spaceNormal` khi không đặt | `0.75rem` |
+| `buttonPaddingX` | Padding ngang bên trong của kích thước Button mặc định | `1rem` |
+| `controlGap` | Khoảng cách giữa biểu tượng và nhãn của điều khiển; theo `spaceCompact` khi không đặt | `0.375rem` |
+| `iconSize` | Kích thước của biểu tượng tiêu chuẩn (`size-theme-icon`) | `1rem` |
+| `iconSizeMd` | Kích thước của biểu tượng vừa (`size-theme-icon-md`) | `1.25rem` |
+| `iconSizeLg` | Kích thước của biểu tượng lớn, như nút đóng của hộp thoại (`size-theme-icon-lg`) | `1.5rem` |
+| `controlFontWeight` | Độ đậm nhãn của các điều khiển theo kích thước giao diện | `500` |
+| `buttonHeight` | Chiều cao của Button mặc định | `2.5rem` |
+| `buttonHeightSm` | Chiều cao của Button `sm` | `2.25rem` |
+| `buttonHeightXs` | Chiều cao của Button `xs` | `1.75rem` |
+| `buttonHeightLg` | Chiều cao của Button `lg` | `2.75rem` |
+| `buttonHeightCompact` | Chiều cao của các Button gọn | `2rem` |
+| `iconButtonSizeSm` | Chiều rộng và chiều cao của Button `icon-sm` | `2rem` |
 | `fieldHeight` | Chiều cao của các trường biểu mẫu | `2.5rem` |
 | `fieldHeightLg` | Chiều cao của các trường biểu mẫu lớn, như ô nhập tiêu đề | `3rem` |
 | `authFieldHeight` | Chiều cao của các trường có nhãn nổi trên trang đăng nhập | `2.75rem` |
-| `authButtonHeight` | Chiều cao của các nút gửi trên trang đăng nhập | `3rem` |
-| `authControlRadius` | Bán kính góc của các trường đăng nhập và nút gửi; tuân theo `radius2xl` khi không được thiết lập | `1rem` |
-| `authActionHeight` | Chiều cao của các hành động đăng nhập khác, nút xác thực hai yếu tố và nút tiếp tục đặt lại mật khẩu; khi không thiết lập, tuân theo `authButtonHeight` nếu chủ đề thiết lập nó và `buttonHeight` nếu không, vì vậy mặc định khớp với `buttonHeight` | `2.5rem` |
-| `authActionRadius` | Bán kính góc của các hành động đăng nhập khác đó; khi không thiết lập, tuân theo `authControlRadius` nếu chủ đề thiết lập nó và `radiusLg` nếu không, vì vậy mặc định khớp với `radiusLg` | `0.5rem` |
-| `fieldPaddingY` | Khoảng đệm dọc của các trường biểu mẫu | `0.5rem` |
-| `fieldFocusStyle` | Cách một trường được chọn hiển thị tiêu điểm: `ring` vẽ vòng tiêu điểm, `border` đổi cạnh của trường thành `rgb-border-field-focus` | `ring` |
-| `fieldFillStyle` | Liệu các trường có giữ trạng thái `transparent` hay tô màu `rgb-field-fill` (`fill`) | `transparent` |
-| `labelSize` | Kích thước phông chữ của nhãn trường; tuân theo `textSm` khi không được thiết lập | `0.875rem` |
+| `authButtonHeight` | Chiều cao của nút gửi trên trang đăng nhập | `3rem` |
+| `authControlRadius` | Bán kính bo góc của các trường và nút gửi trên trang đăng nhập; theo `radius2xl` khi không đặt | `1rem` |
+| `authActionHeight` | Chiều cao của các hành động đăng nhập khác, gồm nút xác minh xác thực hai yếu tố và nút tiếp tục đặt lại mật khẩu; khi không đặt, theo `authButtonHeight` nếu theme có đặt và theo `buttonHeight` nếu không, nên mặc định khớp với `buttonHeight` | `2.5rem` |
+| `authActionRadius` | Bán kính bo góc của các hành động đăng nhập khác; khi không đặt, theo `authControlRadius` nếu theme có đặt và theo `radiusLg` nếu không, nên mặc định khớp với `radiusLg` | `0.5rem` |
+| `fieldPaddingY` | Padding dọc của các trường biểu mẫu | `0.5rem` |
+| `fieldFocusStyle` | Cách trường đang được focus thể hiện trạng thái focus: `ring` vẽ vòng focus, `border` đổi viền của trường sang `rgb-border-field-focus` | `ring` |
+| `fieldFillStyle` | Trường giữ nền `transparent` hay tô màu `rgb-field-fill` (`fill`) | `transparent` |
+| `labelSize` | Cỡ chữ của nhãn trường; theo `textSm` khi không đặt | `0.875rem` |
 | `labelLeading` | Chiều cao dòng của nhãn trường | `1` |
-| `labelFontWeight` | Độ đậm của nhãn trường; `inherit` giữ nguyên độ đậm của văn bản xung quanh | `inherit` |
-| `focusRingWidth` | Độ rộng của đường viền tiêu điểm bàn phím | `2px` |
-| `focusRingOffset` | Khoảng cách của đường viền tiêu điểm so với cạnh của phần tử | `2px` |
+| `labelFontWeight` | Độ đậm của nhãn trường; `inherit` giữ độ đậm của văn bản xung quanh | `inherit` |
+| `focusRingWidth` | Độ rộng của đường viền focus bằng bàn phím | `2px` |
+| `focusRingOffset` | Khoảng cách của đường viền focus so với cạnh phần tử | `2px` |
 | `switchWidth` | Chiều rộng của công tắc | `2.75rem` |
-| `switchHeight` | Chiều cao của công tắc; núm điều khiển bằng giá trị này trừ đi đường viền 4px của rãnh | `1.5rem` |
-| `checkboxSize` | Kích thước của hộp kiểm và dấu tích của nó | `1rem` |
-| `tableCellSpaceY` | Khoảng đệm dọc của các ô trong bảng | `1rem` |
-| `tableRowStroke` | Độ dày của đường kẻ giữa các hàng trong bảng | `0px` |
-| `spaceCompact` | Bước khoảng cách nhỏ gọn | `0.375rem` |
-| `spaceNormal` | Bước khoảng cách bình thường | `0.75rem` |
-| `disabledStyle` | Cách các điều khiển bị vô hiệu hóa hiển thị: `dim` làm mờ chúng xuống 50% độ mờ, `fill` tô chúng bằng các vai trò màu bị vô hiệu hóa | `dim` |
-| `fontFamily` | Họ phông chữ giao diện người dùng (`font-sans`) | `Inter, sans-serif` |
-| `monoFontFamily` | Họ phông chữ mã nguồn (`font-mono`) | `'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, 'Cascadia Mono', 'Liberation Mono', Consolas, monospace` |
-| `displayFontFamily` | Tiêu đề và tiêu đề hộp thoại (`font-display`); tuân theo `fontFamily` khi không được thiết lập | `Inter, sans-serif` |
-| `textXs` | Kích thước `text-xs` | `0.75rem` |
-| `textSm` | Kích thước `text-sm` | `0.875rem` |
-| `textBase` | Kích thước `text-base` | `1rem` |
-| `textLg` | Kích thước `text-lg` | `1.125rem` |
-| `textXl` | Kích thước `text-xl` | `1.25rem` |
-| `text2xl` | Kích thước `text-2xl` | `1.5rem` |
-| `text3xl` | Kích thước `text-3xl` | `1.875rem` |
-| `text3xs` | Kích thước `text-3xs` (mặc định 10px) | `0.625rem` |
-| `text2xs` | Kích thước `text-2xs` (mặc định 11px) | `0.6875rem` |
-| `text1xs` | Kích thước `text-1xs` (mặc định 13px) | `0.8125rem` |
-| `text1sm` | Kích thước `text-1sm` (mặc định 15px) | `0.9375rem` |
-| `leadingXs` | Chiều cao dòng đi kèm với `text-xs` | `calc(1 / 0.75)` |
-| `leadingSm` | Chiều cao dòng đi kèm với `text-sm` | `calc(1.25 / 0.875)` |
-| `leadingBase` | Chiều cao dòng đi kèm với `text-base` | `calc(1.5 / 1)` |
-| `leadingLg` | Chiều cao dòng đi kèm với `text-lg` | `calc(1.75 / 1.125)` |
-| `leadingXl` | Chiều cao dòng đi kèm với `text-xl` | `calc(1.75 / 1.25)` |
-| `leading2xl` | Chiều cao dòng đi kèm với `text-2xl` | `calc(2 / 1.5)` |
-| `leading3xl` | Chiều cao dòng đi kèm với `text-3xl` | `calc(2.25 / 1.875)` |
-| `inlineCodeWeight` | Độ đậm của mã nguồn nội dòng trong tin nhắn | `600` |
-| `dialogStroke` | Độ rộng của đường viền cạnh hộp thoại | `0px` |
-| `dialogPaddingX` | Khoảng đệm ngang của hộp thoại | `1.5rem` |
+| `switchHeight` | Chiều cao của công tắc; núm gạt bằng giá trị này trừ đi viền 4px của rãnh | `1.5rem` |
+| `checkboxSize` | Kích thước của ô đánh dấu và dấu tích | `1rem` |
+| `checkboxRadius` | Bán kính bo góc của ô đánh dấu; theo `radiusSm` khi không đặt | `calc(0.5rem - 4px)` |
+| `checkboxFillStyle` | Ô đánh dấu chưa chọn giữ nền `transparent` hay tô màu `rgb-checkbox-fill` (`fill`), màu này theo `rgb-surface-primary`; ô đã chọn giữ `rgb-surface-inverted` | `transparent` |
+| `tableCellSpaceY` | Padding dọc của ô trong bảng | `1rem` |
+| `tableRowStroke` | Độ dày của đường kẻ giữa các hàng bảng | `0px` |
+| `spaceCompact` | Bước khoảng cách gọn | `0.375rem` |
+| `spaceNormal` | Bước khoảng cách thông thường | `0.75rem` |
+| `disabledStyle` | Cách các điều khiển bị vô hiệu hóa hiển thị: `dim` làm mờ còn 50% độ mờ, `fill` tô bằng các vai trò màu vô hiệu hóa | `dim` |
+| `fontFamily` | Họ phông chữ giao diện (`font-sans`) | `Inter, sans-serif` |
+| `monoFontFamily` | Họ phông chữ mã (`font-mono`) | `'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, 'Cascadia Mono', 'Liberation Mono', Consolas, monospace` |
+| `displayFontFamily` | Tiêu đề và tiêu đề hộp thoại (`font-display`); theo `fontFamily` khi không đặt | `Inter, sans-serif` |
+| `textXs` | Cỡ chữ `text-xs` | `0.75rem` |
+| `textSm` | Cỡ chữ `text-sm` | `0.875rem` |
+| `textBase` | Cỡ chữ `text-base` | `1rem` |
+| `textLg` | Cỡ chữ `text-lg` | `1.125rem` |
+| `textXl` | Cỡ chữ `text-xl` | `1.25rem` |
+| `text2xl` | Cỡ chữ `text-2xl` | `1.5rem` |
+| `text3xl` | Cỡ chữ `text-3xl` | `1.875rem` |
+| `text3xs` | Cỡ chữ `text-3xs` (mặc định 10px) | `0.625rem` |
+| `text2xs` | Cỡ chữ `text-2xs` (mặc định 11px) | `0.6875rem` |
+| `text1xs` | Cỡ chữ `text-1xs` (mặc định 13px) | `0.8125rem` |
+| `text1sm` | Cỡ chữ `text-1sm` (mặc định 15px) | `0.9375rem` |
+| `leadingXs` | Chiều cao dòng đi kèm `text-xs` | `calc(1 / 0.75)` |
+| `leadingSm` | Chiều cao dòng đi kèm `text-sm` | `calc(1.25 / 0.875)` |
+| `leadingBase` | Chiều cao dòng đi kèm `text-base` | `calc(1.5 / 1)` |
+| `leadingLg` | Chiều cao dòng đi kèm `text-lg` | `calc(1.75 / 1.125)` |
+| `leadingXl` | Chiều cao dòng đi kèm `text-xl` | `calc(1.75 / 1.25)` |
+| `leading2xl` | Chiều cao dòng đi kèm `text-2xl` | `calc(2 / 1.5)` |
+| `leading3xl` | Chiều cao dòng đi kèm `text-3xl` | `calc(2.25 / 1.875)` |
+| `inlineCodeWeight` | Độ đậm của mã nội dòng trong tin nhắn | `600` |
+| `dialogStroke` | Độ dày của viền cạnh hộp thoại | `0px` |
+| `dialogPaddingX` | Padding ngang bên trong của hộp thoại | `1.5rem` |
 | `dialogHeaderGap` | Khoảng cách giữa tiêu đề và mô tả của hộp thoại | `0.375rem` |
-| `dialogTitleSize` | Kích thước phông chữ của tiêu đề hộp thoại; tuân theo `textLg` khi không được thiết lập | `1.125rem` |
+| `dialogTitleSize` | Cỡ chữ của tiêu đề hộp thoại; theo `textLg` khi không đặt | `1.125rem` |
 | `dialogTitleLeading` | Chiều cao dòng của tiêu đề hộp thoại | `1` |
 | `dialogTitleFontWeight` | Độ đậm của tiêu đề hộp thoại | `600` |
-| `dialogTitleFontFamily` | Họ phông chữ của tiêu đề hộp thoại; tuân theo `displayFontFamily` khi không được thiết lập | `Inter, sans-serif` |
-| `scrimOpacity` | Độ mạnh của lớp phủ mờ phía sau các hộp thoại tiêu chuẩn | `0.8` |
-| `alertScrimOpacity` | Độ mạnh của lớp phủ mờ phía sau các hộp thoại xác nhận | `0.9` |
-| `modalScrimOpacity` | Độ mạnh của lớp phủ mờ phía sau các hộp thoại modal khác | `0.65` |
-| `buttonNeutralBorderOpacity` | Độ mờ của đường viền nút trung tính | Sáng: `0.1`; tối: `1` |
-| `elevationSurface` | Đổ bóng của các bề mặt chủ đề nổi | `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
-| `elevationDrag` | Đổ bóng của một huy hiệu khi nó đang được kéo | `0 10px 25px rgb(0 0 0 / 0.1)` |
-| `shadow2xs` | Bước `shadow-2xs` | `0 1px rgb(0 0 0 / 0.05)` |
-| `shadowXs` | Bước `shadow-xs` | `0 1px 2px 0 rgb(0 0 0 / 0.05)` |
-| `shadowSm` | Bước `shadow-sm` và `shadow` cơ bản | `0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)` |
-| `shadowMd` | Bước `shadow-md` | `0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)` |
-| `shadowLg` | Bước `shadow-lg` | `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
-| `shadowXl` | Bước `shadow-xl` | `0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)` |
-| `shadow2xl` | Bước `shadow-2xl` | `0 25px 50px -12px rgb(0 0 0 / 0.25)` |
-| `menuShadow` | Đổ bóng của các bảng menu; ở chế độ sáng, tuân theo `shadowLg` khi không được thiết lập | Sáng: `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)`; tối: `0 10px 15px -3px rgb(0 0 0 / 0.25), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
-| `tooltipShadow` | Đổ bóng của chú giải công cụ | Sáng: `0 2px 4px 0 rgb(0 0 0 / 0.25)`; tối: `0 1px 2px 0 rgb(0 0 0 / 0.35)` |
-| `motionFast` | Thời lượng của các chuyển đổi nhanh | `150ms` |
-| `motionNormal` | Thời lượng của các chuyển đổi bình thường | `200ms` |
-| `chromeBorderAlpha` | Mức độ giữ lại màu viền của các đường viền điều khiển và chip; `0` ẩn chúng mà không làm thay đổi vị trí | `1` |
-| `insetBorderAlpha` | Mức độ giữ lại màu viền của các đường kẻ mảnh bên trong bề mặt có viền; `0` ẩn chúng | `1` |
-| `destructiveStyle` | Cách các hành động phá hủy được tô màu: `fill` sử dụng bề mặt phá hủy đặc, `soft` sử dụng một tông màu nhẹ của nó | `fill` |
+| `dialogTitleFontFamily` | Họ phông chữ của tiêu đề hộp thoại; theo `displayFontFamily` khi không đặt | `Inter, sans-serif` |
+| `scrimOpacity` | Độ đậm của lớp phủ phía sau hộp thoại tiêu chuẩn | `0.8` |
+| `alertScrimOpacity` | Độ đậm của lớp phủ phía sau hộp thoại xác nhận | `0.9` |
+| `modalScrimOpacity` | Độ đậm của lớp phủ phía sau các hộp thoại modal khác | `0.65` |
+| `buttonNeutralBorderOpacity` | Độ mờ của viền nút trung tính | Sáng: `0.1`; tối: `1` |
+| `elevationSurface` | Bóng đổ của các bề mặt nổi trong theme | `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
+| `elevationDrag` | Bóng đổ của huy hiệu khi đang được kéo | `0 10px 25px rgb(0 0 0 / 0.1)` |
+| `shadow2xs` | Mức `shadow-2xs` | `0 1px rgb(0 0 0 / 0.05)` |
+| `shadowXs` | Mức `shadow-xs` | `0 1px 2px 0 rgb(0 0 0 / 0.05)` |
+| `shadowSm` | Mức `shadow-sm` và `shadow` không kèm hậu tố | `0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)` |
+| `shadowMd` | Mức `shadow-md` | `0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)` |
+| `shadowLg` | Mức `shadow-lg` | `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
+| `shadowXl` | Mức `shadow-xl` | `0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)` |
+| `shadow2xl` | Mức `shadow-2xl` | `0 25px 50px -12px rgb(0 0 0 / 0.25)` |
+| `menuShadow` | Bóng đổ của bảng menu; ở chế độ sáng, theo `shadowLg` khi không đặt | Sáng: `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)`; tối: `0 10px 15px -3px rgb(0 0 0 / 0.25), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
+| `tooltipShadow` | Bóng đổ của tooltip | Sáng: `0 2px 4px 0 rgb(0 0 0 / 0.25)`; tối: `0 1px 2px 0 rgb(0 0 0 / 0.35)` |
+| `motionFast` | Thời lượng của các chuyển động nhanh | `150ms` |
+| `motionNormal` | Thời lượng của các chuyển động thông thường | `200ms` |
+| `chromeBorderAlpha` | Mức độ giữ lại màu viền cho đường viền của điều khiển và chip; `0` ẩn chúng mà không làm thay đổi bố cục | `1` |
+| `insetBorderAlpha` | Mức độ giữ lại màu viền cho các đường kẻ mảnh bên trong một bề mặt có viền; `0` ẩn chúng | `1` |
+| `destructiveStyle` | Cách các hành động phá hủy được thể hiện: `fill` dùng bề mặt phá hủy đặc, `soft` dùng một sắc thái nhạt của nó | `fill` |
 
 Các giá trị mặc định tái tạo giao diện của LibreChat, vì vậy một chủ đề không thiết lập bất kỳ khóa nào trong số này sẽ không làm thay đổi hình dạng.
 
@@ -302,6 +306,7 @@ Các giá trị được chấp nhận:
 - **`disabledStyle`:** `dim` hoặc `fill`.
 - **`fieldFocusStyle`:** `ring` hoặc `border`.
 - **`fieldFillStyle`:** `transparent` hoặc `fill`.
+- **`checkboxFillStyle`:** `transparent` hoặc `fill`.
 - **Độ đậm của phông chữ (`controlFontWeight`, `dialogTitleFontWeight`, `inlineCodeWeight`):** một số nguyên từ `1` đến `1000`. `labelFontWeight` cũng chấp nhận giá trị `inherit`.
 - **Chiều cao dòng (các bước `leading*`, `labelLeading` và `dialogTitleLeading`):** một số không có đơn vị (ví dụ: `1.5`), một `calc()` đơn lẻ chia hai số (ví dụ: `calc(1.25 / 0.875)`), hoặc một độ dài.
 - **Độ mờ của scrim, `buttonNeutralBorderOpacity`, `chromeBorderAlpha` và `insetBorderAlpha`:** một số từ `0` đến `1`.

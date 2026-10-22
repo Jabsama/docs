@@ -146,27 +146,28 @@ De browser past dezelfde regels toe op het thema dat hij ontvangt en logt `[Depl
 
 ### Kleuren [#colors]
 
-Kleuren gebruiken dezelfde tokennamen als de theme engine: `rgb-` gevolgd door de token, zoals `rgb-surface-primary`, `rgb-text-primary`, `rgb-border-medium`, `rgb-accent-primary` of `rgb-status-error-subtle`. De volledige lijst van 130 tokens is `themeColorTokens` in [`packages/data-provider/src/theme.ts`](https://github.com/LibreChat-AI/LibreChat/blob/dev/packages/data-provider/src/theme.ts), die zowel door de server als de browser wordt gelezen, en elke token wordt beschreven in de `IThemeRGB` interface in [`packages/client/src/theme/types/index.ts`](https://github.com/LibreChat-AI/LibreChat/blob/dev/packages/client/src/theme/types/index.ts).
+Kleuren gebruiken dezelfde tokennamen als de thema-engine: `rgb-` gevolgd door het token, zoals `rgb-surface-primary`, `rgb-text-primary`, `rgb-border-medium`, `rgb-accent-primary` of `rgb-status-error-subtle`. De volledige lijst van 169 tokens is `themeColorTokens` in [`packages/data-provider/src/theme.ts`](https://github.com/LibreChat-AI/LibreChat/blob/dev/packages/data-provider/src/theme.ts), die door zowel de server als de browser wordt gelezen. Elk token wordt beschreven in de `IThemeRGB`-interface in [`packages/client/src/theme/types/index.ts`](https://github.com/LibreChat-AI/LibreChat/blob/dev/packages/client/src/theme/types/index.ts).
 
 Naast de oppervlakte-, tekst-, rand-, status- en syntaxpaletten, laten deze rollen een thema specifieke interactiestatussen en componenten opnieuw vormgeven:
 
-| Rol | Tokens | Paints |
+| Rol | Tokens | Kleurt |
 | --- | --- | --- |
-| Focus | `rgb-focus-outline`, `rgb-focus-control` | De toetsenbordfocus-omtrek in de hele app en de focusring van gedeelde besturingselementen |
-| Ingedrukt | `rgb-surface-pressed`, `rgb-surface-inverted-pressed` | Neutrale en omgekeerde besturingselementen wanneer ingedrukt |
-| Omgekeerd en vast | `rgb-surface-inverted`, `rgb-surface-inverted-hover`, `rgb-text-inverted`, `rgb-surface-fixed`, `rgb-surface-fixed-hover`, `rgb-text-fixed` | Besturingselementen getekend in de kleuren van de tegenovergestelde modus, en besturingselementen die in beide modi één kleur behouden |
-| Uitgeschakeld | `rgb-surface-disabled`, `rgb-text-disabled`, `rgb-border-disabled` | Uitgeschakelde besturingselementen, wanneer `disabledStyle` is ingesteld op `fill` (zie [Appearance](#appearance)) |
-| Besturingsrand | `rgb-border-control` | De rand van invoervelden, selectietriggers en eenmalige codeslots, gescheiden gehouden van rustige scheidingstekens omdat deze een contrast van 3:1 vereisen |
-| Velden | `rgb-border-field-focus`, `rgb-field-fill`, `rgb-field-text` | De rand van een gefocust veld wanneer `fieldFocusStyle` is ingesteld op `border` (volgt `rgb-focus-control`), de opvulling van een veld wanneer `fieldFillStyle` is ingesteld op `fill` (volgt `rgb-surface-primary`), en de getypte waarde (volgt `rgb-text-primary`) |
-| Primaire knop | `rgb-button-primary`, `rgb-button-primary-hover` | De opvulling en hover van de primaire knop; volgt `rgb-surface-inverted` en `rgb-surface-inverted-hover`, die selectievakjes en schakelaars blijven gebruiken |
-| Inkt | `rgb-dialog-title`, `rgb-badge-label` | Dialoogvenstertitels en badge-labels; beide volgen `rgb-text-primary` |
-| Scrim | `rgb-surface-overlay` | De kleur achter dialoogvensters; de sterkte wordt bepaald door de scrim-dekkingen in [Appearance](#appearance) |
-| Media-overlay | `rgb-surface-media-overlay`, `rgb-text-on-media` | Scrims, chips en voortgangsbalken getekend over de eigen afbeeldingen van de gebruiker (lightbox, afbeeldingsvoorbeeld, uploads in uitvoering), en de tekst daarop. Gebundelde thema's houden deze zwart-wit in beide modi |
-| Avatar | `rgb-avatar-fill`, `rgb-avatar-text`, `rgb-avatar-placeholder`, `rgb-avatar-edge` | De opvulling en het symbool van de standaardgebruikersavatar (het symbool volgt `rgb-text-primary`), de achtergrond achter een ladende of transparante agent- of assistent-avatar (volgt `rgb-surface-secondary` in de lichte modus en `rgb-surface-tertiary` in de donkere modus), en de haarlijn rond de standaardavatar |
-| Bestandstegels | `rgb-file-document`, `rgb-file-sheet`, `rgb-file-code`, `rgb-file-artifact`, `rgb-file-audio`, `rgb-file-video`, `rgb-file-generic`, `rgb-file-ink` | Eén opvulling per bestandstype en het symbool dat op elke tegel wordt getekend |
-| Illustratie | `rgb-illustration-subtle`, `rgb-illustration`, `rgb-illustration-strong` | De drie tinten van in-app illustraties, zoals de illustratie van de zone voor het slepen van bestanden |
-| Schakelaar | `rgb-switch-unchecked`, `rgb-switch-thumb` | De niet-aangevinkte schakelaarbaan en de knop in beide statussen |
-| Tabel | `rgb-table-header-text`, `rgb-table-header-fill` | Kolomnamen en de ondoorzichtige opvulling van een vastgezette tabelkop |
+| Focus | `rgb-focus-outline`, `rgb-focus-control` | De toetsenbordfocusomlijning in de hele app, en de focusring van gedeelde besturingselementen |
+| Ingedrukt | `rgb-surface-pressed`, `rgb-surface-inverted-pressed` | Neutrale en omgekeerde besturingselementen terwijl ze ingedrukt zijn |
+| Omgekeerd en vast | `rgb-surface-inverted`, `rgb-surface-inverted-hover`, `rgb-text-inverted`, `rgb-surface-fixed`, `rgb-surface-fixed-hover`, `rgb-text-fixed` | Besturingselementen getekend in de kleuren van de tegengestelde modus, en besturingselementen die in beide modi dezelfde kleur behouden |
+| Uitgeschakeld | `rgb-surface-disabled`, `rgb-text-disabled`, `rgb-border-disabled` | Uitgeschakelde besturingselementen, wanneer `disabledStyle` `fill` is (zie [Uiterlijk](#appearance)) |
+| Besturingsrand | `rgb-border-control` | De rand van invoervelden, selectietriggers en eenmalige codevakjes, gescheiden van rustige scheidingslijnen omdat deze een contrast van 3:1 nodig hebben |
+| Velden | `rgb-border-field-focus`, `rgb-field-fill`, `rgb-field-text` | De rand van een gefocust veld wanneer `fieldFocusStyle` `border` is (volgt `rgb-focus-control`), de vulling van een veld wanneer `fieldFillStyle` `fill` is (volgt `rgb-surface-primary`), en de getypte waarde (volgt `rgb-text-primary`) |
+| Selectievakje | `rgb-checkbox-fill` | De vulling van een niet-aangevinkt selectievakje wanneer `checkboxFillStyle` `fill` is (volgt `rgb-surface-primary`) |
+| Primaire knop | `rgb-button-primary`, `rgb-button-primary-hover` | De vulling en hover van de primaire knop; volgen `rgb-surface-inverted` en `rgb-surface-inverted-hover`, die selectievakjes en schakelaars blijven gebruiken |
+| Inkten | `rgb-dialog-title`, `rgb-badge-label` | Dialooglabels en badge-labels; beide volgen `rgb-text-primary` |
+| Scrim | `rgb-surface-overlay` | De kleur achter dialogen; de sterkte wordt ingesteld door de scrim-dekkingsgraden in [Uiterlijk](#appearance) |
+| Mediaoverlay | `rgb-surface-media-overlay`, `rgb-text-on-media` | Scrims, chips en voortgangsbalken over de eigen afbeeldingen van de gebruiker (lightbox, afbeeldingsvoorbeeld, uploads in uitvoering), en de tekst daarop. Gebundelde thema's houden ze zwart en wit in beide modi |
+| Avatar | `rgb-avatar-fill`, `rgb-avatar-text`, `rgb-avatar-placeholder`, `rgb-avatar-edge` | De vulling en het symbool van de standaard gebruikersavatar (het symbool volgt `rgb-text-primary`), de achtergrond achter een laadende of transparante agent- of assistent-avatar (volgt `rgb-surface-secondary` in lichte modus en `rgb-surface-tertiary` in donkere modus), en de haarlijn rond de standaardavatar |
+| Bestandstegels | `rgb-file-document`, `rgb-file-sheet`, `rgb-file-code`, `rgb-file-artifact`, `rgb-file-audio`, `rgb-file-video`, `rgb-file-generic`, `rgb-file-ink` | Één vulling per soort bestand, en het symbool dat op elke tegel wordt getekend |
+| Illustratie | `rgb-illustration-subtle`, `rgb-illustration`, `rgb-illustration-strong` | De drie tinten van artwork in de app, zoals de illustratie van de bestandsdropzone |
+| Schakelaar | `rgb-switch-unchecked`, `rgb-switch-thumb` | De spoor van de niet-aangevinkte schakelaar, en de knop in beide standen |
+| Tabel | `rgb-table-header-text`, `rgb-table-header-fill` | Kolomnamen, en de ondoorzichtige vulling van een vastgezette tabelkop |
 | Grafiekreeksen | `rgb-series-1` t/m `rgb-series-8` | Categorische grafiekkleuren, in volgorde |
 
 Elke waarde is een kale `R G B` triplet met elk kanaal van `0` tot `255`, bijvoorbeeld `'255 255 255'`. Hex-waarden en `rgb(...)` worden geweigerd. Zet de waarde tussen aanhalingstekens zodat YAML het als een string leest.
@@ -177,116 +178,119 @@ Een paar tokens volgen een gerelateerd token dat je hebt ingesteld wanneer je ze
 
 Uiterstwaarden worden **per modus** ingesteld en een modus zonder deze waarden gebruikt de onderstaande standaardinstellingen. De standaardinstellingen zijn in beide modi hetzelfde, behalve `menuShadow` en `tooltipShadow`, die zwaarder zijn in de donkere modus, en `buttonNeutralBorderOpacity`, die ondoorzichtig is in de donkere modus. Om de vorm in beide modi te wijzigen, herhaalt u de waarden onder `light` en `dark`, zoals in het bovenstaande voorbeeld.
 
-| Sleutel | Besturingselementen | Standaard |
+| Sleutel | Bepaalt | Standaard |
 | --- | --- | --- |
-| `controlRadius` | Hoekradius van besturingselementen zoals knoppen en invoervelden | `0.75rem` |
-| `roundControlRadius` | Radius van volledig afgeronde besturingselementen | `9999px` |
+| `controlRadius` | Hoekradius van bedieningselementen zoals knoppen en invoervelden | `0.75rem` |
+| `roundControlRadius` | Radius van volledig afgeronde bedieningselementen | `9999px` |
 | `surfaceRadius` | Radius van oppervlakken zoals kaarten en menu's | `1rem` |
-| `largeSurfaceRadius` | Radius van grote oppervlakken zoals dialoogvensters | `1.5rem` |
+| `largeSurfaceRadius` | Radius van grote oppervlakken zoals dialogen | `1.5rem` |
 | `menuRadius` | Hoekradius van menupanelen | `0.7rem` |
-| `menuPanelRadius` | Hoekradius van het modelselectiemenu, hover-kaarten en de menu's van de composer; volgt `radiusXl` indien niet ingesteld | `0.75rem` |
-| `popoverRadius` | Hoekradius van de pop-overs van de composer, zoals de prompts, vaardigheden en vermeldingenlijsten; volgt `radius2xl` indien niet ingesteld | `1rem` |
-| `composerActionRadius` | Hoekradius van de verzend- en stopknoppen van de composer en andere ronde actieknoppen; volgt `roundControlRadius` indien niet ingesteld | `9999px` |
+| `menuPanelRadius` | Hoekradius van het menu van de modelkiezer, hovercards en de menu's van de composer; volgt `radiusXl` wanneer niet ingesteld | `0.75rem` |
+| `popoverRadius` | Hoekradius van de popovers van de composer, zoals de lijsten met prompts, vaardigheden en vermeldingen; volgt `radius2xl` wanneer niet ingesteld | `1rem` |
+| `composerActionRadius` | Hoekradius van de verzend- en stopknoppen van de composer en de overige ronde actieknoppen; volgt `roundControlRadius` wanneer niet ingesteld | `9999px` |
+| `compactPanelRadius` | Hoekradius van het paneel van de datumbereikkiezer; volgt `radiusLg` wanneer niet ingesteld | `0.5rem` |
 | `tooltipRadius` | Hoekradius van tooltips | `0.275rem` |
-| `tooltipPaddingX` | Inline opvulling van tooltips | `0.5rem` |
-| `tooltipPaddingY` | Verticale opvulling van tooltips | `0.25rem` |
-| `tooltipTextSize` | Lettergrootte van tooltip-tekst | `1rem` |
-| `tabRadius` | Hoekradius van tab-triggers | `0.185rem` |
-| `tabMinWidth` | Minimale breedte van een tab-trigger | `100px` |
-| `listMinWidth` | Minimale breedte van een Select-lijst; `0` schaalt deze op basis van de trigger | `8rem` |
-| `listMaxHeight` | Hoogte waarna een Select-lijst gaat scrollen | `24rem` |
-| `radiusSm` | De `rounded-sm` stap die in de hele app wordt gebruikt | `calc(0.5rem - 4px)` |
-| `radiusMd` | De `rounded-md` stap | `calc(0.5rem - 2px)` |
-| `radiusLg` | De `rounded-lg` stap | `0.5rem` |
-| `radiusXl` | De `rounded-xl` stap | `0.75rem` |
-| `radius2xl` | De `rounded-2xl` stap | `1rem` |
-| `radius3xl` | De `rounded-3xl` stap | `1.5rem` |
-| `controlHeight` | Hoogte van standaard besturingselementen | `2.25rem` |
-| `controlPaddingX` | Inline opvulling van besturingselementen met thema-grootte; volgt `spaceNormal` indien niet ingesteld | `0.75rem` |
-| `buttonPaddingX` | Inline opvulling van de standaard knopgrootte | `1rem` |
-| `controlGap` | Tussenruimte tussen het icoon en label van een besturingselement; volgt `spaceCompact` indien niet ingesteld | `0.375rem` |
-| `iconSize` | Grootte van standaard iconen (`size-theme-icon`) | `1rem` |
-| `iconSizeMd` | Grootte van middelgrote iconen (`size-theme-icon-md`) | `1.25rem` |
-| `iconSizeLg` | Grootte van grote iconen, zoals de sluitknop van een dialoogvenster (`size-theme-icon-lg`) | `1.5rem` |
-| `controlFontWeight` | Dikte van het label voor besturingselementen met thema-grootte | `500` |
-| `buttonHeight` | Hoogte van de standaard knop | `2.5rem` |
-| `buttonHeightSm` | Hoogte van de `sm` knop | `2.25rem` |
-| `buttonHeightXs` | Hoogte van de `xs` knop | `1.75rem` |
-| `buttonHeightLg` | Hoogte van de `lg` knop | `2.75rem` |
+| `tooltipPaddingX` | Horizontale binnenmarge van tooltips | `0.5rem` |
+| `tooltipPaddingY` | Verticale binnenmarge van tooltips | `0.25rem` |
+| `tooltipTextSize` | Lettergrootte van tooltiptekst | `1rem` |
+| `tabRadius` | Hoekradius van tabbladtriggers | `0.185rem` |
+| `tabMinWidth` | Minimale breedte van een tabbladtrigger | `100px` |
+| `listMinWidth` | Minimale breedte van een Select-lijst; `0` bepaalt de grootte op basis van de trigger | `8rem` |
+| `listMaxHeight` | Hoogte waarna een Select-lijst scrolt | `24rem` |
+| `radiusSm` | De `rounded-sm`-stap die in de hele app wordt gebruikt | `calc(0.5rem - 4px)` |
+| `radiusMd` | De `rounded-md`-stap | `calc(0.5rem - 2px)` |
+| `radiusLg` | De `rounded-lg`-stap | `0.5rem` |
+| `radiusXl` | De `rounded-xl`-stap | `0.75rem` |
+| `radius2xl` | De `rounded-2xl`-stap | `1rem` |
+| `radius3xl` | De `rounded-3xl`-stap | `1.5rem` |
+| `controlHeight` | Hoogte van standaard bedieningselementen | `2.25rem` |
+| `controlPaddingX` | Horizontale binnenmarge van bedieningselementen met themagrootte; volgt `spaceNormal` wanneer niet ingesteld | `0.75rem` |
+| `buttonPaddingX` | Horizontale binnenmarge van de standaardgrootte van knoppen | `1rem` |
+| `controlGap` | Ruimte tussen het pictogram en het label van een bedieningselement; volgt `spaceCompact` wanneer niet ingesteld | `0.375rem` |
+| `iconSize` | Grootte van standaardpictogrammen (`size-theme-icon`) | `1rem` |
+| `iconSizeMd` | Grootte van middelgrote pictogrammen (`size-theme-icon-md`) | `1.25rem` |
+| `iconSizeLg` | Grootte van grote pictogrammen, zoals de sluitknop van een dialoog (`size-theme-icon-lg`) | `1.5rem` |
+| `controlFontWeight` | Labelgewicht van bedieningselementen met themagrootte | `500` |
+| `buttonHeight` | Hoogte van de standaardknop | `2.5rem` |
+| `buttonHeightSm` | Hoogte van de `sm`-knop | `2.25rem` |
+| `buttonHeightXs` | Hoogte van de `xs`-knop | `1.75rem` |
+| `buttonHeightLg` | Hoogte van de `lg`-knop | `2.75rem` |
 | `buttonHeightCompact` | Hoogte van compacte knoppen | `2rem` |
-| `iconButtonSizeSm` | Breedte en hoogte van de `icon-sm` knop | `2rem` |
+| `iconButtonSizeSm` | Breedte en hoogte van de `icon-sm`-knop | `2rem` |
 | `fieldHeight` | Hoogte van formuliervelden | `2.5rem` |
 | `fieldHeightLg` | Hoogte van grote formuliervelden, zoals titelinvoervelden | `3rem` |
 | `authFieldHeight` | Hoogte van de velden met zwevend label op de inlogpagina's | `2.75rem` |
 | `authButtonHeight` | Hoogte van de verzendknoppen op de inlogpagina's | `3rem` |
-| `authControlRadius` | Hoekradius van de inlogvelden en verzendknoppen; volgt `radius2xl` indien niet ingesteld | `1rem` |
-| `authActionHeight` | Hoogte van de overige inlogacties, de tweefactorverificatie en de knoppen voor wachtwoordherstel; indien niet ingesteld, volgt deze `authButtonHeight` als het thema dit instelt, anders `buttonHeight`, waardoor de standaard overeenkomt met `buttonHeight` | `2.5rem` |
-| `authActionRadius` | Hoekradius van die overige inlogacties; indien niet ingesteld, volgt deze `authControlRadius` als het thema dit instelt, anders `radiusLg`, waardoor de standaard overeenkomt met `radiusLg` | `0.5rem` |
-| `fieldPaddingY` | Verticale opvulling van formuliervelden | `0.5rem` |
-| `fieldFocusStyle` | Hoe een gefocust veld focus toont: `ring` tekent de focusring, `border` verandert de rand van het veld naar `rgb-border-field-focus` | `ring` |
-| `fieldFillStyle` | Of velden `transparent` blijven of `rgb-field-fill` (`fill`) gebruiken | `transparent` |
-| `labelSize` | Lettergrootte van veldlabels; volgt `textSm` indien niet ingesteld | `0.875rem` |
-| `labelLeading` | Regelafstand van veldlabels | `1` |
-| `labelFontWeight` | Dikte van veldlabels; `inherit` behoudt de dikte van de omringende tekst | `inherit` |
-| `focusRingWidth` | Breedte van de focus-omtrek voor toetsenbordnavigatie | `2px` |
-| `focusRingOffset` | Afstand van de focus-omtrek tot de rand van het element | `2px` |
+| `authControlRadius` | Hoekradius van de invoervelden en verzendknoppen op de inlogpagina's; volgt `radius2xl` wanneer niet ingesteld | `1rem` |
+| `authActionHeight` | Hoogte van de overige acties op de inlogpagina's, de knoppen om te verifiëren bij tweestapsverificatie en om door te gaan bij het herstel van het wachtwoord; wanneer niet ingesteld, volgt deze `authButtonHeight` als het thema die instelt, en anders `buttonHeight`, zodat de standaard overeenkomt met `buttonHeight` | `2.5rem` |
+| `authActionRadius` | Hoekradius van die overige acties op de inlogpagina's; wanneer niet ingesteld, volgt deze `authControlRadius` als het thema die instelt, en anders `radiusLg`, zodat de standaard overeenkomt met `radiusLg` | `0.5rem` |
+| `fieldPaddingY` | Verticale binnenmarge van formuliervelden | `0.5rem` |
+| `fieldFocusStyle` | Hoe een gefocust veld de focus toont: `ring` tekent de focusring, `border` wisselt de rand van het veld naar `rgb-border-field-focus` | `ring` |
+| `fieldFillStyle` | Of velden `transparent` blijven of `rgb-field-fill` (`fill`) krijgen | `transparent` |
+| `labelSize` | Lettergrootte van veldlabels; volgt `textSm` wanneer niet ingesteld | `0.875rem` |
+| `labelLeading` | Regelhoogte van veldlabels | `1` |
+| `labelFontWeight` | Gewicht van veldlabels; `inherit` behoudt het gewicht van de omringende tekst | `inherit` |
+| `focusRingWidth` | Breedte van de focusomlijning voor toetsenbordnavigatie | `2px` |
+| `focusRingOffset` | Afstand van de focusomlijning tot de rand van het element | `2px` |
 | `switchWidth` | Breedte van de schakelaar | `2.75rem` |
-| `switchHeight` | Hoogte van de schakelaar; de knop is dit minus de rand van 4px van het spoor | `1.5rem` |
+| `switchHeight` | Hoogte van de schakelaar; de knop is dit minus de rand van 4px van de baan | `1.5rem` |
 | `checkboxSize` | Grootte van het selectievakje en het vinkje | `1rem` |
-| `tableCellSpaceY` | Verticale opvulling van tabelcellen | `1rem` |
+| `checkboxRadius` | Hoekradius van het selectievakje; volgt `radiusSm` wanneer niet ingesteld | `calc(0.5rem - 4px)` |
+| `checkboxFillStyle` | Of een niet-aangevinkt selectievakje `transparent` blijft of `rgb-checkbox-fill` (`fill`) krijgt, wat `rgb-surface-primary` volgt; een aangevinkt vakje behoudt `rgb-surface-inverted` | `transparent` |
+| `tableCellSpaceY` | Verticale binnenmarge van tabelcellen | `1rem` |
 | `tableRowStroke` | Dikte van de lijn tussen tabelrijen | `0px` |
-| `spaceCompact` | Compacte afstands-stap | `0.375rem` |
-| `spaceNormal` | Normale afstands-stap | `0.75rem` |
-| `disabledStyle` | Hoe uitgeschakelde besturingselementen eruitzien: `dim` vervaagt ze naar 50% dekking, `fill` vult ze met de uitgeschakelde kleurrollen | `dim` |
-| `fontFamily` | UI-lettertypefamilie (`font-sans`) | `Inter, sans-serif` |
-| `monoFontFamily` | Code-lettertypefamilie (`font-mono`) | `'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, 'Cascadia Mono', 'Liberation Mono', Consolas, monospace` |
-| `displayFontFamily` | Koppen en dialoogtitel (`font-display`); volgt `fontFamily` indien niet ingesteld | `Inter, sans-serif` |
-| `textXs` | De `text-xs` grootte | `0.75rem` |
-| `textSm` | De `text-sm` grootte | `0.875rem` |
-| `textBase` | De `text-base` grootte | `1rem` |
-| `textLg` | De `text-lg` grootte | `1.125rem` |
-| `textXl` | De `text-xl` grootte | `1.25rem` |
-| `text2xl` | De `text-2xl` grootte | `1.5rem` |
-| `text3xl` | De `text-3xl` grootte | `1.875rem` |
-| `text3xs` | De `text-3xs` grootte (standaard 10px) | `0.625rem` |
-| `text2xs` | De `text-2xs` grootte (standaard 11px) | `0.6875rem` |
-| `text1xs` | De `text-1xs` grootte (standaard 13px) | `0.8125rem` |
-| `text1sm` | De `text-1sm` grootte (standaard 15px) | `0.9375rem` |
-| `leadingXs` | Regelafstand gekoppeld aan `text-xs` | `calc(1 / 0.75)` |
-| `leadingSm` | Regelafstand gekoppeld aan `text-sm` | `calc(1.25 / 0.875)` |
-| `leadingBase` | Regelafstand gekoppeld aan `text-base` | `calc(1.5 / 1)` |
-| `leadingLg` | Regelafstand gekoppeld aan `text-lg` | `calc(1.75 / 1.125)` |
-| `leadingXl` | Regelafstand gekoppeld aan `text-xl` | `calc(1.75 / 1.25)` |
-| `leading2xl` | Regelafstand gekoppeld aan `text-2xl` | `calc(2 / 1.5)` |
-| `leading3xl` | Regelafstand gekoppeld aan `text-3xl` | `calc(2.25 / 1.875)` |
-| `inlineCodeWeight` | Dikte van inline code in berichten | `600` |
-| `dialogStroke` | Breedte van de rand van het dialoogvenster | `0px` |
-| `dialogPaddingX` | Inline opvulling van dialoogvensters | `1.5rem` |
-| `dialogHeaderGap` | Tussenruimte tussen de titel en beschrijving van een dialoogvenster | `0.375rem` |
-| `dialogTitleSize` | Lettergrootte van dialoogtitel; volgt `textLg` indien niet ingesteld | `1.125rem` |
-| `dialogTitleLeading` | Regelafstand van dialoogtitel | `1` |
-| `dialogTitleFontWeight` | Dikte van dialoogtitel | `600` |
-| `dialogTitleFontFamily` | Lettertypefamilie van dialoogtitel; volgt `displayFontFamily` indien niet ingesteld | `Inter, sans-serif` |
-| `scrimOpacity` | Sterkte van de achtergrondlaag achter standaard dialoogvensters | `0.8` |
-| `alertScrimOpacity` | Sterkte van de achtergrondlaag achter bevestigingsdialoogvensters | `0.9` |
-| `modalScrimOpacity` | Sterkte van de achtergrondlaag achter andere modale dialoogvensters | `0.65` |
+| `spaceCompact` | Compacte afstandsstap | `0.375rem` |
+| `spaceNormal` | Normale afstandsstap | `0.75rem` |
+| `disabledStyle` | Hoe uitgeschakelde bedieningselementen eruitzien: `dim` vervaagt ze tot 50% dekking, `fill` schildert ze met de rollen voor uitgeschakelde kleuren | `dim` |
+| `fontFamily` | Lettertypefamilie van de UI (`font-sans`) | `Inter, sans-serif` |
+| `monoFontFamily` | Lettertypefamilie voor code (`font-mono`) | `'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, 'Cascadia Mono', 'Liberation Mono', Consolas, monospace` |
+| `displayFontFamily` | Koppen en dialoogtitels (`font-display`); volgt `fontFamily` wanneer niet ingesteld | `Inter, sans-serif` |
+| `textXs` | De grootte `text-xs` | `0.75rem` |
+| `textSm` | De grootte `text-sm` | `0.875rem` |
+| `textBase` | De grootte `text-base` | `1rem` |
+| `textLg` | De grootte `text-lg` | `1.125rem` |
+| `textXl` | De grootte `text-xl` | `1.25rem` |
+| `text2xl` | De grootte `text-2xl` | `1.5rem` |
+| `text3xl` | De grootte `text-3xl` | `1.875rem` |
+| `text3xs` | De grootte `text-3xs` (standaard 10px) | `0.625rem` |
+| `text2xs` | De grootte `text-2xs` (standaard 11px) | `0.6875rem` |
+| `text1xs` | De grootte `text-1xs` (standaard 13px) | `0.8125rem` |
+| `text1sm` | De grootte `text-1sm` (standaard 15px) | `0.9375rem` |
+| `leadingXs` | Regelhoogte bij `text-xs` | `calc(1 / 0.75)` |
+| `leadingSm` | Regelhoogte bij `text-sm` | `calc(1.25 / 0.875)` |
+| `leadingBase` | Regelhoogte bij `text-base` | `calc(1.5 / 1)` |
+| `leadingLg` | Regelhoogte bij `text-lg` | `calc(1.75 / 1.125)` |
+| `leadingXl` | Regelhoogte bij `text-xl` | `calc(1.75 / 1.25)` |
+| `leading2xl` | Regelhoogte bij `text-2xl` | `calc(2 / 1.5)` |
+| `leading3xl` | Regelhoogte bij `text-3xl` | `calc(2.25 / 1.875)` |
+| `inlineCodeWeight` | Gewicht van inline code in berichten | `600` |
+| `dialogStroke` | Breedte van de randlijn van de dialoog | `0px` |
+| `dialogPaddingX` | Horizontale binnenmarge van dialogen | `1.5rem` |
+| `dialogHeaderGap` | Ruimte tussen de titel en de beschrijving van een dialoog | `0.375rem` |
+| `dialogTitleSize` | Lettergrootte van dialoogtitels; volgt `textLg` wanneer niet ingesteld | `1.125rem` |
+| `dialogTitleLeading` | Regelhoogte van dialoogtitels | `1` |
+| `dialogTitleFontWeight` | Gewicht van dialoogtitels | `600` |
+| `dialogTitleFontFamily` | Lettertypefamilie van dialoogtitels; volgt `displayFontFamily` wanneer niet ingesteld | `Inter, sans-serif` |
+| `scrimOpacity` | Sterkte van de abdeklaag achter standaarddialogen | `0.8` |
+| `alertScrimOpacity` | Sterkte van de abdeklaag achter bevestigingsdialogen | `0.9` |
+| `modalScrimOpacity` | Sterkte van de abdeklaag achter andere modale dialogen | `0.65` |
 | `buttonNeutralBorderOpacity` | Dekking van de rand van de neutrale knop | Licht: `0.1`; donker: `1` |
-| `elevationSurface` | Schaduw van verhoogde thema-oppervlakken | `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
+| `elevationSurface` | Schaduw van verhoogde themaoppervlakken | `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
 | `elevationDrag` | Schaduw van een badge terwijl deze wordt versleept | `0 10px 25px rgb(0 0 0 / 0.1)` |
-| `shadow2xs` | De `shadow-2xs` stap | `0 1px rgb(0 0 0 / 0.05)` |
-| `shadowXs` | De `shadow-xs` stap | `0 1px 2px 0 rgb(0 0 0 / 0.05)` |
-| `shadowSm` | De `shadow-sm` stap en kale `shadow` | `0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)` |
-| `shadowMd` | De `shadow-md` stap | `0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)` |
-| `shadowLg` | De `shadow-lg` stap | `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
-| `shadowXl` | De `shadow-xl` stap | `0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)` |
-| `shadow2xl` | De `shadow-2xl` stap | `0 25px 50px -12px rgb(0 0 0 / 0.25)` |
-| `menuShadow` | Schaduw van menupanelen; in lichte modus volgt deze `shadowLg` indien niet ingesteld | Licht: `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)`; donker: `0 10px 15px -3px rgb(0 0 0 / 0.25), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
+| `shadow2xs` | De stap `shadow-2xs` | `0 1px rgb(0 0 0 / 0.05)` |
+| `shadowXs` | De stap `shadow-xs` | `0 1px 2px 0 rgb(0 0 0 / 0.05)` |
+| `shadowSm` | De stap `shadow-sm` en de kale `shadow` | `0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)` |
+| `shadowMd` | De stap `shadow-md` | `0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)` |
+| `shadowLg` | De stap `shadow-lg` | `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
+| `shadowXl` | De stap `shadow-xl` | `0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)` |
+| `shadow2xl` | De stap `shadow-2xl` | `0 25px 50px -12px rgb(0 0 0 / 0.25)` |
+| `menuShadow` | Schaduw van menupanelen; in de lichte modus volgt deze `shadowLg` wanneer niet ingesteld | Licht: `0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)`; donker: `0 10px 15px -3px rgb(0 0 0 / 0.25), 0 4px 6px -4px rgb(0 0 0 / 0.1)` |
 | `tooltipShadow` | Schaduw van tooltips | Licht: `0 2px 4px 0 rgb(0 0 0 / 0.25)`; donker: `0 1px 2px 0 rgb(0 0 0 / 0.35)` |
 | `motionFast` | Duur van snelle overgangen | `150ms` |
 | `motionNormal` | Duur van normale overgangen | `200ms` |
-| `chromeBorderAlpha` | Hoeveel van de randkleur de contouren van besturingselementen en chips behouden; `0` verbergt ze zonder iets te verplaatsen | `1` |
-| `insetBorderAlpha` | Hoeveel van de randkleur de lijnen binnen een oppervlak met rand behouden; `0` verbergt ze | `1` |
-| `destructiveStyle` | Hoe destructieve acties worden weergegeven: `fill` gebruikt het solide destructieve oppervlak, `soft` een tint daarvan | `fill` |
+| `chromeBorderAlpha` | Hoeveel van de randkleur de omlijningen van bedieningselementen en chips behouden; `0` verbergt ze zonder iets te verschuiven | `1` |
+| `insetBorderAlpha` | Hoeveel van de randkleur de haarlijnen binnen een oppervlak met rand behouden; `0` verbergt ze | `1` |
+| `destructiveStyle` | Hoe destructieve acties worden geschilderd: `fill` gebruikt het effen destructieve oppervlak, `soft` een tint daarvan | `fill` |
 
 De standaardinstellingen reproduceren het uiterlijk van LibreChat, dus een thema dat geen van deze keys instelt, verandert niets aan de vormgeving.
 
@@ -303,6 +307,7 @@ Geaccepteerde waarden:
 - **`disabledStyle`:** `dim` of `fill`.
 - **`fieldFocusStyle`:** `ring` of `border`.
 - **`fieldFillStyle`:** `transparent` of `fill`.
+- **`checkboxFillStyle`:** `transparent` of `fill`.
 - **Font weights (`controlFontWeight`, `dialogTitleFontWeight`, `inlineCodeWeight`):** een geheel getal van `1` tot `1000`. `labelFontWeight` accepteert ook `inherit`.
 - **Regelhoogtes (de `leading*` stappen, `labelLeading` en `dialogTitleLeading`):** een getal zonder eenheid (zoals `1.5`), een enkele `calc()` die twee getallen deelt (zoals `calc(1.25 / 0.875)`), of een lengte.
 - **Scrim-dekkingen, `buttonNeutralBorderOpacity`, `chromeBorderAlpha` en `insetBorderAlpha`:** een getal van `0` tot `1`.
