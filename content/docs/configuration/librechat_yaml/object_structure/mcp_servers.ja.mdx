@@ -226,13 +226,13 @@ mcpServers:
     [
       'oauthPrompt',
       'String',
-      "(Optional) When an OAuth server asks a user to sign in. `on_start` (default) asks when the conversation turn starts. `on_use` waits until the agent first calls one of the server's tools, when every tool the agent selected from the server is deferred and `oauthToolCatalog` is declared.",
+      "(任意)OAuth サーバーがユーザーにサインインを求めるタイミング。`on_start`(デフォルト)は会話ターンの開始時にサインインを求めます。`on_use` は、エージェントがそのサーバーのツールを初めて呼び出すまで待機します。この場合、エージェントが当該サーバーから選択したすべてのツールが遅延読み込みされており、`oauthToolCatalog` が宣言されている必要があります。",
       'oauthPrompt: on_use',
     ],
     [
       'oauthToolCatalog',
       'Array of Objects',
-      '(Optional) Tools an `oauthPrompt: on_use` server offers to tool search before the user signs in. Each entry has a `name` and an optional `description` and `inputSchema`.',
+      '(任意) `oauthPrompt: on_use` のサーバーが、ユーザーがサインインする前にツール検索へ提供するツール。各エントリには `name` と、任意の `description` および `inputSchema` があります。',
       'oauthToolCatalog:\n  - name: read_sheet\n    description: Read the values in a spreadsheet range',
     ],
     [
@@ -652,18 +652,18 @@ requestHeaders:
 #### `oauthPrompt` [#oauthprompt]
 
 - **型:** 文字列 (オプション)
-- **Description:** Controls when a user is asked to sign in to an OAuth-protected server.
-  - `on_start`: the sign-in prompt appears when the conversation turn starts, before the agent runs.
-  - `on_use`: the turn starts without a prompt, and the agent finds the server's tools through tool search. The prompt appears when the agent first calls one of the server's tools, and the run waits for the user to sign in.
-- **Default Value:** `on_start`
+- **説明:** ユーザーに OAuth で保護されたサーバーへのサインインを求めるタイミングを制御します。
+  - `on_start`: サインインプロンプトは、エージェントが実行される前に、会話のターンが開始されたときに表示されます。
+  - `on_use`: ターンはプロンプトなしで開始され、エージェントはツール検索によってサーバーのツールを見つけます。エージェントがそのサーバーのツールを初めて呼び出したときにプロンプトが表示され、実行はユーザーがサインインするまで待機します。
+- **デフォルト値:** `on_start`
 - **注記:**
-  - `on_use` applies only when every tool the agent selected from the server is [deferred](/docs/features/agents#deferred-tools) ("Defer Loading" on). If any selected tool loads up front, or the agent selects the whole server rather than individual tools, the prompt stays at turn start.
-  - The `deferred_tools` [agent capability](/docs/configuration/librechat_yaml/object_structure/agents#capabilities) must be enabled. When the `run_in_background` capability is enabled, a selected tool that opts into background execution keeps the prompt at turn start, since a detached call cannot wait for a sign-in.
-  - `on_use` requires a declared [`oauthToolCatalog`](#oauthtoolcatalog). Without one, the server keeps the turn-start prompt, even for a user who has connected before.
-  - The tools offered before sign-in must include every selected tool, or the prompt stays at turn start. That is the declared catalog, or the user's own tool list when an earlier connection left one.
-  - Only operator-configured servers qualify: those defined in `librechat.yaml` or added through [admin configuration overrides](/docs/features/admin_panel#configuration-management). Servers users create in the UI keep the turn-start prompt. The prompt stays at turn start for a server that uses `obo`, `customUserVars`, `requestHeaders`, or per-user or per-request placeholders (`{{LIBRECHAT_USER_*}}`, `{{LIBRECHAT_OPENID_*}}`, `{{LIBRECHAT_GRAPH_*}}`, `{{LIBRECHAT_BODY_*}}`) in its connection settings.
-  - Applies whether OAuth is configured up front (`oauth`, `requiresOAuth: true`) or detected when the server refuses the connection.
-  - Not available on servers users create in the UI.
+  - `on_use` は、エージェントがサーバーから選択したツールがすべて[遅延読み込み](/docs/features/agents#deferred-tools)（「Defer Loading」がオン）になっている場合にのみ適用されます。選択されたツールのいずれかが最初から読み込まれる場合、またはエージェントがツールを個別に選択せずサーバー全体を選択している場合は、プロンプトはターン開始時に留まります。
+  - The [agent capability](/docs/configuration/librechat_yaml/object_structure/agents#capabilities) `deferred_tools` must be enabled. When the `run_in_background` capability is enabled, a selected tool that opts into background execution keeps the prompt at turn start, since a detached call cannot wait for a sign-in.
+  - `on_use` には、宣言された [`oauthToolCatalog`](#oauthtoolcatalog) が必要です。これがない場合、ユーザーが以前に接続していても、サーバーはターン開始時のプロンプトを維持します。
+  - ログイン前に提供されるツールには、選択されたすべてのツールが含まれていなければならず、そうでない場合はプロンプトはターン開始時点のままとなります。これは宣言されたカタログ、または以前の接続でユーザー自身のツールリストが残されている場合はそのリストです。
+  - オペレーターが設定したサーバーのみが対象となります。対象となるのは、`librechat.yaml` で定義されたサーバー、または[管理者設定のオーバーライド](/docs/features/admin_panel#configuration-management)で追加されたサーバーです。UI上でユーザーが作成したサーバーは、ターン開始時のプロンプトを維持します。接続設定で `obo`、`customUserVars`、`requestHeaders`、またはユーザー単位・リクエスト単位のプレースホルダー（`{{LIBRECHAT_USER_*}}`、`{{LIBRECHAT_OPENID_*}}`、`{{LIBRECHAT_GRAPH_*}}`、`{{LIBRECHAT_BODY_*}}`）を使用するサーバーの場合も、プロンプトはターン開始時のままとなります。
+  - OAuth が事前に設定されている場合（`oauth`、`requiresOAuth: true`）でも、接続時にサーバーが拒否したことで検出された場合でも、この内容が適用されます。
+  - UI で作成されたサーバーでは利用できません。
 - **例:**
   ```yaml
   mcpServers:
@@ -679,25 +679,25 @@ requestHeaders:
 
 #### `oauthToolCatalog` [#oauthtoolcatalog]
 
-- **Type:** Array of Objects (Optional)
-- **Description:** The tools an `oauthPrompt: on_use` server offers to tool search before a user signs in. LibreChat cannot list a protected server's tools for a user who has not signed in, so the operator declares them here. The catalog is the same for every user; no user's connection decides what other users' agents see. Once a user signs in, the server's own tool definitions are used, and the server validates every call.
-- **Entry fields:**
-  - `name`: String (Required) - The tool's name on the server, as the agent selects it.
-  - `description`: String (Optional) - What the tool does, shown to tool search and the model.
-  - `inputSchema`: Object (Optional) - The tool's parameters:
-    - `type`: must be `object`
-    - `properties`: map of parameter name to a property schema
-    - `required`: array of required parameter names
-- **Property schema:** a bounded subset of JSON Schema with these keys only:
-  - `type`: one of `string`, `number`, `integer`, `boolean`, `object`, `array`, `null`, or a non-empty list of them
-  - `description`: String
-  - `enum`: non-empty array of strings, numbers, booleans, or `null`
-  - `default`: a string, number, boolean, or `null`
-  - `items`: for arrays, an object with `type`, `description`, and `enum`
+- **型:** オブジェクトの配列 (任意)
+- **説明:** `oauthPrompt: on_use` サーバーが、ユーザーのサインイン前にツール検索へ提供するツールです。LibreChat は、サインインしていないユーザーに対して保護されたサーバーのツールを一覧表示できないため、運用者がここでツールを宣言します。このカタログはすべてのユーザーに共通であり、いずれかのユーザーの接続状態が他のユーザーのエージェントに見えるものを決めることはありません。ユーザーがサインインすると、サーバー自身のツール定義が使用され、サーバーはすべての呼び出しを検証します。
+- **入力フィールド:**
+  - `name`: String (必須) - エージェントが選択する際に、サーバー上でのツールの名前です。
+  - `description`: String (任意) - ツールの機能の説明です。ツール検索とモデルに表示されます。
+  - `inputSchema`: Object(省略可能) - ツールのパラメータ。
+    - `type`: `object` である必要があります
+    - `properties`: パラメータ名からプロパティスキーマへのマップ
+    - `required`: 必須パラメータ名の配列
+- **プロパティスキーマ:** 以下のキーのみを持つ、JSON Schema の限定されたサブセットです:
+  - `type`: `string`、`number`、`integer`、`boolean`、`object`、`array`、`null` のいずれか、またはこれらを含む空でないリスト
+  - `description`: 文字列
+  - `enum`: 文字列、数値、真偽値、または `null` からなる空でない配列
+  - `default`: 文字列、数値、真偽値、または`null`
+  - `items`: 配列の場合、`type`、`description`、`enum` を含むオブジェクト
 - **注記:**
-  - Validation is strict. A misspelled entry key (such as `input_schema`) or a keyword outside the bounded schema (such as `minLength`, `pattern`, or `$ref`) fails config validation instead of being ignored.
-  - A user whose earlier connection left a tool list is offered that list instead; either way it must include every tool the agent selected from the server, or the prompt stays at turn start.
-  - Not available on servers users create in the UI.
+  - 検証は厳格です。スペルミスのあるエントリキー(例: `input_schema`)や、限定されたスキーマの範囲外にあるキーワード(例: `minLength`、`pattern`、`$ref`)は、無視されるのではなく、設定の検証に失敗します。
+  - ツールリストが残っている以前の接続を持つユーザーには、代わりにそのリストが提示されます。いずれの場合も、エージェントがサーバーから選択したすべてのツールが含まれている必要があり、含まれていない場合はターン開始時のままプロンプトが維持されます。
+  - UI で作成されたサーバーでは利用できません。
 - **例:**
   ```yaml
   oauthToolCatalog:
@@ -873,7 +873,7 @@ oauth-api-server:
     X-Custom-Header: 'custom_value'
 ```
 
-### MCP Server with OAuth Sign-In on First Tool Use [#mcp-server-with-oauth-sign-in-on-first-tool-use]
+### OAuth サインインを伴う MCP サーバー（初回ツール使用時） [#mcp-server-with-oauth-sign-in-on-first-tool-use]
 
 ```yaml filename="MCP Server with oauthPrompt: on_use"
 google-sheets:

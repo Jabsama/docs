@@ -226,13 +226,13 @@ mcpServers:
     [
       'oauthPrompt',
       'String',
-      "(Optional) When an OAuth server asks a user to sign in. `on_start` (default) asks when the conversation turn starts. `on_use` waits until the agent first calls one of the server's tools, when every tool the agent selected from the server is deferred and `oauthToolCatalog` is declared.",
+      "(Tùy chọn) Khi máy chủ OAuth yêu cầu người dùng đăng nhập. `on_start` (mặc định) yêu cầu đăng nhập khi lượt hội thoại bắt đầu. `on_use` chờ cho đến khi tác nhân gọi lần đầu một trong các công cụ của máy chủ đó, khi tất cả công cụ mà tác nhân đã chọn từ máy chủ đều được trì hoãn và `oauthToolCatalog` đã được khai báo.",
       'oauthPrompt: on_use',
     ],
     [
       'oauthToolCatalog',
       'Array of Objects',
-      '(Optional) Tools an `oauthPrompt: on_use` server offers to tool search before the user signs in. Each entry has a `name` and an optional `description` and `inputSchema`.',
+      '(Tùy chọn) Các công cụ mà máy chủ `oauthPrompt: on_use` cung cấp cho tính năng tìm kiếm công cụ trước khi người dùng đăng nhập. Mỗi mục có `name` và các trường tùy chọn `description` và `inputSchema`.',
       'oauthToolCatalog:\n  - name: read_sheet\n    description: Read the values in a spreadsheet range',
     ],
     [
@@ -652,18 +652,18 @@ Các yêu cầu HTTP về khám phá, đăng ký, token và thu hồi OAuth phí
 #### `oauthPrompt` [#oauthprompt]
 
 - **Loại:** Chuỗi (Tùy chọn)
-- **Description:** Controls when a user is asked to sign in to an OAuth-protected server.
-  - `on_start`: the sign-in prompt appears when the conversation turn starts, before the agent runs.
-  - `on_use`: the turn starts without a prompt, and the agent finds the server's tools through tool search. The prompt appears when the agent first calls one of the server's tools, and the run waits for the user to sign in.
-- **Default Value:** `on_start`
+- **Mô tả:** Kiểm soát thời điểm người dùng được yêu cầu đăng nhập vào máy chủ được bảo vệ bằng OAuth.
+  - `on_start`: lời nhắc đăng nhập xuất hiện khi lượt hội thoại bắt đầu, trước khi agent chạy.
+  - `on_use`: lượt bắt đầu mà không có lời nhắc, và agent tìm các công cụ của máy chủ thông qua tìm kiếm công cụ. Lời nhắc xuất hiện khi agent gọi lần đầu một trong các công cụ của máy chủ, và quá trình chạy sẽ chờ người dùng đăng nhập.
+- **Giá trị mặc định:** `on_start`
 - **Ghi chú:**
-  - `on_use` applies only when every tool the agent selected from the server is [deferred](/docs/features/agents#deferred-tools) ("Defer Loading" on). If any selected tool loads up front, or the agent selects the whole server rather than individual tools, the prompt stays at turn start.
-  - The `deferred_tools` [agent capability](/docs/configuration/librechat_yaml/object_structure/agents#capabilities) must be enabled. When the `run_in_background` capability is enabled, a selected tool that opts into background execution keeps the prompt at turn start, since a detached call cannot wait for a sign-in.
-  - `on_use` requires a declared [`oauthToolCatalog`](#oauthtoolcatalog). Without one, the server keeps the turn-start prompt, even for a user who has connected before.
-  - The tools offered before sign-in must include every selected tool, or the prompt stays at turn start. That is the declared catalog, or the user's own tool list when an earlier connection left one.
-  - Only operator-configured servers qualify: those defined in `librechat.yaml` or added through [admin configuration overrides](/docs/features/admin_panel#configuration-management). Servers users create in the UI keep the turn-start prompt. The prompt stays at turn start for a server that uses `obo`, `customUserVars`, `requestHeaders`, or per-user or per-request placeholders (`{{LIBRECHAT_USER_*}}`, `{{LIBRECHAT_OPENID_*}}`, `{{LIBRECHAT_GRAPH_*}}`, `{{LIBRECHAT_BODY_*}}`) in its connection settings.
-  - Applies whether OAuth is configured up front (`oauth`, `requiresOAuth: true`) or detected when the server refuses the connection.
-  - Not available on servers users create in the UI.
+  - `on_use` chỉ áp dụng khi mọi công cụ mà agent chọn từ máy chủ đều là [deferred](/docs/features/agents#deferred-tools) (tùy chọn "Defer Loading" được bật). Nếu có bất kỳ công cụ nào được chọn tải ngay từ đầu, hoặc agent chọn toàn bộ máy chủ thay vì từng công cụ riêng lẻ, prompt sẽ được giữ ở thời điểm bắt đầu lượt.
+  - Capability `deferred_tools` của [agent](/docs/configuration/librechat_yaml/object_structure/agents#capabilities) phải được bật. Khi capability `run_in_background` được bật, một tool đã chọn và chọn chạy nền sẽ giữ lời nhắc ở đầu lượt, vì một lệnh gọi tách rời không thể chờ đăng nhập.
+  - `on_use` yêu cầu phải khai báo một [`oauthToolCatalog`](#oauthtoolcatalog). Nếu không có, máy chủ sẽ giữ nguyên lời nhắc tại thời điểm bắt đầu lượt, ngay cả đối với người dùng đã từng kết nối trước đó.
+  - Các công cụ được cung cấp trước khi đăng nhập phải bao gồm mọi công cụ đã chọn, nếu không lời nhắc sẽ giữ nguyên ở đầu lượt. Đó là danh mục đã khai báo, hoặc danh sách công cụ riêng của người dùng khi một kết nối trước đó đã để lại danh sách này.
+  - Chỉ những máy chủ do quản trị viên cấu hình mới đủ điều kiện: các máy chủ được định nghĩa trong `librechat.yaml` hoặc được thêm thông qua [ghi đè cấu hình quản trị](/docs/features/admin_panel#configuration-management). Các máy chủ do người dùng tạo trong giao diện sẽ giữ lời nhắc ở đầu lượt. Lời nhắc vẫn được giữ ở đầu lượt đối với một máy chủ sử dụng `obo`, `customUserVars`, `requestHeaders`, hoặc các placeholder theo người dùng hoặc theo yêu cầu (`{{LIBRECHAT_USER_*}}`, `{{LIBRECHAT_OPENID_*}}`, `{{LIBRECHAT_GRAPH_*}}`, `{{LIBRECHAT_BODY_*}}`) trong cài đặt kết nối của máy chủ đó.
+  - Áp dụng cho cả trường hợp OAuth được cấu hình trước (`oauth`, `requiresOAuth: true`) lẫn trường hợp được phát hiện khi máy chủ từ chối kết nối.
+  - Không khả dụng trên các máy chủ mà người dùng tạo trong giao diện người dùng.
 - **Ví dụ:**
   ```yaml
   mcpServers:
@@ -679,25 +679,25 @@ Các yêu cầu HTTP về khám phá, đăng ký, token và thu hồi OAuth phí
 
 #### `oauthToolCatalog` [#oauthtoolcatalog]
 
-- **Type:** Array of Objects (Optional)
-- **Description:** The tools an `oauthPrompt: on_use` server offers to tool search before a user signs in. LibreChat cannot list a protected server's tools for a user who has not signed in, so the operator declares them here. The catalog is the same for every user; no user's connection decides what other users' agents see. Once a user signs in, the server's own tool definitions are used, and the server validates every call.
-- **Entry fields:**
-  - `name`: String (Required) - The tool's name on the server, as the agent selects it.
-  - `description`: String (Optional) - What the tool does, shown to tool search and the model.
-  - `inputSchema`: Object (Optional) - The tool's parameters:
-    - `type`: must be `object`
-    - `properties`: map of parameter name to a property schema
-    - `required`: array of required parameter names
-- **Property schema:** a bounded subset of JSON Schema with these keys only:
-  - `type`: one of `string`, `number`, `integer`, `boolean`, `object`, `array`, `null`, or a non-empty list of them
-  - `description`: String
-  - `enum`: non-empty array of strings, numbers, booleans, or `null`
-  - `default`: a string, number, boolean, or `null`
-  - `items`: for arrays, an object with `type`, `description`, and `enum`
+- **Loại:** Mảng các đối tượng (Không bắt buộc)
+- **Mô tả:** Các công cụ mà một máy chủ `oauthPrompt: on_use` cung cấp cho tính năng tìm kiếm công cụ trước khi người dùng đăng nhập. LibreChat không thể liệt kê công cụ của một máy chủ được bảo vệ đối với người dùng chưa đăng nhập, vì vậy quản trị viên cần khai báo các công cụ đó tại đây. Danh mục này giống nhau đối với mọi người dùng; kết nối của bất kỳ người dùng nào cũng không quyết định những gì các tác nhân của người dùng khác nhìn thấy. Khi người dùng đã đăng nhập, định nghĩa công cụ của chính máy chủ sẽ được sử dụng, và máy chủ sẽ xác thực từng lệnh gọi.
+- **Các trường nhập liệu:**
+  - `name`: String (Bắt buộc) - Tên của công cụ trên máy chủ, như cách agent chọn nó.
+  - `description`: String (Tùy chọn) - Chức năng của công cụ, được hiển thị cho tính năng tìm kiếm công cụ và mô hình.
+  - `inputSchema`: Object (Tùy chọn) - Các tham số của công cụ:
+    - `type`: phải là `object`
+    - `properties`: ánh xạ từ tên tham số tới một lược đồ thuộc tính (property schema)
+    - `required`: mảng tên các tham số bắt buộc
+- **Lược đồ thuộc tính:** một tập con có giới hạn của JSON Schema, chỉ gồm các khóa sau:
+  - `type`: một trong các giá trị `string`, `number`, `integer`, `boolean`, `object`, `array`, `null`, hoặc một danh sách không rỗng gồm các giá trị trên
+  - I need the text you'd like translated. Your message only contains the field label `description`: String, which is a key with a type annotation but no content. Please paste the full Markdown/MDX block or prose you want translated, and I'll return the Tiếng Việt translation.
+  - `enum`: mảng không rỗng gồm các chuỗi, số, boolean hoặc `null`
+  - `default`: một chuỗi (string), số (number), giá trị boolean, hoặc `null`
+  - `items`: đối với mảng, một đối tượng có `type`, `description` và `enum`
 - **Ghi chú:**
-  - Validation is strict. A misspelled entry key (such as `input_schema`) or a keyword outside the bounded schema (such as `minLength`, `pattern`, or `$ref`) fails config validation instead of being ignored.
-  - A user whose earlier connection left a tool list is offered that list instead; either way it must include every tool the agent selected from the server, or the prompt stays at turn start.
-  - Not available on servers users create in the UI.
+  - Việc xác thực được thực hiện nghiêm ngặt. Nếu khóa mục bị viết sai chính tả (chẳng hạn `input_schema`) hoặc một từ khóa nằm ngoài lược đồ giới hạn (chẳng hạn `minLength`, `pattern` hoặc `$ref`), quá trình xác thực cấu hình sẽ thất bại thay vì bỏ qua.
+  - Người dùng có kết nối trước đó còn lưu danh sách công cụ sẽ được đề xuất danh sách đó thay thế; dù bằng cách nào, danh sách phải bao gồm mọi công cụ mà tác nhân đã chọn từ máy chủ, nếu không lời nhắc sẽ vẫn ở đầu lượt.
+  - Không khả dụng trên các máy chủ mà người dùng tạo trong giao diện người dùng.
 - **Ví dụ:**
   ```yaml
   oauthToolCatalog:
@@ -873,7 +873,7 @@ oauth-api-server:
     X-Custom-Header: 'custom_value'
 ```
 
-### MCP Server with OAuth Sign-In on First Tool Use [#mcp-server-with-oauth-sign-in-on-first-tool-use]
+### Máy chủ MCP với đăng nhập OAuth khi sử dụng công cụ lần đầu [#mcp-server-with-oauth-sign-in-on-first-tool-use]
 
 ```yaml filename="MCP Server with oauthPrompt: on_use"
 google-sheets:

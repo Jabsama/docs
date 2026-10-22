@@ -226,13 +226,13 @@ mcpServers:
     [
       'oauthPrompt',
       'String',
-      "(Optional) When an OAuth server asks a user to sign in. `on_start` (default) asks when the conversation turn starts. `on_use` waits until the agent first calls one of the server's tools, when every tool the agent selected from the server is deferred and `oauthToolCatalog` is declared.",
+      "(İsteğe bağlı) Bir OAuth sunucusunun kullanıcıdan oturum açmasını istediği zaman. `on_start` (varsayılan), sohbet turu başladığında sorar. `on_use`, aracı sunucunun araçlarından biri ilk kez çağrılana kadar bekler; bu, aracın sunucudan seçtiği tüm araçların ertelendiği ve `oauthToolCatalog` tanımlandığı durumda geçerlidir.",
       'oauthPrompt: on_use',
     ],
     [
       'oauthToolCatalog',
       'Array of Objects',
-      '(Optional) Tools an `oauthPrompt: on_use` server offers to tool search before the user signs in. Each entry has a `name` and an optional `description` and `inputSchema`.',
+      '(İsteğe bağlı) `oauthPrompt: on_use` sunucusunun, kullanıcı oturum açmadan önce araç aramaya sunduğu araçlar. Her girdide bir `name` ve isteğe bağlı bir `description` ile `inputSchema` bulunur.',
       'oauthToolCatalog:\n  - name: read_sheet\n    description: Read the values in a spreadsheet range',
     ],
     [
@@ -652,18 +652,18 @@ Sunucu taraflı OAuth keşif, kayıt, belirteç ve iptal HTTP istekleri, orijina
 #### `oauthPrompt` [#oauthprompt]
 
 - **Tür:** String (İsteğe bağlı)
-- **Description:** Controls when a user is asked to sign in to an OAuth-protected server.
-  - `on_start`: the sign-in prompt appears when the conversation turn starts, before the agent runs.
-  - `on_use`: the turn starts without a prompt, and the agent finds the server's tools through tool search. The prompt appears when the agent first calls one of the server's tools, and the run waits for the user to sign in.
-- **Default Value:** `on_start`
+- **Açıklama:** Kullanıcının OAuth ile korunan bir sunucuya ne zaman giriş yapması gerektiğini belirler.
+  - `on_start`: oturum açma istemi, konuşma turu başladığında, agent çalışmadan önce görüntülenir.
+  - `on_use`: Tur bir istem olmadan başlar ve agent, sunucunun araçlarını araç arama yoluyla bulur. İstem, agent sunucunun araçlarından birini ilk kez çağırdığında görüntülenir ve çalışma, kullanıcının oturum açmasını bekler.
+- **Varsayılan Değer:** `on_start`
 - **Notlar:**
-  - `on_use` applies only when every tool the agent selected from the server is [deferred](/docs/features/agents#deferred-tools) ("Defer Loading" on). If any selected tool loads up front, or the agent selects the whole server rather than individual tools, the prompt stays at turn start.
-  - The `deferred_tools` [agent capability](/docs/configuration/librechat_yaml/object_structure/agents#capabilities) must be enabled. When the `run_in_background` capability is enabled, a selected tool that opts into background execution keeps the prompt at turn start, since a detached call cannot wait for a sign-in.
+  - `on_use` yalnızca, agent'ın sunucudan seçtiği her araç [ertelenmiş](/docs/features/agents#deferred-tools) ("Defer Loading" açık) olduğunda uygulanır. Seçilen araçlardan herhangi biri baştan yüklenirse veya agent, tek tek araçlar yerine tüm sunucuyu seçerse, prompt tur başında kalır.
+  - Kullanıcıya ilişkin öneri: `deferred_tools` [ajan yeteneği](/docs/configuration/librechat_yaml/object_structure/agents#capabilities) etkinleştirilmiş olmalıdır. `run_in_background` yeteneği etkinleştirildiğinde, arka planda çalışmayı tercih eden seçili bir araç, tur başlangıcında istemi korur; çünkü ayrılmış (detached) bir çağrı oturum açmayı bekleyemez.
   - `on_use` requires a declared [`oauthToolCatalog`](#oauthtoolcatalog). Without one, the server keeps the turn-start prompt, even for a user who has connected before.
-  - The tools offered before sign-in must include every selected tool, or the prompt stays at turn start. That is the declared catalog, or the user's own tool list when an earlier connection left one.
-  - Only operator-configured servers qualify: those defined in `librechat.yaml` or added through [admin configuration overrides](/docs/features/admin_panel#configuration-management). Servers users create in the UI keep the turn-start prompt. The prompt stays at turn start for a server that uses `obo`, `customUserVars`, `requestHeaders`, or per-user or per-request placeholders (`{{LIBRECHAT_USER_*}}`, `{{LIBRECHAT_OPENID_*}}`, `{{LIBRECHAT_GRAPH_*}}`, `{{LIBRECHAT_BODY_*}}`) in its connection settings.
-  - Applies whether OAuth is configured up front (`oauth`, `requiresOAuth: true`) or detected when the server refuses the connection.
-  - Not available on servers users create in the UI.
+  - Oturum açılmadan önce sunulan araçlar, seçilen her aracı içermelidir; aksi halde istem tur başlangıcında kalır. Bu, bildirilen katalog veya daha önceki bir bağlantının geride bıraktığı kullanıcıya ait araç listesidir.
+  - Yalnızca operatör tarafından yapılandırılmış sunucular bu kapsama girer: `librechat.yaml` dosyasında tanımlanan veya [yönetici yapılandırma geçersiz kılmaları](/docs/features/admin_panel#configuration-management) üzerinden eklenen sunucular. Kullanıcıların arayüzde oluşturduğu sunucular, tur başlangıcındaki istemi korur. Bağlantı ayarlarında `obo`, `customUserVars`, `requestHeaders` veya kullanıcıya ya da isteğe özgü yer tutucular (`{{LIBRECHAT_USER_*}}`, `{{LIBRECHAT_OPENID_*}}`, `{{LIBRECHAT_GRAPH_*}}`, `{{LIBRECHAT_BODY_*}}`) kullanan bir sunucu için istem tur başlangıcında kalır.
+  - Bu durum, OAuth'un önceden yapılandırılması (`oauth`, `requiresOAuth: true`) veya sunucunun bağlantıyı reddettiği anda tespit edilmesi durumlarının ikisi için de geçerlidir.
+  - Kullanıcıların arayüzde oluşturduğu sunucularda kullanılamaz.
 - **Örnek:**
   ```yaml
   mcpServers:
@@ -679,25 +679,25 @@ Sunucu taraflı OAuth keşif, kayıt, belirteç ve iptal HTTP istekleri, orijina
 
 #### `oauthToolCatalog` [#oauthtoolcatalog]
 
-- **Type:** Array of Objects (Optional)
-- **Description:** The tools an `oauthPrompt: on_use` server offers to tool search before a user signs in. LibreChat cannot list a protected server's tools for a user who has not signed in, so the operator declares them here. The catalog is the same for every user; no user's connection decides what other users' agents see. Once a user signs in, the server's own tool definitions are used, and the server validates every call.
-- **Entry fields:**
-  - `name`: String (Required) - The tool's name on the server, as the agent selects it.
-  - `description`: String (Optional) - What the tool does, shown to tool search and the model.
-  - `inputSchema`: Object (Optional) - The tool's parameters:
-    - `type`: must be `object`
-    - `properties`: map of parameter name to a property schema
-    - `required`: array of required parameter names
-- **Property schema:** a bounded subset of JSON Schema with these keys only:
-  - `type`: one of `string`, `number`, `integer`, `boolean`, `object`, `array`, `null`, or a non-empty list of them
+- **Tür:** Nesnelerden oluşan dizi (İsteğe bağlı)
+- **Açıklama:** Bir `oauthPrompt: on_use` sunucusunun, kullanıcı oturum açmadan önce araç aramasına sunduğu araçlar. LibreChat, oturum açmamış bir kullanıcı için korumalı bir sunucunun araçlarını listeleyemez; bu nedenle bu araçlar burada operatör tarafından tanımlanır. Katalog tüm kullanıcılar için aynıdır; hiçbir kullanıcının bağlantısı, diğer kullanıcıların ajanlarının neleri göreceğini belirlemez. Kullanıcı oturum açtıktan sonra sunucunun kendi araç tanımları kullanılır ve sunucu her çağrıyı doğrular.
+- **Giriş alanları:**
+  - `name`: String (Zorunlu) - Araç adı, sunucudaki adıdır; agent bu adı seçer.
+  - `description`: String (İsteğe bağlı) - Aracın ne yaptığı; araç aramasında ve modele gösterilir.
+  - `inputSchema`: Object (İsteğe bağlı) - Aracın parametreleri:
+    - `type`: değer `object` olmalıdır
+    - `properties`: parametre adından özellik şemasına eşleyen bir harita
+    - `required`: gerekli parametre adlarından oluşan dizi (array)
+- **Özellik şeması:** Yalnızca şu anahtarlara izin veren, sınırlandırılmış bir JSON Schema alt kümesi:
+  - `type`: `string`, `number`, `integer`, `boolean`, `object`, `array`, `null` değerlerinden biri veya bunlardan oluşan boş olmayan bir liste olabilir.
   - `description`: String
-  - `enum`: non-empty array of strings, numbers, booleans, or `null`
-  - `default`: a string, number, boolean, or `null`
-  - `items`: for arrays, an object with `type`, `description`, and `enum`
+  - `enum`: boş olmayan, dizeler, sayılar, boolean değerler veya `null` içeren bir dizi
+  - `default`: string, number, boolean veya `null`
+  - `items`: diziler için `type`, `description` ve `enum` içeren bir nesne
 - **Notlar:**
-  - Validation is strict. A misspelled entry key (such as `input_schema`) or a keyword outside the bounded schema (such as `minLength`, `pattern`, or `$ref`) fails config validation instead of being ignored.
-  - A user whose earlier connection left a tool list is offered that list instead; either way it must include every tool the agent selected from the server, or the prompt stays at turn start.
-  - Not available on servers users create in the UI.
+  - Doğrulama katıdır. Yanlış yazılmış bir giriş anahtarı (örneğin `input_schema`) veya sınırlı şema dışındaki bir anahtar sözcük (örneğin `minLength`, `pattern` veya `$ref`) yoksayılmak yerine yapılandırma doğrulamasının başarısız olmasına neden olur.
+  - Önceki bağlantısında bir araç listesi bırakmış olan bir kullanıcıya, bunun yerine o liste sunulur; her iki durumda da bu listede, aracının sunucudan seçtiği tüm araçlar bulunmalıdır, aksi halde istem tur başlangıcında kalır.
+  - Kullanıcıların arayüzde oluşturduğu sunucularda kullanılamaz.
 - **Örnek:**
   ```yaml
   oauthToolCatalog:
@@ -873,7 +873,7 @@ oauth-api-server:
     X-Custom-Header: 'custom_value'
 ```
 
-### MCP Server with OAuth Sign-In on First Tool Use [#mcp-server-with-oauth-sign-in-on-first-tool-use]
+### MCP Sunucusu ile İlk Araç Kullanımında OAuth Girişi [#mcp-server-with-oauth-sign-in-on-first-tool-use]
 
 ```yaml filename="MCP Server with oauthPrompt: on_use"
 google-sheets:

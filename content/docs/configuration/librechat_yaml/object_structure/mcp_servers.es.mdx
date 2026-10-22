@@ -226,13 +226,13 @@ mcpServers:
     [
       'oauthPrompt',
       'String',
-      "(Optional) When an OAuth server asks a user to sign in. `on_start` (default) asks when the conversation turn starts. `on_use` waits until the agent first calls one of the server's tools, when every tool the agent selected from the server is deferred and `oauthToolCatalog` is declared.",
+      "(Opcional) Cuando un servidor OAuth solicita que el usuario inicie sesión. `on_start` (predeterminado) pregunta al inicio del turno de la conversación. `on_use` espera hasta que el agente llame por primera vez a una de las herramientas del servidor, cuando todas las herramientas que el agente seleccionó del servidor están diferidas y se declara `oauthToolCatalog`.",
       'oauthPrompt: on_use',
     ],
     [
       'oauthToolCatalog',
       'Array of Objects',
-      '(Optional) Tools an `oauthPrompt: on_use` server offers to tool search before the user signs in. Each entry has a `name` and an optional `description` and `inputSchema`.',
+      '(Opcional) Herramientas que un servidor con `oauthPrompt: on_use` ofrece a la búsqueda de herramientas antes de que el usuario inicie sesión. Cada entrada tiene un `name` y un `description` y `inputSchema` opcionales.',
       'oauthToolCatalog:\n  - name: read_sheet\n    description: Read the values in a spreadsheet range',
     ],
     [
@@ -652,18 +652,18 @@ Las solicitudes HTTP de descubrimiento, registro, token y revocación de OAuth d
 #### `oauthPrompt` [#oauthprompt]
 
 - **Tipo:** Cadena (Opcional)
-- **Description:** Controls when a user is asked to sign in to an OAuth-protected server.
-  - `on_start`: the sign-in prompt appears when the conversation turn starts, before the agent runs.
-  - `on_use`: the turn starts without a prompt, and the agent finds the server's tools through tool search. The prompt appears when the agent first calls one of the server's tools, and the run waits for the user to sign in.
-- **Default Value:** `on_start`
+- **Descripción:** Controla cuándo se le pide a un usuario que inicie sesión en un servidor protegido con OAuth.
+  - `on_start`: el aviso de inicio de sesión aparece cuando comienza el turno de la conversación, antes de que se ejecute el agente.
+  - `on_use`: el turno comienza sin un mensaje, y el agente encuentra las herramientas del servidor mediante la búsqueda de herramientas. La solicitud aparece cuando el agente llama por primera vez a una de las herramientas del servidor, y la ejecución espera a que el usuario inicie sesión.
+- **Valor predeterminado:** `on_start`
 - **Notas:**
-  - `on_use` applies only when every tool the agent selected from the server is [deferred](/docs/features/agents#deferred-tools) ("Defer Loading" on). If any selected tool loads up front, or the agent selects the whole server rather than individual tools, the prompt stays at turn start.
-  - The `deferred_tools` [agent capability](/docs/configuration/librechat_yaml/object_structure/agents#capabilities) must be enabled. When the `run_in_background` capability is enabled, a selected tool that opts into background execution keeps the prompt at turn start, since a detached call cannot wait for a sign-in.
-  - `on_use` requires a declared [`oauthToolCatalog`](#oauthtoolcatalog). Without one, the server keeps the turn-start prompt, even for a user who has connected before.
-  - The tools offered before sign-in must include every selected tool, or the prompt stays at turn start. That is the declared catalog, or the user's own tool list when an earlier connection left one.
-  - Only operator-configured servers qualify: those defined in `librechat.yaml` or added through [admin configuration overrides](/docs/features/admin_panel#configuration-management). Servers users create in the UI keep the turn-start prompt. The prompt stays at turn start for a server that uses `obo`, `customUserVars`, `requestHeaders`, or per-user or per-request placeholders (`{{LIBRECHAT_USER_*}}`, `{{LIBRECHAT_OPENID_*}}`, `{{LIBRECHAT_GRAPH_*}}`, `{{LIBRECHAT_BODY_*}}`) in its connection settings.
-  - Applies whether OAuth is configured up front (`oauth`, `requiresOAuth: true`) or detected when the server refuses the connection.
-  - Not available on servers users create in the UI.
+  - `on_use` se aplica únicamente cuando todas las herramientas que el agente seleccionó del servidor están [diferidas](/docs/features/agents#deferred-tools) ("Defer Loading" activado). Si alguna de las herramientas seleccionadas se carga desde el inicio, o si el agente selecciona el servidor completo en lugar de herramientas individuales, el prompt permanece al inicio del turno.
+  - El [capacidad de agente](/docs/configuration/librechat_yaml/object_structure/agents#capabilities) `deferred_tools` debe estar habilitada. Cuando la capacidad `run_in_background` está habilitada, una herramienta seleccionada que opta por la ejecución en segundo plano mantiene la solicitud al inicio del turno, ya que una llamada desvinculada no puede esperar a que se inicie sesión.
+  - `on_use` requiere un [`oauthToolCatalog`](#oauthtoolcatalog) declarado. Sin uno, el servidor mantiene el prompt de inicio del turno, incluso para un usuario que se haya conectado antes.
+  - Las herramientas ofrecidas antes del inicio de sesión deben incluir cada herramienta seleccionada; de lo contrario, el aviso permanece al inicio del turno. Esto corresponde al catálogo declarado o, cuando una conexión anterior dejó una lista de herramientas del usuario, a esa lista.
+  - Solo los servidores configurados por el operador son elegibles: los definidos en `librechat.yaml` o añadidos mediante [sobrescrituras de configuración de administrador](/docs/features/admin_panel#configuration-management). Los servidores que los usuarios crean en la interfaz conservan el aviso al inicio del turno. El aviso se mantiene al inicio del turno para un servidor que utiliza `obo`, `customUserVars`, `requestHeaders`, o marcadores de posición por usuario o por solicitud (`{{LIBRECHAT_USER_*}}`, `{{LIBRECHAT_OPENID_*}}`, `{{LIBRECHAT_GRAPH_*}}`, `{{LIBRECHAT_BODY_*}}`) en su configuración de conexión.
+  - Aplica tanto si OAuth se configura de antemano (`oauth`, `requiresOAuth: true`) como si se detecta cuando el servidor rechaza la conexión.
+  - No disponible en los servidores que los usuarios crean desde la interfaz.
 - **Ejemplo:**
   ```yaml
   mcpServers:
@@ -679,25 +679,25 @@ Las solicitudes HTTP de descubrimiento, registro, token y revocación de OAuth d
 
 #### `oauthToolCatalog` [#oauthtoolcatalog]
 
-- **Type:** Array of Objects (Optional)
-- **Description:** The tools an `oauthPrompt: on_use` server offers to tool search before a user signs in. LibreChat cannot list a protected server's tools for a user who has not signed in, so the operator declares them here. The catalog is the same for every user; no user's connection decides what other users' agents see. Once a user signs in, the server's own tool definitions are used, and the server validates every call.
-- **Entry fields:**
-  - `name`: String (Required) - The tool's name on the server, as the agent selects it.
-  - `description`: String (Optional) - What the tool does, shown to tool search and the model.
-  - `inputSchema`: Object (Optional) - The tool's parameters:
-    - `type`: must be `object`
-    - `properties`: map of parameter name to a property schema
-    - `required`: array of required parameter names
-- **Property schema:** a bounded subset of JSON Schema with these keys only:
-  - `type`: one of `string`, `number`, `integer`, `boolean`, `object`, `array`, `null`, or a non-empty list of them
+- **Tipo:** Array de objetos (Opcional)
+- **Descripción:** Las herramientas que un servidor con `oauthPrompt: on_use` ofrece a la búsqueda de herramientas antes de que el usuario inicie sesión. LibreChat no puede listar las herramientas de un servidor protegido para un usuario que aún no ha iniciado sesión, por lo que el operador las declara aquí. El catálogo es el mismo para todos los usuarios; la conexión de ningún usuario determina lo que ven los agentes de los demás. Una vez que el usuario inicia sesión, se utilizan las definiciones de herramientas propias del servidor, y el servidor valida cada llamada.
+- **Campos de entrada:**
+  - `name`: String (Obligatorio) - El nombre de la herramienta en el servidor, tal como lo selecciona el agente.
+  - `description`: String (Opcional) - Qué hace la herramienta, mostrado a la búsqueda de herramientas y al modelo.
+  - `inputSchema`: Objeto (Opcional) - Los parámetros de la herramienta:
+    - `type`: debe ser `object`
+    - `properties`: mapa del nombre del parámetro a un esquema de propiedad
+    - `required`: arreglo de nombres de parámetros obligatorios
+- **Esquema de propiedades:** un subconjunto acotado de JSON Schema que solo admite estas claves:
+  - `type`: uno de `string`, `number`, `integer`, `boolean`, `object`, `array`, `null`, o una lista no vacía de ellos
   - `description`: String
-  - `enum`: non-empty array of strings, numbers, booleans, or `null`
-  - `default`: a string, number, boolean, or `null`
-  - `items`: for arrays, an object with `type`, `description`, and `enum`
+  - `enum`: array no vacío de cadenas, números, booleanos o `null`
+  - `default`: una cadena de texto, un número, un booleano o `null`
+  - `items`: para arrays, un objeto con `type`, `description` y `enum`
 - **Notas:**
-  - Validation is strict. A misspelled entry key (such as `input_schema`) or a keyword outside the bounded schema (such as `minLength`, `pattern`, or `$ref`) fails config validation instead of being ignored.
-  - A user whose earlier connection left a tool list is offered that list instead; either way it must include every tool the agent selected from the server, or the prompt stays at turn start.
-  - Not available on servers users create in the UI.
+  - La validación es estricta. Una clave mal escrita (como `input_schema`) o una palabra clave fuera del esquema acotado (como `minLength`, `pattern` o `$ref`) hace que la validación de la configuración falle, en lugar de ser ignorada.
+  - Un usuario cuya conexión anterior dejó una lista de herramientas recibe esa lista en su lugar; en cualquier caso, debe incluir todas las herramientas que el agente seleccionó del servidor, o el aviso permanece al inicio del turno.
+  - No disponible en los servidores que los usuarios crean desde la interfaz.
 - **Ejemplo:**
   ```yaml
   oauthToolCatalog:
@@ -873,7 +873,7 @@ oauth-api-server:
     X-Custom-Header: 'custom_value'
 ```
 
-### MCP Server with OAuth Sign-In on First Tool Use [#mcp-server-with-oauth-sign-in-on-first-tool-use]
+### Servidor MCP con inicio de sesión OAuth en el primer uso de herramienta [#mcp-server-with-oauth-sign-in-on-first-tool-use]
 
 ```yaml filename="MCP Server with oauthPrompt: on_use"
 google-sheets:

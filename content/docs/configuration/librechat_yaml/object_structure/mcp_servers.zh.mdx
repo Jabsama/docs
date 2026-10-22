@@ -226,13 +226,13 @@ mcpServers:
     [
       'oauthPrompt',
       'String',
-      "(Optional) When an OAuth server asks a user to sign in. `on_start` (default) asks when the conversation turn starts. `on_use` waits until the agent first calls one of the server's tools, when every tool the agent selected from the server is deferred and `oauthToolCatalog` is declared.",
+      "（可选）OAuth 服务器何时要求用户登录。`on_start`（默认值）在对话轮次开始时请求登录。`on_use` 则会等到智能体首次调用该服务器的某个工具时才请求登录，此时智能体从该服务器选择的所有工具都已延迟加载，且已声明 `oauthToolCatalog`。",
       'oauthPrompt: on_use',
     ],
     [
       'oauthToolCatalog',
       'Array of Objects',
-      '(Optional) Tools an `oauthPrompt: on_use` server offers to tool search before the user signs in. Each entry has a `name` and an optional `description` and `inputSchema`.',
+      '(可选)在用户登录之前,`oauthPrompt: on_use` 服务器提供给工具搜索的工具。每个条目包含 `name`,以及可选的 `description` 和 `inputSchema`。',
       'oauthToolCatalog:\n  - name: read_sheet\n    description: Read the values in a spreadsheet range',
     ],
     [
@@ -652,18 +652,18 @@ requestHeaders:
 #### `oauthPrompt` [#oauthprompt]
 
 - **类型：** 字符串（可选）
-- **Description:** Controls when a user is asked to sign in to an OAuth-protected server.
-  - `on_start`: the sign-in prompt appears when the conversation turn starts, before the agent runs.
-  - `on_use`: the turn starts without a prompt, and the agent finds the server's tools through tool search. The prompt appears when the agent first calls one of the server's tools, and the run waits for the user to sign in.
-- **Default Value:** `on_start`
+- **描述:** 控制何时要求用户登录受 OAuth 保护的服务器。
+  - `on_start`:登录提示会在对话轮次开始时、智能体运行之前出现。
+  - `on_use`:对话轮次开始时不会提示登录,代理通过工具搜索找到服务器的工具。当代理首次调用该服务器的某个工具时会弹出提示,运行过程会等待用户登录。
+- **默认值:** `on_start`
 - **注意：**
-  - `on_use` applies only when every tool the agent selected from the server is [deferred](/docs/features/agents#deferred-tools) ("Defer Loading" on). If any selected tool loads up front, or the agent selects the whole server rather than individual tools, the prompt stays at turn start.
-  - The `deferred_tools` [agent capability](/docs/configuration/librechat_yaml/object_structure/agents#capabilities) must be enabled. When the `run_in_background` capability is enabled, a selected tool that opts into background execution keeps the prompt at turn start, since a detached call cannot wait for a sign-in.
-  - `on_use` requires a declared [`oauthToolCatalog`](#oauthtoolcatalog). Without one, the server keeps the turn-start prompt, even for a user who has connected before.
-  - The tools offered before sign-in must include every selected tool, or the prompt stays at turn start. That is the declared catalog, or the user's own tool list when an earlier connection left one.
-  - Only operator-configured servers qualify: those defined in `librechat.yaml` or added through [admin configuration overrides](/docs/features/admin_panel#configuration-management). Servers users create in the UI keep the turn-start prompt. The prompt stays at turn start for a server that uses `obo`, `customUserVars`, `requestHeaders`, or per-user or per-request placeholders (`{{LIBRECHAT_USER_*}}`, `{{LIBRECHAT_OPENID_*}}`, `{{LIBRECHAT_GRAPH_*}}`, `{{LIBRECHAT_BODY_*}}`) in its connection settings.
-  - Applies whether OAuth is configured up front (`oauth`, `requiresOAuth: true`) or detected when the server refuses the connection.
-  - Not available on servers users create in the UI.
+  - `on_use` 仅在智能体从服务器中选择的每个工具都已[延迟加载](/docs/features/agents#deferred-tools)（即“Defer Loading”已开启）时生效。如果任一已选工具是预先加载的，或者智能体选择的是整个服务器而非单个工具，则提示仍会在轮次开始时显示。
+  - The `deferred_tools` [智能体能力](/docs/configuration/librechat_yaml/object_structure/agents#capabilities) 必须启用。当启用 `run_in_background` 能力时,选择了启用后台执行的工具会在轮次开始时保留提示,因为分离的调用无法等待登录完成。
+  - `on_use` 需要一个已声明的 [`oauthToolCatalog`](#oauthtoolcatalog)。若未声明,即使用户之前已连接过,服务器也会保留回合开始时的提示。
+  - 在登录之前提供的工具必须包含所有已选择的工具,否则提示词将保持在回合开始状态。这就是声明的工具目录,或者当之前的连接留下了工具时,用户自己的工具列表。
+  - 只有运营者配置的服务器才符合条件:即在 `librechat.yaml` 中定义的服务器,或通过[管理员配置覆盖](/docs/features/admin_panel#configuration-management)添加的服务器。用户在界面中创建的服务器仍保留回合开始时的提示。对于在其连接设置中使用 `obo`、`customUserVars`、`requestHeaders`,或按用户或按请求占位符(`{{LIBRECHAT_USER_*}}`、`{{LIBRECHAT_OPENID_*}}`、`{{LIBRECHAT_GRAPH_*}}`、`{{LIBRECHAT_BODY_*}}`)的服务器,提示仍保留在回合开始时。
+  - 适用于预先配置 OAuth(`oauth`、`requiresOAuth: true`)或在服务器拒绝连接时检测到 OAuth 的两种情况。
+  - 在用户于界面中创建的服务器上不可用。
 - **示例：**
   ```yaml
   mcpServers:
@@ -679,25 +679,25 @@ requestHeaders:
 
 #### `oauthToolCatalog` [#oauthtoolcatalog]
 
-- **Type:** Array of Objects (Optional)
-- **Description:** The tools an `oauthPrompt: on_use` server offers to tool search before a user signs in. LibreChat cannot list a protected server's tools for a user who has not signed in, so the operator declares them here. The catalog is the same for every user; no user's connection decides what other users' agents see. Once a user signs in, the server's own tool definitions are used, and the server validates every call.
-- **Entry fields:**
-  - `name`: String (Required) - The tool's name on the server, as the agent selects it.
-  - `description`: String (Optional) - What the tool does, shown to tool search and the model.
-  - `inputSchema`: Object (Optional) - The tool's parameters:
-    - `type`: must be `object`
-    - `properties`: map of parameter name to a property schema
-    - `required`: array of required parameter names
-- **Property schema:** a bounded subset of JSON Schema with these keys only:
-  - `type`: one of `string`, `number`, `integer`, `boolean`, `object`, `array`, `null`, or a non-empty list of them
-  - `description`: String
-  - `enum`: non-empty array of strings, numbers, booleans, or `null`
-  - `default`: a string, number, boolean, or `null`
-  - `items`: for arrays, an object with `type`, `description`, and `enum`
+- **类型:** 对象数组(可选)
+- **描述:** `oauthPrompt: on_use` 服务器在用户登录之前,向工具搜索提供的工具。LibreChat 无法为尚未登录的用户列出受保护服务器的工具,因此由运营者在此处声明这些工具。该目录对所有用户都相同;任何用户的连接状态都不会影响其他用户的智能体所看到的内容。用户登录后,将使用服务器自身的工具定义,并且服务器会校验每一次调用。
+- **输入字段:**
+  - `name`:字符串(必填)- 工具在服务器上的名称,即智能体选择该工具时使用的名称。
+  - `description`: 字符串(可选)- 工具的功能说明,会显示给工具搜索和模型。
+  - `inputSchema`:对象(可选)- 工具的参数:
+    - `type`:必须为 `object`
+    - `properties`:参数名到属性模式(property schema)的映射
+    - `required`:由必需参数名称组成的数组
+- **属性模式:** 仅包含以下键的 JSON Schema 有界子集:
+  - `type`:其值为 `string`、`number`、`integer`、`boolean`、`object`、`array`、`null` 之一,或由它们组成的非空列表
+  - `description`: 字符串
+  - `enum`: 由字符串、数字、布尔值或 `null` 组成的非空数组
+  - `default`:一个字符串、数字、布尔值或 `null`
+  - `items`:对于数组,是一个包含 `type`、`description` 和 `enum` 的对象
 - **注意：**
-  - Validation is strict. A misspelled entry key (such as `input_schema`) or a keyword outside the bounded schema (such as `minLength`, `pattern`, or `$ref`) fails config validation instead of being ignored.
-  - A user whose earlier connection left a tool list is offered that list instead; either way it must include every tool the agent selected from the server, or the prompt stays at turn start.
-  - Not available on servers users create in the UI.
+  - 验证是严格的。拼写错误的条目键(例如 `input_schema`)或超出有界 schema 范围的关键字(例如 `minLength`、`pattern` 或 `$ref`)会导致配置验证失败,而不会被忽略。
+  - 当用户之前的连接保留了工具列表时,会向其提供该列表;无论哪种情况,该列表都必须包含智能体从服务器中选择的每一个工具,否则提示会停留在本轮开始处。
+  - 在用户于界面中创建的服务器上不可用。
 - **示例：**
   ```yaml
   oauthToolCatalog:
@@ -873,7 +873,7 @@ oauth-api-server:
     X-Custom-Header: 'custom_value'
 ```
 
-### MCP Server with OAuth Sign-In on First Tool Use [#mcp-server-with-oauth-sign-in-on-first-tool-use]
+### 在首次使用工具时通过 OAuth 登录的 MCP 服务器 [#mcp-server-with-oauth-sign-in-on-first-tool-use]
 
 ```yaml filename="MCP Server with oauthPrompt: on_use"
 google-sheets:

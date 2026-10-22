@@ -226,13 +226,13 @@ mcpServers:
     [
       'oauthPrompt',
       'String',
-      "(Optional) When an OAuth server asks a user to sign in. `on_start` (default) asks when the conversation turn starts. `on_use` waits until the agent first calls one of the server's tools, when every tool the agent selected from the server is deferred and `oauthToolCatalog` is declared.",
+      "(Opsional) Saat server OAuth meminta pengguna untuk masuk. `on_start` (default) meminta saat giliran percakapan dimulai. `on_use` menunggu hingga agen pertama kali memanggil salah satu tool dari server tersebut, ketika setiap tool yang dipilih agen dari server tersebut ditangguhkan dan `oauthToolCatalog` dideklarasikan.",
       'oauthPrompt: on_use',
     ],
     [
       'oauthToolCatalog',
       'Array of Objects',
-      '(Optional) Tools an `oauthPrompt: on_use` server offers to tool search before the user signs in. Each entry has a `name` and an optional `description` and `inputSchema`.',
+      'Alat (opsional) yang ditawarkan server `oauthPrompt: on_use` ke pencarian alat sebelum pengguna masuk. Setiap entri memiliki `name` dan `description` serta `inputSchema` yang bersifat opsional.',
       'oauthToolCatalog:\n  - name: read_sheet\n    description: Read the values in a spreadsheet range',
     ],
     [
@@ -652,18 +652,18 @@ Permintaan HTTP penemuan, pendaftaran, token, dan pencabutan OAuth sisi server *
 #### `oauthPrompt` [#oauthprompt]
 
 - **Tipe:** String (Opsional)
-- **Description:** Controls when a user is asked to sign in to an OAuth-protected server.
-  - `on_start`: the sign-in prompt appears when the conversation turn starts, before the agent runs.
-  - `on_use`: the turn starts without a prompt, and the agent finds the server's tools through tool search. The prompt appears when the agent first calls one of the server's tools, and the run waits for the user to sign in.
-- **Default Value:** `on_start`
+- **Deskripsi:** Mengatur kapan pengguna diminta untuk masuk ke server yang dilindungi OAuth.
+  - `on_start`: prompt masuk muncul saat giliran percakapan dimulai, sebelum agen dijalankan.
+  - `on_use`: giliran dimulai tanpa prompt, dan agen menemukan tool dari server tersebut melalui pencarian tool. Prompt muncul saat agen pertama kali memanggil salah satu tool server tersebut, dan eksekusi menunggu pengguna untuk masuk.
+- **Nilai Default:** `on_start`
 - **Catatan:**
-  - `on_use` applies only when every tool the agent selected from the server is [deferred](/docs/features/agents#deferred-tools) ("Defer Loading" on). If any selected tool loads up front, or the agent selects the whole server rather than individual tools, the prompt stays at turn start.
-  - The `deferred_tools` [agent capability](/docs/configuration/librechat_yaml/object_structure/agents#capabilities) must be enabled. When the `run_in_background` capability is enabled, a selected tool that opts into background execution keeps the prompt at turn start, since a detached call cannot wait for a sign-in.
-  - `on_use` requires a declared [`oauthToolCatalog`](#oauthtoolcatalog). Without one, the server keeps the turn-start prompt, even for a user who has connected before.
-  - The tools offered before sign-in must include every selected tool, or the prompt stays at turn start. That is the declared catalog, or the user's own tool list when an earlier connection left one.
-  - Only operator-configured servers qualify: those defined in `librechat.yaml` or added through [admin configuration overrides](/docs/features/admin_panel#configuration-management). Servers users create in the UI keep the turn-start prompt. The prompt stays at turn start for a server that uses `obo`, `customUserVars`, `requestHeaders`, or per-user or per-request placeholders (`{{LIBRECHAT_USER_*}}`, `{{LIBRECHAT_OPENID_*}}`, `{{LIBRECHAT_GRAPH_*}}`, `{{LIBRECHAT_BODY_*}}`) in its connection settings.
-  - Applies whether OAuth is configured up front (`oauth`, `requiresOAuth: true`) or detected when the server refuses the connection.
-  - Not available on servers users create in the UI.
+  - `on_use` hanya berlaku jika setiap tool yang dipilih agent dari server tersebut adalah [deferred](/docs/features/agents#deferred-tools) ("Defer Loading" aktif). Jika ada tool yang dipilih dimuat di awal, atau agent memilih seluruh server alih-alih tool individual, prompt tetap berada di awal giliran (turn start).
+  - Capability `deferred_tools` [agent](/docs/configuration/librechat_yaml/object_structure/agents#capabilities) harus diaktifkan. Ketika capability `run_in_background` diaktifkan, alat yang dipilih dan memilih untuk eksekusi di latar belakang tetap menampilkan prompt pada awal giliran, karena panggilan yang terpisah tidak dapat menunggu proses masuk (sign-in).
+  - `on_use` memerlukan [`oauthToolCatalog`](#oauthtoolcatalog) yang dideklarasikan. Tanpa itu, server mempertahankan prompt saat awal giliran, meskipun untuk pengguna yang sudah pernah terhubung sebelumnya.
+  - Alat yang ditawarkan sebelum masuk harus mencakup setiap alat yang dipilih, atau prompt tetap berada di awal giliran. Itu adalah katalog yang dideklarasikan, atau daftar alat milik pengguna ketika koneksi sebelumnya meninggalkannya.
+  - Hanya server yang dikonfigurasi operator yang memenuhi syarat: server yang didefinisikan dalam `librechat.yaml` atau yang ditambahkan melalui [penggantian konfigurasi admin](/docs/features/admin_panel#configuration-management). Server yang dibuat pengguna di UI tetap menggunakan prompt saat awal giliran. Prompt tetap berada di awal giliran untuk server yang menggunakan `obo`, `customUserVars`, `requestHeaders`, atau placeholder per pengguna atau per permintaan (`{{LIBRECHAT_USER_*}}`, `{{LIBRECHAT_OPENID_*}}`, `{{LIBRECHAT_GRAPH_*}}`, `{{LIBRECHAT_BODY_*}}`) dalam pengaturan koneksinya.
+  - Berlaku baik ketika OAuth dikonfigurasi di awal (`oauth`, `requiresOAuth: true`) maupun ketika terdeteksi saat server menolak koneksi.
+  - Tidak tersedia pada server yang dibuat pengguna melalui UI.
 - **Contoh:**
   ```yaml
   mcpServers:
@@ -679,25 +679,25 @@ Permintaan HTTP penemuan, pendaftaran, token, dan pencabutan OAuth sisi server *
 
 #### `oauthToolCatalog` [#oauthtoolcatalog]
 
-- **Type:** Array of Objects (Optional)
-- **Description:** The tools an `oauthPrompt: on_use` server offers to tool search before a user signs in. LibreChat cannot list a protected server's tools for a user who has not signed in, so the operator declares them here. The catalog is the same for every user; no user's connection decides what other users' agents see. Once a user signs in, the server's own tool definitions are used, and the server validates every call.
-- **Entry fields:**
-  - `name`: String (Required) - The tool's name on the server, as the agent selects it.
-  - `description`: String (Optional) - What the tool does, shown to tool search and the model.
-  - `inputSchema`: Object (Optional) - The tool's parameters:
-    - `type`: must be `object`
-    - `properties`: map of parameter name to a property schema
-    - `required`: array of required parameter names
-- **Property schema:** a bounded subset of JSON Schema with these keys only:
-  - `type`: one of `string`, `number`, `integer`, `boolean`, `object`, `array`, `null`, or a non-empty list of them
+- **Tipe:** Array of Objects (Opsional)
+- **Deskripsi:** Daftar alat yang ditawarkan server `oauthPrompt: on_use` ke pencarian alat sebelum pengguna masuk. LibreChat tidak dapat menampilkan alat dari server yang dilindungi untuk pengguna yang belum masuk, sehingga operator mendeklarasikannya di sini. Katalog ini sama untuk setiap pengguna; koneksi seorang pengguna tidak menentukan apa yang dilihat agen pengguna lain. Setelah pengguna masuk, definisi alat milik server itu sendiri yang digunakan, dan server memvalidasi setiap panggilan.
+- **Kolom masukan:**
+  - `name`: String (Wajib) - Nama alat pada server, sebagaimana dipilih oleh agen.
+  - `description`: String (Opsional) - Apa yang dilakukan alat ini, ditampilkan ke pencarian alat dan model.
+  - `inputSchema`: Object (Opsional) - Parameter dari tool:
+    - `type`: harus berupa `object`
+    - `properties`: peta dari nama parameter ke skema properti
+    - `required`: array dari nama parameter yang wajib diisi
+- **Skema properti:** subset terbatas dari JSON Schema yang hanya memiliki kunci-kunci berikut:
+  - `type`: salah satu dari `string`, `number`, `integer`, `boolean`, `object`, `array`, `null`, atau daftar tidak kosong dari nilai-nilai tersebut
   - `description`: String
-  - `enum`: non-empty array of strings, numbers, booleans, or `null`
-  - `default`: a string, number, boolean, or `null`
-  - `items`: for arrays, an object with `type`, `description`, and `enum`
+  - `enum`: array tidak kosong berisi string, angka, boolean, atau `null`
+  - `default`: string, number, boolean, atau `null`
+  - `items`: untuk array, sebuah objek dengan `type`, `description`, dan `enum`
 - **Catatan:**
-  - Validation is strict. A misspelled entry key (such as `input_schema`) or a keyword outside the bounded schema (such as `minLength`, `pattern`, or `$ref`) fails config validation instead of being ignored.
-  - A user whose earlier connection left a tool list is offered that list instead; either way it must include every tool the agent selected from the server, or the prompt stays at turn start.
-  - Not available on servers users create in the UI.
+  - Validasi bersifat ketat. Kunci entri yang salah eja (misalnya `input_schema`) atau kata kunci di luar skema terbatas (misalnya `minLength`, `pattern`, atau `$ref`) akan menggagalkan validasi konfigurasi, alih-alih diabaikan.
+  - Pengguna yang koneksi sebelumnya masih menyisakan daftar tool akan ditawarkan daftar tersebut sebagai gantinya; dalam kedua kasus, daftar harus mencakup setiap tool yang dipilih agen dari server, atau prompt akan tetap berada di awal giliran.
+  - Tidak tersedia pada server yang dibuat pengguna melalui UI.
 - **Contoh:**
   ```yaml
   oauthToolCatalog:
@@ -873,7 +873,7 @@ oauth-api-server:
     X-Custom-Header: 'custom_value'
 ```
 
-### MCP Server with OAuth Sign-In on First Tool Use [#mcp-server-with-oauth-sign-in-on-first-tool-use]
+### Server MCP dengan Masuk OAuth saat Penggunaan Alat Pertama [#mcp-server-with-oauth-sign-in-on-first-tool-use]
 
 ```yaml filename="MCP Server with oauthPrompt: on_use"
 google-sheets:
