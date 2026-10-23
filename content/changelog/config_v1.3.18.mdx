@@ -47,7 +47,7 @@ The database Base profile overrides YAML before principal profiles. Removing an 
 
 - `balance.refillMode: add` retains rollover; `reset` replaces the allowance and requires compatible replicas. `balance.display` accepts `credits`, `currency`, or `percent`.
 - `speech.tts.maxInputChars` defaults to `20000`.
-- `passwordHashing.maxWorkers` bounds background hashing; the default is one less than the CPU count, capped at four.
+- `passwordHashing.maxWorkers` bounds background hashing; the default is `max(1, min(4, availableParallelism() - 1))`.
 - `timeouts` adds per-operation outbound budgets: `ragMs: 30000`, `ocrMs: 300000`, `actionsMs: 300000`, `moderationMs: 10000`, and `imageFetchMs: 30000`.
 - `endpoints.agents.streamKeepaliveIntervalMs` defaults to `25000`; `0` disables quiet-stream keepalives.
 - `hostFileEdits` bounds host-side edit matching, not attached-worker edits: `maxEdits: 100`, `maxWorkBytes: 67108864`, `maxOccurrences: 100000`, `timeoutMs: 2000`, and `maxConcurrent: 2`.
