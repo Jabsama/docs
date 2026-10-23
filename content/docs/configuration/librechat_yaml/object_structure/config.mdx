@@ -1827,3 +1827,7 @@ Deployment-owned sandbox settings cannot be overridden by role, group, or user p
 | `maxActionPreviewChars` | `16384` |
 
 Keep these sandbox budgets separate from `rateLimits.mcpApps` browser-route request budgets.
+
+## Permission Write Leases
+
+On deployments without transactions, resource-sharing updates use a renewable per-resource lease. `permissions.leaseTtlMs` defaults to `30000` ms and accepts `1000`–`600000`. `permissions.leaseWaitMs` defaults to `3000` ms and accepts `0`–`60000`; contention past this wait returns `409`. These settings do not disable authorization checks or make unrelated admin operations transactional.

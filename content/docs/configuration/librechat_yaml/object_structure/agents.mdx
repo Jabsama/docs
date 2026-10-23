@@ -1470,3 +1470,13 @@ Unset or blank `CODE_ENVIRONMENT_DECISION_VERSION` advertises protocol `1`; `0` 
 Browser enrollment is separately off by default. Enable `statefulCodeSessions.principalWorkers.browserSetup.enabled`, configure its canonical public `instance` including any deployment prefix, and use an approved personal-worker control plane with compatible enrollment support. Existing principal-worker limits and authentication still apply. Opening the verification page does not enroll a machine: explicit browser approval is required.
 
 LibreChat permits linked-worktree routing unless explicitly disabled, but a compatible worker advertising `git_linked_worktree` is still required. Conversation-isolated workspace instances do not use those lanes. [Upgrade compatibility](/docs/configuration/upgrade#mixed-version-compatibility) describes the rollout boundaries.
+
+## Stream Keepalives
+
+`streamKeepaliveIntervalMs` defaults to `25000` milliseconds for quiet Agent streams. Set `0` to disable keepalives. This does not extend the model's request or generation deadline.
+
+## Attached-Environment Defaults
+
+`statefulCodeSessions.maxEnvironmentChoices` caps additional choices saved on an agent; omission uses `32`, with a wire ceiling of `128`. Only explicit saved choices are selectable.
+
+Each attached environment may set `configSchema.limits.defaultCommandTimeoutMs` for foreground Bash calls omitting `timeoutMs`, and `defaultReadFileLines` for `read_file` calls omitting `max_lines`. Omission retains `30000` ms and `200` lines. Both are positive integers bounded by the worker protocol; effective command ceilings and response-byte budgets may reduce the result. Upgrade every API replica before using these strict-schema fields.
